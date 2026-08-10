@@ -271,6 +271,22 @@ def volume_computation_masked(language, inputs, present=None):
     return res
 
 
+def volume_computation_mean_imputed(language, inputs, present=None):
+    """GRAM-masked baseline variant (ii) (SCA plan 1.3.9): a MISSING modality vector is replaced
+    by the plain mean of the clip's present modality vectors (no renorm -- honest imputation),
+    then the full-arity volume is computed unchanged. Contrast with variant (i)
+    (volume_computation_masked): reduced-arity via the phantom-axis identity trick.
+    present=None (or all ones) == volume_computation byte-for-byte."""
+    if present is None:
+        return volume_computation_masked(language, inputs, present=None)
+    present = present.to(inputs[0].dtype)                                    # (B2, L)
+    stack = torch.stack(inputs, dim=1)                                       # (B2, L, dim)
+    mean_present = (stack * present.unsqueeze(-1)).sum(1) / present.sum(1).clamp(min=1.0).unsqueeze(-1)
+    imputed = [inputs[i] * present[:, i:i+1] + mean_present * (1.0 - present[:, i:i+1])
+               for i in range(len(inputs))]
+    return volume_computation_masked(language, imputed, present=None)
+
+
 def volume_computation(language, *inputs):
     """
     General function to compute volume for contrastive learning loss functions.

@@ -9,17 +9,31 @@ from easydict import EasyDict as edict
 from utils.logger import LOGGER
 import os
 
+def expand_env_vars(cfg):
+    """Recursively expand $DATA_ROOT / $WORK_ROOT (any env var) in every string of a loaded
+    config. All config/sca/ files are parameterized this way for portability across
+    allocations; gram configs carry absolute paths without '$' and pass through unchanged."""
+    if isinstance(cfg, str):
+        return os.path.expandvars(cfg)
+    if isinstance(cfg, dict):
+        return type(cfg)({k: expand_env_vars(v) for k, v in cfg.items()})
+    if isinstance(cfg, list):
+        return [expand_env_vars(v) for v in cfg]
+    return cfg
+
+
 def parse_with_config(parser):
 
-    args = parser.parse_args()  
+    args = parser.parse_args()
     file_cfg = edict(json.load(open(args.config)))
+    file_cfg = expand_env_vars(file_cfg)
 
 
     cmd_cfg_keys = {arg[2:].split('=')[0] for arg in sys.argv[1:]
                         if arg.startswith('--')}
 
-    ### load default run_cfg 
-    run_cfg = edict(json.load(open(file_cfg.run_cfg.default)))
+    ### load default run_cfg
+    run_cfg = expand_env_vars(edict(json.load(open(file_cfg.run_cfg.default))))
     ### overwrite run_cfg by config file 
     run_cfg.update(file_cfg.run_cfg)
     ### overwrite run_cfg by cmd
@@ -31,7 +45,7 @@ def parse_with_config(parser):
     # if file_cfg['model_cfg']: must have
 
     ### load default model_cfg
-    model_cfg = edict(json.load(open(file_cfg.model_cfg.default)))
+    model_cfg = expand_env_vars(edict(json.load(open(file_cfg.model_cfg.default))))
     ### overwrite model_cfg by config file 
     model_cfg.update(file_cfg.model_cfg)
     
@@ -303,6 +317,26 @@ def get_args():
     parser.add_argument('--mode', type=str, default='training')
     parser.add_argument('--perceiver_mode', type=str, default='')
     parser.add_argument('--vision_cut_frames', type=int, default=-1)
+    ### SCA / LoRA (cmd overrides for the matching model_cfg / run_cfg keys)
+    parser.add_argument('--use_lora', type=str2bool, default=False)
+    parser.add_argument('--lora_r_vision', type=int, default=8)
+    parser.add_argument('--lora_r_audio', type=int, default=8)
+    parser.add_argument('--lora_r_text', type=int, default=8)
+    parser.add_argument('--lora_alpha', type=int, default=16)
+    parser.add_argument('--lora_lr', type=float, default=None)
+    parser.add_argument('--s_star_path', type=str, default='')
+    parser.add_argument('--sca_alpha', type=float, default=1.0)
+    parser.add_argument('--sca_beta', type=float, default=1.0)
+    parser.add_argument('--sca_delta', type=float, default=0.5)
+    parser.add_argument('--sca_lambda', type=float, default=0.1)
+    parser.add_argument('--sca_tau', type=float, default=0.07)
+    parser.add_argument('--sca_tau_star', type=float, default=0.5)
+    parser.add_argument('--sca_calibration', type=str, default='regression',
+                        choices=['none', 'regression', 'fixed_tau'])
+    parser.add_argument('--sca_warmup_steps', type=int, default=500)
+    parser.add_argument('--mask_p_full_start', type=float, default=1.0)
+    parser.add_argument('--mask_p_full_end', type=float, default=0.5)
+    parser.add_argument('--mask_schedule_steps', type=int, default=2000)
    
 
     args = parse_with_config(parser)

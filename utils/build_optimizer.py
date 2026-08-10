@@ -14,7 +14,20 @@ def build_optimizer(model, args, checkpoint_optim):
 
     # hgnn.gates is a zero-init scalar residual gate, not a weight -> must not be weight-decayed
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight', 'gates']
-   
+
+    # ---- SCA LoRA regime: freeze the three backbones, train LoRA A/B (own lr, default
+    # 0.1x the base lr) + the projection heads at the base lr. GRAM path (use_lora unset)
+    # is byte-for-byte unchanged.
+    use_lora = bool(getattr(args.model_cfg, 'use_lora', False))
+    backbone_prefixes = ('vision_encoder', 'audio_encoder', 'multimodal_encoder')
+    lora_params = []
+    lora_params_name = []
+    if use_lora:
+        for k, v in model.named_parameters():
+            if any(bp in k for bp in backbone_prefixes) and 'lora_' not in k:
+                v.requires_grad = False
+    lora_lr = getattr(args.run_cfg, 'lora_lr', None) or args.run_cfg.learning_rate * 0.1
+
     basic_params = []
     basic_params_name = []
     basic_params_no_decay = []
@@ -30,7 +43,12 @@ def build_optimizer(model, args, checkpoint_optim):
 
 
     for k, v in model.named_parameters():
-        if any(nd in k for nd in args.run_cfg.new_params_name) and not any(nd in k for nd in no_decay):
+        if use_lora and not v.requires_grad:
+            continue
+        if use_lora and ('lora_A' in k or 'lora_B' in k):
+            lora_params.append(v)
+            lora_params_name.append(k)
+        elif any(nd in k for nd in args.run_cfg.new_params_name) and not any(nd in k for nd in no_decay):
             new_params.append(v)
             new_params_name.append(k)
         elif any(nd in k for nd in args.run_cfg.new_params_name) and any(nd in k for nd in no_decay):
@@ -60,6 +78,11 @@ def build_optimizer(model, args, checkpoint_optim):
         {'params': clip_params_visual, 'weight_decay': args.run_cfg.weight_decay, 'lr': args.run_cfg.clip_lr},
         {'params': clip_params_no_decay_visual, 'weight_decay': 0.0, 'lr': args.run_cfg.clip_lr},
     ]
+    if use_lora:
+        optimizer_grouped_parameters.append(
+            {'params': lora_params, 'weight_decay': args.run_cfg.weight_decay, 'lr': lora_lr})
+        LOGGER.info(f'[LoRA] {len(lora_params)} adapter tensors at lr {lora_lr}; '
+                    f'backbones {backbone_prefixes} frozen')
 
     # print(basic_params_name)
     # print(clip_params_visual)

@@ -1,0 +1,50 @@
+{
+ "run_cfg": {
+  "default": "./config/sca/default_run_cfg.json",
+  "new_params_name": [],
+  "num_train_steps": 15,
+  "save_steps": 6,
+  "valid_freq": 6,
+  "first_eval": true,
+  "save_best": true
+ },
+ "model_cfg": {
+  "default": "./config/sca/default_model_cfg.json",
+  "s_star_path": "${WORK_ROOT}/HyperAlign/benchmark_eval/smoke_annos/s_star_ft_vatex_train200.pt"
+ },
+ "data_cfg": {
+  "train": [
+   {
+    "type": "annoindexed",
+    "training": true,
+    "name": "vatex_ret",
+    "txt": "${WORK_ROOT}/HyperAlign/benchmark_eval/smoke_annos/ft_vatex_train200.json",
+    "vision": "${DATA_ROOT}/VATEX/videos_raw",
+    "audio": "${DATA_ROOT}/VATEX/audios",
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 8,
+    "audio_sample_num": 1,
+    "task": "ret%tvas",
+    "epoch": 3,
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ],
+  "val": [
+   {
+    "type": "annoindexed",
+    "training": false,
+    "name": "vatex_ret",
+    "txt": "${WORK_ROOT}/HyperAlign/benchmark_eval/smoke_annos/ft_vatex_test100.json",
+    "vision": "${DATA_ROOT}/VATEX/videos_raw",
+    "audio": "${DATA_ROOT}/VATEX/audios",
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 8,
+    "audio_sample_num": 1,
+    "task": "ret%tvas",
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ]
+ }
+}

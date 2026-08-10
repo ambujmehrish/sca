@@ -46,6 +46,26 @@ def mutual_knn_adj(t_frozen, k=4, edge_dropout=0.3, training=True, sim_std=None)
     return adj
 
 
+def concept_incidence(labels, mask, device, present=None):
+    """H_con (|V|, C): Level-2 grouping for SCA -- hyperedge c connects the non-text vertices of
+    every doc labelled with concept c. Same incidence conventions as doc_incidence (vertices
+    ordered doc-major, k1 = len(mask) per doc; `present` disconnects a missing modality).
+
+    labels: (B,) long concept ids. Columns are the sorted unique labels of the batch; also
+    returns that label list so the caller can map columns back to concept ids."""
+    labels = torch.as_tensor(labels, device=device).long()
+    B = labels.shape[0]
+    k1 = len(mask)
+    uniq = torch.unique(labels, sorted=True)
+    C = uniq.shape[0]
+    col = torch.searchsorted(uniq, labels)                      # (B,) column per doc
+    H = torch.zeros(B * k1, C, device=device)
+    idx = torch.arange(B, device=device)
+    for m in range(k1):
+        H[idx * k1 + m, col] = 1.0 if present is None else present[:, m]
+    return H, uniq
+
+
 def semantic_incidence(adj, B, mask, device):
     """H_sem (|V|, B): semantic edge j connects the non-text vertices of doc j and its mutual
     neighbours. adj: (B, B) from mutual_knn_adj (or None)."""

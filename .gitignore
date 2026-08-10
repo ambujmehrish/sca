@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+workdir*/
+wandb/
+*.pt
+!benchmark_eval/**/*.json

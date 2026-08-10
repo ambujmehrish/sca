@@ -292,8 +292,21 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         # is gone. present=all-ones (every clip complete) == volume_computation byte-for-byte -> the
         # normal GRAM eval is unchanged. Same logic in train + eval + validation.
         _present = torch.stack([(f.norm(dim=-1) > 0.5).float() for f in _feats], dim=1)
-        area = volume_computation_masked(feat_t, _feats, present=_present)
-        LOGGER.info(f"[VOLUME] task={_task} -> volume over T+"
+        # score_mode selects the gallery geometry; 'volume' (default) is GRAM byte-for-byte.
+        #   'centroid'           : SCA -- distance = 1 - cos(text, masked spherical mean)
+        #   'volume_mean_imputed': GRAM-masked baseline (ii) -- missing vector mean-imputed
+        _score_mode = getattr(model.config, 'score_mode', 'volume')
+        if _score_mode == 'centroid':
+            from model.centroid import masked_spherical_mean
+            _mu, _, _ = masked_spherical_mean(torch.stack([f.float() for f in _feats], dim=1),
+                                              _present)
+            area = 1.0 - feat_t.float() @ _mu.T
+        elif _score_mode == 'volume_mean_imputed':
+            from utils.volume import volume_computation_mean_imputed
+            area = volume_computation_mean_imputed(feat_t, _feats, present=_present)
+        else:
+            area = volume_computation_masked(feat_t, _feats, present=_present)
+        LOGGER.info(f"[SCORE] task={_task} mode={_score_mode} over T+"
                     f"{''.join(m.upper() for m in 'vasd' if m in _mods)} = {len(_feats)+1}-modal")
         
         min_values_volume = torch.min(area, 1).values

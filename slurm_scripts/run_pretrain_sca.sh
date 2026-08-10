@@ -21,6 +21,15 @@
 #     --out_path $DATA_ROOT/vast27m_150k/s_star_150k.pt
 : "${DATA_ROOT:?export DATA_ROOT=<dataset root> (e.g. /leonardo_scratch/.../Multimodal_HyperGraph_Dataset)}"
 : "${WORK_ROOT:?export WORK_ROOT=<work root holding the VAST ckpt>}"
+# compute nodes are OFFLINE: source the prefetched-model env (scripts/prefetch_models.py,
+# run once on a login node with --models_dir $WORK_ROOT/sca_models)
+MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
+if [ -f "$MODELS_DIR/env.sh" ]; then
+  source "$MODELS_DIR/env.sh"; echo "OFFLINE env: $MODELS_DIR/env.sh (HF_HOME=$HF_HOME)"
+else
+  echo "FATAL: $MODELS_DIR/env.sh not found -- run scripts/prefetch_models.py on a login node first" >&2
+  exit 1
+fi
 echo "START=$(date +%T) [SCA pretrain -> ./workdir_pretrain/sca]"
 export WANDB_MODE=offline
 export GRAM_MP_CTX=forkserver

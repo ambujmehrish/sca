@@ -42,23 +42,45 @@ Note: the `data/` dataset/loader package (`data/loader.py`, `data_registry`, …
 upstream GRAM/VAST codebase on the cluster (as in HyperAlign, it is not committed here);
 `data/semantic_targets.py` and `data/mask_sampler.py` slot in beside it.
 
-## Running
+## Running (P2: k=4 pretrain + LoRA)
+
+Compute nodes are OFFLINE — prefetch all network-fetched models once on a LOGIN node into a
+directory **outside $HOME** (quota), then every launcher sources the generated `env.sh`
+(sets `HF_HOME` + `*_OFFLINE=1`):
 
 ```bash
 export DATA_ROOT=/path/to/Multimodal_HyperGraph_Dataset   # vast27m_150k, MSRVTT_full, ...
 export WORK_ROOT=/path/to/work                            # holds the VAST ckpt
 
-# one-time: build the S* cache (per dataset; ~minutes on one GPU)
+# 0. LOGIN NODE, one-time: prefetch sentence encoders + bert + EVA-giant weight into
+#    $WORK_ROOT/sca_models (verifies BEATs + VAST ckpt presence; --with-smoke-data adds
+#    CLIP-B/32 + Flickr8k so smoke stage 2 also runs offline)
+python3 scripts/prefetch_models.py --models_dir $WORK_ROOT/sca_models --with-smoke-data
+export MODELS_DIR=$WORK_ROOT/sca_models
+
+# 1. one-time: build the S* cache (per dataset; ~minutes on one GPU)
 python3 data/semantic_targets.py \
   --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json \
   --out_path $DATA_ROOT/vast27m_150k/s_star_150k.pt
 
-# pretrain (4xA100; clones the GRAM recipe)
+# 2. REQUIRED pre-flight gate (stages 1-2 anywhere; stage 3 = real 24-step k=4 smoke
+#    on vast27m_150k with LoRA where $DATA_ROOT is visible)
+bash scripts/smoke_test.sh
+
+# 3. pretrain (4xA100). Stage-0 first (heads-only, vision/audio frozen, cheap sanity),
+#    then Stage-1 (LoRA r=8 in all three backbones) -- the P2 run:
+#    config/sca/pretrain_cfg/sca_pretrain_stage0.json   (Stage-0)
+#    config/sca/pretrain_cfg/sca_pretrain.json          (Stage-1, default of the launcher)
 sbatch slurm_scripts/run_pretrain_sca.sh
 
 # finetune / eval: same flow as GRAM with the sca configs
 python3 run.py --config ./config/sca/finetune_cfg/retrieval-msrvtt.json --output_dir ./workdir/sca_msrvtt
 ```
+
+k=4 note: the pretrain volume/centroid runs over T+{V,A,S} — subtitles flow from
+annotations150k.json (`raw_subtitles`), so no extra config is needed; the val task is
+`ret%tvas`. The trunk's `bert.py` targets the cluster env's transformers 4.x pin; the
+A10/smoke scripts also run under 5.x (they touch only CLIP + sentence encoders).
 
 `model_cfg.score_mode` selects the eval geometry in `evaluation_mm`:
 `volume` (GRAM, default), `centroid` (SCA), `volume_mean_imputed` (masked baseline ii).

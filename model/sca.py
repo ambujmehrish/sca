@@ -122,20 +122,11 @@ class SCA(GRAM):
                 self._lora_wrapped += wrapped
                 LOGGER.info(f'[LoRA] {enc_name}: r={r}, wrapped {len(wrapped)} layers')
 
-    # a LoRA-wrapped linear renames <path>.weight -> <path>.base.weight; remap pretrained
-    # checkpoints so the frozen base weights still load (VAST ckpt, GRAM ckpts).
     def modify_checkpoint(self, checkpoint):
         checkpoint = super().modify_checkpoint(checkpoint)
         if self._lora_wrapped:
-            wrapped = set(self._lora_wrapped)
-            remapped = {}
-            for k, v in checkpoint.items():
-                stem, _, leaf = k.rpartition('.')
-                if stem in wrapped and leaf in ('weight', 'bias'):
-                    remapped[f'{stem}.base.{leaf}'] = v
-                else:
-                    remapped[k] = v
-            checkpoint = remapped
+            from .lora import remap_lora_checkpoint
+            checkpoint = remap_lora_checkpoint(checkpoint, self._lora_wrapped)
         return checkpoint
 
     # ------------------------------------------------------------------ helpers

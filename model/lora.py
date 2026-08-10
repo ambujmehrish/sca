@@ -143,6 +143,22 @@ def unmerge_all(module):
             m.unmerge()
 
 
+def remap_lora_checkpoint(checkpoint, wrapped_paths):
+    """A LoRA-wrapped linear renames <path>.weight -> <path>.base.weight. Remap a pretrained
+    state dict (VAST ckpt, GRAM ckpts) so the frozen base weights still load after injection.
+    Non-wrapped keys pass through untouched; LoRA A/B keys are absent from old checkpoints by
+    construction (load_state_dict(strict=False) reports them as missing, which is correct)."""
+    wrapped = set(wrapped_paths)
+    remapped = {}
+    for k, v in checkpoint.items():
+        stem, _, leaf = k.rpartition('.')
+        if stem in wrapped and leaf in ('weight', 'bias'):
+            remapped[f'{stem}.base.{leaf}'] = v
+        else:
+            remapped[k] = v
+    return remapped
+
+
 def lora_parameters(module):
     """Iterator over (name, param) of all LoRA A/B matrices -- the optimizer's LoRA group."""
     for name, p in module.named_parameters():

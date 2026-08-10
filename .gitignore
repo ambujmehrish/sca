@@ -8,3 +8,4 @@ wandb/
 experiments/a10_workdir/
 experiments/*_prepare.log
 experiments/a10_sweep.log
+pretrained_weights/

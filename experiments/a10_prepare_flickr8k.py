@@ -26,6 +26,12 @@ SBERT_NAME = 'sentence-transformers/all-MiniLM-L6-v2'
 N_CAPTIONS = 5
 
 
+def _features(out):
+    """transformers <5 returns the projected features tensor directly; >=5 returns the model
+    output object with the projected features in .pooler_output."""
+    return out if torch.is_tensor(out) else out.pooler_output
+
+
 @torch.no_grad()
 def encode_split(ds, clip, processor, device, batch_size=64):
     from PIL import Image  # noqa: F401  (datasets decodes to PIL)
@@ -35,13 +41,13 @@ def encode_split(ds, clip, processor, device, batch_size=64):
         rows = ds[s:s + batch_size]
         images = [im.convert('RGB') for im in rows['image']]
         pix = processor(images=images, return_tensors='pt').to(device)
-        img_feats.append(clip.get_image_features(**pix).float().cpu())
+        img_feats.append(_features(clip.get_image_features(**pix)).float().cpu())
         caps = []
         for c in range(N_CAPTIONS):
             caps += rows[f'caption_{c}']
         tok = processor.tokenizer(caps, padding=True, truncation=True, max_length=77,
                                   return_tensors='pt').to(device)
-        t = clip.get_text_features(**tok).float().cpu()          # (5*B, d) caption-major
+        t = _features(clip.get_text_features(**tok)).float().cpu()   # (5*B, d) caption-major
         txt_feats.append(t.reshape(N_CAPTIONS, len(images), -1).permute(1, 0, 2))  # (B, 5, d)
         if (s // batch_size) % 10 == 0:
             print(f'  encoded {s + len(images)}/{n}', flush=True)

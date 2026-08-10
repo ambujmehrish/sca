@@ -45,6 +45,8 @@ class SCA(GRAM):
         # ---- temperature + calibration mechanism (A10) ----
         self.sca_calibration = getattr(cfg, 'sca_calibration', 'regression')
         self.sca_cal_w = float(getattr(cfg, 'sca_cal_w', 1.0))
+        # S* caches are top-k sparsified: absent = "unknown", not "0" -- regress known pairs only
+        self.sca_cal_known_only = bool(getattr(cfg, 'sca_cal_known_only', True))
         self.sca_tau_star = float(getattr(cfg, 'sca_tau_star', 0.5))
         tau_learnable = bool(getattr(cfg, 'sca_tau_learnable', False))
         check_calibration_config(self.sca_calibration, tau_learnable)
@@ -226,7 +228,8 @@ class SCA(GRAM):
                 s_star = st.gather(batch.ids, device=z.device)
             loss_dict['loss_sem'] = self.sca_alpha * l_sem(
                 sim_local, s_star, tau, tau_star=self.sca_tau_star,
-                calibration=self.sca_calibration, cal_w=self.sca_cal_w)
+                calibration=self.sca_calibration, cal_w=self.sca_cal_w,
+                cal_known_only=self.sca_cal_known_only)
         else:
             s_star = None
 

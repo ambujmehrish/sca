@@ -17,17 +17,22 @@ def r2_score(pred, target):
 
 
 @torch.no_grad()
-def calibration_regression(sim, s_star, present=None):
+def calibration_regression(sim, s_star, present=None, known_only=False):
     """S vs S* regression, overall and per gallery cardinality.
 
     sim    : (T, G) SIMILARITY matrix (higher = closer; pass 1 - dist for distance scorers).
     s_star : (T, G) semantic targets in [0, 1].
     The calibration target is 2S*-1 (the scale L_sem's regression term pins the cosines to).
+    known_only: S* caches are top-k sparsified (absent = unknown, not 0); True restricts the
+    fit to pairs with a stored affinity (S* > 0), matching l_sem's cal_known_only definition.
     Returns {'overall': {'r2','pearson','slope','intercept'}, 'per_cardinality': {|M|: ...}}.
     """
     target = 2.0 * s_star.float() - 1.0
+    known = (s_star > 0) if known_only else None
 
-    def _fit(x, y):
+    def _fit(x, y, mask=None):
+        if mask is not None:
+            x, y = x[mask], y[mask]
         x, y = x.flatten().float(), y.flatten().float()
         vx, vy = x - x.mean(), y - y.mean()
         denom = (vx.pow(2).sum().sqrt() * vy.pow(2).sum().sqrt()).clamp(min=1e-12)
@@ -37,13 +42,14 @@ def calibration_regression(sim, s_star, present=None):
         return {'r2': r2_score(x, y), 'pearson': pearson.item(),
                 'slope': slope.item(), 'intercept': intercept.item(), 'n': x.numel()}
 
-    out = {'overall': _fit(sim, target)}
+    out = {'overall': _fit(sim, target, known)}
     if present is not None:
         card = present.sum(dim=1)
         out['per_cardinality'] = {}
         for m in card.unique().tolist():
             sel = card == m
-            out['per_cardinality'][int(m)] = _fit(sim[:, sel], target[:, sel])
+            out['per_cardinality'][int(m)] = _fit(
+                sim[:, sel], target[:, sel], known[:, sel] if known is not None else None)
     return out
 
 

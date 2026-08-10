@@ -91,7 +91,10 @@ def evaluate_arm(head_t, head_v, feats_test, s_star_test, device):
     mu, _, _ = masked_spherical_mean(head_v(img).unsqueeze(1), None)
     t0 = F.normalize(head_t(txt[:, 0]), dim=-1)                          # caption_0 = S* rows
     sim0 = t0 @ mu.T
-    out = calibration_regression(sim0, s_star_test)['overall']           # k=2: one cardinality
+    # headline: fit over KNOWN pairs (S* is top-k sparsified; absent = unknown, not 0),
+    # matching l_sem's cal_known_only definition; the all-pairs fit is reported alongside
+    out = calibration_regression(sim0, s_star_test, known_only=True)['overall']
+    out['r2_all_pairs'] = calibration_regression(sim0, s_star_test)['overall']['r2']
     out['graded_ndcg@10'] = graded_ndcg(sim0, s_star_test, k=10)
     t_all = F.normalize(head_t(txt.reshape(n * n_cap, -1)), dim=-1)      # all 5 captions query
     dist = 1.0 - t_all @ mu.T                                            # rows image-major

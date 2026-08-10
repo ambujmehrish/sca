@@ -55,5 +55,6 @@
  "lora_r_text": 8,
  "lora_alpha": 16,
  "lora_dropout": 0.0,
- "s_star_path": ""
+ "s_star_path": "",
+ "sca_cal_known_only": true
 }

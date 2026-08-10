@@ -1,0 +1,6 @@
+[prepare] loading flickr8k (real data) on cpu
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 10053.44it/s]
+[prepare] encoding train (6000 images x 5 captions) with frozen openai/clip-vit-base-patch32
+  encoded 64/6000
+  encoded 704/6000

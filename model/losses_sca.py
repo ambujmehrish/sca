@@ -28,7 +28,8 @@ def sharpen_targets(s_star, tau_star=1.0):
     return F.softmax(s_star / tau_star, dim=-1)
 
 
-def l_sem(sim, s_star, tau, tau_star=1.0, calibration='regression', cal_w=1.0):
+def l_sem(sim, s_star, tau, tau_star=1.0, calibration='regression', cal_w=1.0,
+          cal_known_only=True):
     """Semantic calibration loss (headline E6), with the A10 calibration mechanism.
 
     sim    : (B, B) raw cosine scores between the batch texts and the batch centroids.
@@ -38,12 +39,23 @@ def l_sem(sim, s_star, tau, tau_star=1.0, calibration='regression', cal_w=1.0):
     scale to the target affinity (2S*-1 maps [0,1] -> [-1,1]), which softmax alone cannot do
     (shift invariance). calibration='fixed_tau' relies on tau being frozen at tau* instead
     (the config layer must forbid a learnable tau in that mode); 'none' = KL only.
+
+    cal_known_only (default True): the S* cache is top-k SPARSIFIED, so an absent entry means
+    "affinity unknown (below the k-th value)", NOT "affinity exactly 0". Regressing those
+    zeros would push every non-top-k pair toward cosine -1 -- a storage artifact, not a
+    semantic target -- so the regression is fitted only where S* > 0 (the diagonal is always
+    1, hence always included). Set False only with a genuinely dense S*.
     """
     p_star = sharpen_targets(s_star, tau_star)
     log_p = F.log_softmax(sim / tau, dim=-1)
     kl = F.kl_div(log_p, p_star, reduction='batchmean')
     if calibration == 'regression':
-        kl = kl + cal_w * ((sim - (2.0 * s_star - 1.0)) ** 2).mean()
+        sq = (sim - (2.0 * s_star - 1.0)) ** 2
+        if cal_known_only:
+            known = (s_star > 0).to(sq.dtype)
+            kl = kl + cal_w * (sq * known).sum() / known.sum().clamp(min=1.0)
+        else:
+            kl = kl + cal_w * sq.mean()
     return kl
 
 

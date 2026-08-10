@@ -217,6 +217,21 @@ class TestLosses:
         l_off = l_sem(sim_off, s_star, 0.07, calibration='regression', cal_w=1.0)
         assert l_cal < l_off                              # KL alone cannot see the shift
 
+    def test_l_sem_regression_ignores_sparsified_zeros(self):
+        # a sparsified S* stores 0 for "unknown"; the regression must not read that as
+        # "push this pair to cosine -1"
+        s_star = torch.eye(4)                              # off-diag = unknown (sparsified out)
+        sim = torch.full((4, 4), 0.3)
+        sim.fill_diagonal_(1.0)                            # positives perfectly calibrated
+        known = l_sem(sim, s_star, 0.07, calibration='regression', cal_w=1.0,
+                      cal_known_only=True)
+        dense = l_sem(sim, s_star, 0.07, calibration='regression', cal_w=1.0,
+                      cal_known_only=False)
+        assert known < dense                               # dense penalizes the unknown pairs
+        # with known-only, the regression term is exactly 0 here (diagonal fits perfectly)
+        kl_only = l_sem(sim, s_star, 0.07, calibration='none')
+        assert torch.allclose(known, kl_only, atol=1e-6)
+
     def test_calibration_config_guard(self):
         with pytest.raises(ValueError):
             check_calibration_config('regression', tau_learnable=True)

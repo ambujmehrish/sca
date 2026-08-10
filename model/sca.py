@@ -87,8 +87,14 @@ class SCA(GRAM):
 
         # ---- S* semantic targets (built offline by data/semantic_targets.py) ----
         self.s_star_path = os.path.expandvars(getattr(cfg, 's_star_path', '') or '')
+        # A3 ablation arm (S* = I) must be requested EXPLICITLY -- it is never a fallback
+        self.s_star_identity = bool(getattr(cfg, 'sca_s_star_identity', False))
+        if self.sca_alpha > 0 and not self.s_star_identity and not self.s_star_path:
+            raise ValueError(
+                'sca_alpha > 0 (L_sem on) but no S* source: set s_star_path to a cache built '
+                'by data/semantic_targets.py, or set sca_s_star_identity=true for the explicit '
+                'S*=I (A3) arm, or set sca_alpha=0.')
         self.semantic_targets = None
-        self._s_star_warned = False
 
         # ---- LoRA into the attention W_q/W_v of the three backbones ----
         self.use_lora = bool(getattr(cfg, 'use_lora', False))
@@ -105,6 +111,12 @@ class SCA(GRAM):
                     continue
                 wrapped = inject_lora(getattr(self, enc_name), r=r, alpha=lora_alpha,
                                       dropout=lora_dropout, prefix=enc_name)
+                if not wrapped:
+                    # silent no-op adapters would "train" a fully frozen model
+                    raise RuntimeError(
+                        f'[LoRA] use_lora=true but no attention W_q/W_v layer was found in '
+                        f'{enc_name} -- naming drift in the encoder? Refusing to run with a '
+                        f'zero-parameter adapter.')
                 self._lora_wrapped += wrapped
                 LOGGER.info(f'[LoRA] {enc_name}: r={r}, wrapped {len(wrapped)} layers')
 
@@ -128,15 +140,17 @@ class SCA(GRAM):
 
     def _load_semantic_targets(self):
         if self.semantic_targets is None and self.s_star_path:
-            if os.path.exists(self.s_star_path):
-                from data.semantic_targets import SemanticTargets
-                self.semantic_targets = SemanticTargets(self.s_star_path)
-                LOGGER.info(f'[SCA] loaded S* cache {self.s_star_path} '
-                            f'({len(self.semantic_targets.row_of)} rows)')
-            elif not self._s_star_warned:
-                LOGGER.warning(f'[SCA] s_star_path {self.s_star_path} not found; '
-                               'L_sem falls back to S* = I (one-hot) behaviour')
-                self._s_star_warned = True
+            if not os.path.exists(self.s_star_path):
+                # hard error: silently training without the configured S* would make every
+                # E6/A10 number a lie (it would really be the A3 S*=I arm)
+                raise FileNotFoundError(
+                    f'[SCA] s_star_path {self.s_star_path} does not exist. Build it with '
+                    'data/semantic_targets.py, or explicitly run the S*=I arm via '
+                    'sca_s_star_identity=true.')
+            from data.semantic_targets import SemanticTargets
+            self.semantic_targets = SemanticTargets(self.s_star_path)
+            LOGGER.info(f'[SCA] loaded S* cache {self.s_star_path} '
+                        f'({len(self.semantic_targets.row_of)} rows)')
         return self.semantic_targets
 
     def _gallery_feats(self, batch):
@@ -201,11 +215,15 @@ class SCA(GRAM):
         # ---- L_sem + calibration (E6; gated to post-warmup) ----
         if not warm and self.sca_alpha > 0:
             sim_local = feat_t32 @ mu_M.T                                   # (B, B) raw cosines
-            st = self._load_semantic_targets()
-            if st is not None and 'ids' in batch.keys():
-                s_star = st.gather(batch.ids, device=z.device)
+            if self.s_star_identity:
+                s_star = torch.eye(B, device=z.device)                      # explicit A3 arm only
             else:
-                s_star = torch.eye(B, device=z.device)                      # S* = I fallback / A3 arm
+                st = self._load_semantic_targets()
+                if 'ids' not in batch.keys():
+                    raise RuntimeError(
+                        '[SCA] L_sem needs batch.ids to gather S* rows, but the batch has no '
+                        'ids field -- the dataset/collate must pass clip ids through.')
+                s_star = st.gather(batch.ids, device=z.device)
             loss_dict['loss_sem'] = self.sca_alpha * l_sem(
                 sim_local, s_star, tau, tau_star=self.sca_tau_star,
                 calibration=self.sca_calibration, cal_w=self.sca_cal_w)
@@ -222,6 +240,11 @@ class SCA(GRAM):
 
         # ---- L_concept: Level-2 EMA prototypes (delayed to warmup end + staleness reset) ----
         labels = batch.get('concept_labels', batch.get('labels', None))
+        if self.prototypes is not None and labels is None and self.training:
+            raise RuntimeError(
+                '[SCA] sca_num_concepts > 0 (L_concept on) but the batch carries no '
+                'concept_labels/labels -- L_concept would silently never train. Provide labels '
+                'in the dataset or set sca_num_concepts=0.')
         if self.prototypes is not None and labels is not None:
             labels = torch.as_tensor(labels, device=z.device).long()
             if not warm:

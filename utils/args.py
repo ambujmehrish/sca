@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import json
 import random
@@ -12,9 +13,17 @@ import os
 def expand_env_vars(cfg):
     """Recursively expand $DATA_ROOT / $WORK_ROOT (any env var) in every string of a loaded
     config. All config/sca/ files are parameterized this way for portability across
-    allocations; gram configs carry absolute paths without '$' and pass through unchanged."""
+    allocations; gram configs carry absolute paths without '$' and pass through unchanged.
+    An UNSET variable is a hard error: leaving a literal '${DATA_ROOT}' in a path would
+    surface much later as a confusing file-not-found (or a run writing into a junk dir)."""
     if isinstance(cfg, str):
-        return os.path.expandvars(cfg)
+        expanded = os.path.expandvars(cfg)
+        unresolved = re.findall(r'\$\{?[A-Za-z_][A-Za-z0-9_]*\}?', expanded)
+        if unresolved:
+            raise EnvironmentError(
+                f"config value '{cfg}' references unset environment variable(s) "
+                f"{unresolved} -- export them (e.g. DATA_ROOT/WORK_ROOT) before running.")
+        return expanded
     if isinstance(cfg, dict):
         return type(cfg)({k: expand_env_vars(v) for k, v in cfg.items()})
     if isinstance(cfg, list):

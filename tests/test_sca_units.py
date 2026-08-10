@@ -301,6 +301,18 @@ class TestMaskSampler:
         m = ms.sample(256, 0, torch.device('cpu'))
         assert (m[:, 0] == 1.0).all() and (m[:, 1] == 0.0).all()
 
+    def test_freq_zero_means_never_drop_no_uniform_fallback(self):
+        # after the freq-1.0 modality is dropped, the only remaining candidate has freq 0:
+        # the second draw must NOT fall back to uniform -- the clip keeps it
+        ms = MaskSampler(3, p_full_start=0.0, p_full_end=0.0, mode='freq',
+                         freq=[0.0, 0.0, 1.0], n_drop=2)
+        m = ms.sample(128, 0, torch.device('cpu'))
+        assert (m[:, 0] == 1.0).all() and (m[:, 1] == 1.0).all() and (m[:, 2] == 0.0).all()
+
+    def test_freq_all_zero_rejected(self):
+        with pytest.raises(AssertionError):
+            MaskSampler(2, mode='freq', freq=[0.0, 0.0])
+
 
 # --------------------------------------------------------------------------- LoRA
 
@@ -463,6 +475,26 @@ class TestEvalCalibration:
         assert 0.0 <= rand <= 1.0 + 1e-6
 
 
+# --------------------------------------------------------------------------- config expansion
+
+class TestEnvExpansion:
+    def test_expands_set_vars(self, monkeypatch):
+        from utils.args import expand_env_vars
+        monkeypatch.setenv('DATA_ROOT', '/data')
+        assert expand_env_vars({'p': '${DATA_ROOT}/x'})['p'] == '/data/x'
+
+    def test_unset_var_is_hard_error(self, monkeypatch):
+        from utils.args import expand_env_vars
+        monkeypatch.delenv('SCA_UNSET_VAR_XYZ', raising=False)
+        with pytest.raises(EnvironmentError):
+            expand_env_vars({'p': '${SCA_UNSET_VAR_XYZ}/x'})
+
+    def test_plain_paths_pass_through(self):
+        from utils.args import expand_env_vars
+        cfg = {'p': '/leonardo_scratch/abs/path', 'n': 3, 'l': ['a', 1]}
+        assert expand_env_vars(cfg) == cfg
+
+
 # --------------------------------------------------------------------------- S* gather
 
 class TestSemanticTargets:
@@ -480,6 +512,6 @@ class TestSemanticTargets:
         s = st.gather(['a', 'b'])
         assert s.shape == (2, 2)
         assert s[0, 0] == 1.0 and abs(s[0, 1].item() - 0.5) < 1e-3
-        # unknown id -> one-hot row
-        s2 = st.gather(['a', 'zzz'])
-        assert s2[1, 1] == 1.0 and s2[1, 0] == 0.0
+        # unknown id is a HARD ERROR (cache/annotation mismatch), never a one-hot fallback
+        with pytest.raises(KeyError):
+            st.gather(['a', 'zzz'])

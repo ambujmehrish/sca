@@ -35,6 +35,8 @@ class MaskSampler:
         if mode == 'freq':
             assert freq is not None and len(freq) == num_modalities
             self.freq = torch.as_tensor(freq, dtype=torch.float)
+            assert (self.freq >= 0).all() and self.freq.sum() > 0, \
+                'mask freq weights must be non-negative with at least one positive entry'
         else:
             self.freq = torch.ones(num_modalities)
 
@@ -66,10 +68,13 @@ class MaskSampler:
             if not droppable.any():
                 break
             w_eff = w * mask                                     # don't re-drop the same one
+            # freq = 0 means "never drop this modality" -- a clip whose remaining droppable
+            # modalities all have zero weight simply keeps them (no silent uniform redraw,
+            # which would contradict the configured distribution)
+            droppable = droppable & (w_eff.sum(dim=1) > 0)
+            if not droppable.any():
+                break
             w_rows = w_eff[droppable]
-            # zero-weight fallback: uniform over the still-present, still-kept modalities
-            w_rows = torch.where(w_rows.sum(dim=1, keepdim=True) > 0,
-                                 w_rows, (present * mask)[droppable])
             m_dagger = torch.multinomial(w_rows, 1, generator=generator).squeeze(1)
             rows = droppable.nonzero(as_tuple=True)[0]
             mask[rows, m_dagger] = 0.0

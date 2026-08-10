@@ -97,8 +97,9 @@ class SemanticTargets:
     """Loads an S* cache and serves dense (B, B) target blocks for a training batch.
 
     gather(ids) intersects each batch row's stored top-k list with the batch itself; pairs
-    outside the stored top-k are 0, the diagonal is 1. Unknown ids (not in the cache) fall
-    back to a one-hot row (S* = I behaviour), so mixed batches never crash."""
+    outside the stored top-k are 0, the diagonal is 1. An id missing from the cache is a HARD
+    ERROR: it means the cache was built from a different annotation file than the one being
+    trained on, and silently substituting a one-hot row would corrupt every L_sem batch."""
 
     def __init__(self, cache_path):
         cache = torch.load(cache_path, map_location='cpu')
@@ -109,12 +110,17 @@ class SemanticTargets:
 
     def gather(self, ids, device=None):
         B = len(ids)
-        rows = [self.row_of.get(str(i), -1) for i in ids]
+        unknown = [str(i) for i in ids if str(i) not in self.row_of]
+        if unknown:
+            raise KeyError(
+                f'S* cache has no rows for batch ids {unknown[:5]}'
+                f'{" ..." if len(unknown) > 5 else ""} ({len(unknown)}/{B} missing). The cache '
+                f'was built from {self.meta.get("annotation_json", "<unknown>")} -- rebuild it '
+                'from the annotation file this run actually trains on.')
+        rows = [self.row_of[str(i)] for i in ids]
         s = torch.zeros(B, B)
-        col_of = {r: j for j, r in enumerate(rows) if r >= 0}
+        col_of = {r: j for j, r in enumerate(rows)}
         for a, r in enumerate(rows):
-            if r < 0:
-                continue
             idx = self.topk_idx[r]
             val = self.topk_val[r]
             for i_t, v_t in zip(idx.tolist(), val.tolist()):

@@ -5,3 +5,4 @@ workdir*/
 wandb/
 *.pt
 !benchmark_eval/**/*.json
+experiments/a10_workdir/

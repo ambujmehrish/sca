@@ -87,3 +87,18 @@ class PrototypeMemory(nn.Module):
     def get(self, labels):
         """(B, d) prototype for each label (no grad through the memory)."""
         return self.protos[labels]
+
+
+@torch.no_grad()
+def batch_prototypes(mu, labels, num_concepts):
+    """A4 'batch-only nu_c' arm: prototypes are THIS batch's normalised class means -- no
+    persistent memory, no EMA. Returns (protos (C, d), has (C,) bool: classes present in
+    the batch; members of absent classes must be excluded from the loss by the caller)."""
+    protos = mu.new_zeros(num_concepts, mu.shape[-1])
+    protos.index_add_(0, labels, mu.detach().float().to(mu.dtype))
+    counts = mu.new_zeros(num_concepts)
+    counts.index_add_(0, labels, torch.ones_like(labels, dtype=mu.dtype))
+    has = counts > 0
+    protos[has] = torch.nn.functional.normalize(
+        protos[has] / counts[has].unsqueeze(-1), dim=-1)
+    return protos, has

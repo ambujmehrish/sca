@@ -7,7 +7,7 @@ import torch.nn.functional as F
 # construction: the same code serves k=2..5 with zero changes (E10).
 
 
-def masked_spherical_mean(z, present=None, eps=1e-6):
+def masked_spherical_mean(z, present=None, eps=1e-6, gates=None):
     """Masked spherical mean mu(Z, present) and concentration A(M).
 
     z       : (B, L, d) stacked modality embeddings, each L2-normalised (a missing modality may
@@ -15,6 +15,11 @@ def masked_spherical_mean(z, present=None, eps=1e-6):
     present : (B, L) 0/1 (or bool); present[j, m] = 1 iff clip j really has modality m.
               None => all ones == plain spherical mean (no-mask regression path).
     eps     : guard for the renormalisation; near-antipodal sets (||sum z|| ~ 0) stay finite.
+    gates   : optional (L,) learnable logits (ablation A7 "learned gates" arm): per-modality
+              weights w = softmax(gates) restricted to the PRESENT set and renormalised, so a
+              missing modality never receives weight. gates=None (or all-equal, e.g. the
+              zero-init) reproduces the uniform centroid exactly -- the arm only refines.
+              A(M) stays the UNWEIGHTED resultant (it is a property of the set, not the mix).
 
     Returns:
     - mu : (B, d) L2-normalised centroid over the present modalities only.
@@ -29,16 +34,22 @@ def masked_spherical_mean(z, present=None, eps=1e-6):
         present = z.new_ones(B, L)
     present = present.to(z.dtype)
 
-    s = (z * present.unsqueeze(-1)).sum(dim=1)                    # (B, d) masked resultant
+    if gates is not None:
+        w = torch.softmax(gates.to(z.dtype)[:L], dim=0).unsqueeze(0) * present   # (B, L)
+        w = w / w.sum(dim=1, keepdim=True).clamp(min=eps)
+        s = (z * w.unsqueeze(-1)).sum(dim=1)                      # gated resultant (renormed)
+    else:
+        s = (z * present.unsqueeze(-1)).sum(dim=1)                # (B, d) masked resultant
     n = present.sum(dim=1)                                        # (B,)  |M|
     n_safe = n.clamp(min=1.0)
 
-    norm_s = s.norm(dim=-1)
-    A = norm_s / n_safe
+    # A(M) is always the UNWEIGHTED mean resultant length (set property, gate-independent)
+    s_plain = (z * present.unsqueeze(-1)).sum(dim=1) if gates is not None else s
+    A = s_plain.norm(dim=-1) / n_safe
     # |M|=1: A is identically 1 -- skip its gradient (guard from the k=2 analysis)
     A = torch.where(n <= 1.0, A.detach(), A)
 
-    mu = s / norm_s.clamp(min=eps).unsqueeze(-1)                  # eps: centroid-norm blowup guard
+    mu = s / s.norm(dim=-1).clamp(min=eps).unsqueeze(-1)          # eps: centroid-norm blowup guard
     return mu, A, n
 
 

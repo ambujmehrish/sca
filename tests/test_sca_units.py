@@ -6,6 +6,7 @@
 import os
 import sys
 import math
+import json
 
 import pytest
 import torch
@@ -153,6 +154,127 @@ class TestCentroid:
         same = unit(1, 8).expand(4, -1)
         A_c1, _ = concept_resultant(same, torch.zeros(4, dtype=torch.long), num_classes=1)
         assert abs(A_c1.item() - 1.0) < 1e-5
+
+
+# --------------------------------------------------------------------------- P5 ablation knobs
+
+class TestGatedCentroid:
+    def test_zero_init_equals_uniform(self):
+        z = unit(6, 3, 32)
+        present = torch.ones(6, 3); present[2, 1] = 0.0
+        mu_u, A_u, _ = masked_spherical_mean(z, present)
+        mu_g, A_g, _ = masked_spherical_mean(z, present, gates=torch.zeros(3))
+        assert torch.allclose(mu_g, mu_u, atol=1e-5)          # zero-init == uniform centroid
+        assert torch.allclose(A_g, A_u, atol=1e-5)
+
+    def test_gates_never_weight_missing_modalities(self):
+        z = unit(4, 3, 16)
+        z[:, 2] = 0.0
+        present = torch.tensor([[1., 1., 0.]]).expand(4, -1)
+        gates = torch.tensor([0.0, 0.0, 10.0])                # huge gate on the MISSING one
+        mu, _, _ = masked_spherical_mean(z, present, gates=gates)
+        want, _, _ = masked_spherical_mean(z, present)        # must reduce to present-only
+        assert torch.allclose(mu, want, atol=1e-5)
+
+    def test_gates_receive_gradient_and_A_is_gate_independent(self):
+        z = unit(5, 3, 16)
+        gates = torch.zeros(3, requires_grad=True)
+        mu, A, _ = masked_spherical_mean(z, None, gates=gates)
+        mu.sum().backward()
+        assert gates.grad is not None and torch.isfinite(gates.grad).all()
+        _, A_u, _ = masked_spherical_mean(z, None)
+        assert torch.allclose(A, A_u, atol=1e-6)              # A(M) is a set property
+
+
+class TestBatchPrototypes:
+    def test_means_and_absent_classes(self):
+        from model.prototypes import batch_prototypes
+        mu = unit(4, 8)
+        labels = torch.tensor([0, 0, 2, 2])
+        protos, has = batch_prototypes(mu, labels, num_concepts=3)
+        assert has.tolist() == [True, False, True]
+        want = torch.nn.functional.normalize(mu[:2].mean(0), dim=-1)
+        assert torch.allclose(protos[0], want, atol=1e-5)
+        assert protos[1].abs().sum() == 0                     # absent class stays zero
+
+
+class TestSetMeasures:
+    def test_bounds_and_collinear_extremes(self):
+        from evaluation.measure_comparison import set_measures
+        v = unit(1, 16)
+        z_same = torch.cat([v, v, v]).unsqueeze(0)            # (1, 3, d) collinear
+        m = set_measures(z_same)
+        assert abs(m['A'].item() - 1.0) < 1e-4                # perfectly aligned set
+        assert abs(m['lambda1_norm'].item() - 1.0) < 1e-4     # lambda1 = |M|
+        assert m['logdetG'].item() < -5.0                     # det -> 0 => logdet -> -inf
+        z_rand = unit(8, 3, 64)
+        r = set_measures(z_rand)
+        assert ((r['A'] >= 0) & (r['A'] <= 1 + 1e-5)).all()
+        assert (r['lambda1_norm'] <= 1 + 1e-4).all()
+
+    def test_masked_reduces_to_subset(self):
+        from evaluation.measure_comparison import set_measures
+        z = unit(6, 3, 32)
+        present = torch.tensor([[1., 1., 0.]]).expand(6, -1)
+        got = set_measures(z, present)
+        want = set_measures(z[:, :2])
+        assert torch.allclose(got['A'], want['A'], atol=1e-5)
+        assert torch.allclose(got['lambda1_norm'], want['lambda1_norm'], atol=1e-4)
+
+
+class TestDiagnostics:
+    def test_rankme_bounds(self):
+        from evaluation.diagnostics import rankme
+        iso = torch.randn(500, 32)
+        r = rankme(iso)
+        assert 25.0 < r['rankme'] <= 32.0                     # isotropic: near full rank
+        collapsed = torch.randn(500, 1) @ torch.randn(1, 32)
+        assert rankme(collapsed)['rankme'] < 1.5              # rank-1 collapse
+
+    def test_modality_gap_zero_for_identical(self):
+        from evaluation.diagnostics import modality_gap
+        x = unit(100, 16)
+        g = modality_gap({'a': x, 'b': x.clone(), 'c': unit(100, 16)})
+        assert g['a-b']['gap'] < 1e-6 and g['a-c']['gap'] > 0.0
+
+    def test_align_unif_directions(self):
+        from evaluation.diagnostics import align_unif
+        x = unit(200, 16)
+        perfect = align_unif(x, x.clone())
+        noisy = align_unif(x, unit(200, 16))
+        assert perfect['align'] < 1e-6 < noisy['align']
+
+    def test_tsne_without_sklearn_is_hard_error_or_runs(self):
+        from evaluation.diagnostics import project_2d
+        feats = {'t': unit(60, 8), 'v': unit(60, 8)}
+        try:
+            import sklearn  # noqa: F401
+            coords, names, slices = project_2d(feats, method='tsne')
+            assert coords.shape == (120, 2)
+        except ImportError:
+            with pytest.raises(ImportError, match='refusing to substitute'):
+                project_2d(feats, method='tsne')
+        coords, _, _ = project_2d(feats, method='pca')        # pca always available
+        assert coords.shape == (120, 2)
+
+
+class TestLatexTables:
+    def test_null_renders_dash_and_gram_rows_present(self, tmp_path):
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'benchmark_eval'))
+        from make_latex_tables import section_table, load_measured
+        from import_published_rows import load_published_rows
+        pub = load_published_rows()
+        measured = {'zeroshot_t2v': {'SCA (ours)': {'MSR-VTT|T-V': [55.0, 84.0]}}}
+        tex = section_table('zeroshot_t2v', 'test', pub, measured)
+        assert '55.0' in tex and '52.8' in tex                # measured + GRAM published
+        assert '--' in tex                                    # SCA's unfilled cells dash out
+        assert ' 0.0 ' not in tex                             # nulls NEVER render as zero
+        # measured-row schema is enforced
+        bad = tmp_path / 'bad.json'
+        bad.write_text(json.dumps({'method': 'X', 'section': 'zeroshot_t2v',
+                                   'rows': {'MSR-VTT|T-V': [1.0]}}))
+        with pytest.raises(ValueError):
+            load_measured(str(tmp_path))
 
 
 # --------------------------------------------------------------------------- prototypes

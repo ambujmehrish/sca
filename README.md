@@ -125,6 +125,24 @@ fit/apply are inside each E4 entry.
 + `ft_msrvtt_depth_sca.sh` (E10: 5-modal `ret%tvasd`, stacks on the finetuned msrvtt
 ckpt; the k=5 centroid needs zero code change).
 
+## Ablations + assets (P5)
+
+- **A1–A9 grid**: `config/sca/ablations/` — 26 arms, one config per table row, each a
+  delta on the A10-decided base; regenerate with `scripts/gen_ablation_configs.py`
+  (`MANIFEST.md` maps arm → config → change → consuming experiment, incl. the A9 S\*
+  cache build commands). New knobs: `sca_centroid_gates` (A7 learned-gate centroid,
+  zero-init ≡ uniform), `sca_proto_mode: ema|batch` (A4 batch-only ν_c).
+- **A2 analysis**: `evaluation/measure_comparison.py` — A(M) vs (1/|M|)·log det G_M vs
+  λ₁/|M| per clip (+ pairwise correlations) and the rankings the three scorers induce,
+  from any feature dump.
+- **E8 diagnostics**: `evaluation/diagnostics.py` — modality gap, RankMe/effective rank,
+  Wang-Isola alignment/uniformity, PCA/t-SNE projections (t-SNE requires scikit-learn;
+  never silently substituted).
+- **LaTeX tables**: `benchmark_eval/make_latex_tables.py` — published rows
+  (`published_rows.json`) merged with measured-row JSONs
+  (`{"method","section","rows":{"MSR-VTT|T-V":[R1,R10]}}`) into booktabs tables; nulls
+  render as dashes, best value per column bolded.
+
 ## Guards (encoded as asserts/tests)
 
 - |M|=1 degeneracy: μ = the surviving embedding, A(M)≡1 with the gradient cut.

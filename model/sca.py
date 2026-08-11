@@ -83,14 +83,22 @@ class SCA(GRAM):
         self.l_unif_weighted = bool(getattr(cfg, 'l_unif_weighted', False))
         self.l_unif_t = float(getattr(cfg, 'l_unif_t', 2.0))
 
-        # ---- Level-2 concept prototypes (EMA memory) ----
+        # ---- Level-2 concept prototypes (EMA memory; A4 sweeps mode/eta/eps-floor) ----
         self.sca_num_concepts = int(getattr(cfg, 'sca_num_concepts', 0))
         self.sca_eps_floor = float(getattr(cfg, 'sca_eps_floor', 0.05))
+        self.sca_proto_mode = getattr(cfg, 'sca_proto_mode', 'ema')      # 'ema' | 'batch'
+        assert self.sca_proto_mode in ('ema', 'batch'), self.sca_proto_mode
         if self.sca_num_concepts > 0:
             self.prototypes = PrototypeMemory(self.sca_num_concepts, cfg.contra_dim,
                                               eta=float(getattr(cfg, 'sca_eta', 0.99)))
         else:
             self.prototypes = None
+
+        # ---- A7 "learned gates" arm: per-modality centroid weights, zero-init == uniform ----
+        if bool(getattr(cfg, 'sca_centroid_gates', False)):
+            self.centroid_gates = nn.Parameter(torch.zeros(4))           # capacity V,A,S,D
+        else:
+            self.centroid_gates = None
 
         # ---- S* semantic targets (built offline by data/semantic_targets.py) ----
         self.s_star_path = os.path.expandvars(getattr(cfg, 's_star_path', '') or '')
@@ -178,8 +186,9 @@ class SCA(GRAM):
         present_M = present * vmask
 
         # both centroids from the ONE forward pass (virtual-mask bookkeeping)
-        mu_K, A_K, n_K = masked_spherical_mean(z, present)                  # full view
-        mu_M, A_M, n_M = masked_spherical_mean(z, present_M)                # masked view
+        g = self.centroid_gates
+        mu_K, A_K, n_K = masked_spherical_mean(z, present, gates=g)         # full view
+        mu_M, A_M, n_M = masked_spherical_mean(z, present_M, gates=g)       # masked view
 
         feat_t32 = feat_t.float()
         tau = self.sca_tau if torch.is_tensor(self.sca_tau) else torch.tensor(self.sca_tau)
@@ -234,8 +243,16 @@ class SCA(GRAM):
                     self.prototypes.reset_from_running()                    # staleness guard
                     self.sca_warmup_reset_done.fill_(True)
                 if self.sca_delta > 0:
-                    loss_dict['loss_concept'] = self.sca_delta * l_concept(
-                        mu_K, labels, self.prototypes.protos, eps_floor=self.sca_eps_floor)
+                    if self.sca_proto_mode == 'batch':
+                        # A4 batch-only arm: nu_c from THIS batch's class means, no memory
+                        from .prototypes import batch_prototypes
+                        protos, has = batch_prototypes(mu_K, labels, self.sca_num_concepts)
+                        keep = has[labels]
+                        loss_dict['loss_concept'] = self.sca_delta * l_concept(
+                            mu_K[keep], labels[keep], protos, eps_floor=self.sca_eps_floor)
+                    else:
+                        loss_dict['loss_concept'] = self.sca_delta * l_concept(
+                            mu_K, labels, self.prototypes.protos, eps_floor=self.sca_eps_floor)
             self.prototypes.update(mu_K, labels)                            # no-grad EMA + DDP reduce
 
         # ---- L_unif: hypersphere uniformity, optional (1 - S*) weighting (A8) ----

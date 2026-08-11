@@ -82,6 +82,7 @@ class PMRL(_LoRACkptMixin, GRAM):
             gallery.append(self.batch_get(batch, 'feat_s').float())
         if 'depth_pixels' in batch.keys():
             gallery.append(self.batch_get(batch, 'feat_d').float())
+        gallery = self._apply_train_mask(gallery)          # E4 train-masking arm (no-op off)
         present = present_from_feats(gallery)
 
         feat_t_all = _gather(feat_t)

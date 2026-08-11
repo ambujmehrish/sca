@@ -36,6 +36,11 @@ class SCA(GRAM):
         super().__init__(config)
 
         cfg = self.config
+        if bool(getattr(cfg, 'train_mask', False)):
+            raise ValueError(
+                "train_mask=true is the GRAM/PMRL 2x2 arm; SCA masks via its own "
+                "mask_p_full schedule (mu_M/mu_K virtual masking). Combining both would "
+                "double-mask -- use mask_p_full_* on SCA instead.")
         # ---- loss weights ----
         self.sca_alpha = float(getattr(cfg, 'sca_alpha', 1.0))     # L_sem
         self.sca_beta = float(getattr(cfg, 'sca_beta', 1.0))       # L_mask

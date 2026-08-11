@@ -305,6 +305,28 @@ class TestMaskSampler:
             m = ms.sample(64, step, torch.device('cpu'), present=present)
             assert ((present * m).sum(1) >= 1).all()
 
+    def test_from_config_reads_train_mask_knobs(self):
+        from easydict import EasyDict as edict
+        cfg = edict(train_mask_p_full_start=0.9, train_mask_p_full_end=0.4,
+                    train_mask_schedule_steps=100, train_mask_mode='uniform',
+                    train_mask_n_drop=2)
+        ms = MaskSampler.from_config(cfg)
+        assert ms.p_full(0) == 0.9 and abs(ms.p_full(100) - 0.4) < 1e-9 and ms.n_drop == 2
+        # defaults when knobs are absent (the gram.py hook with bare train_mask=true)
+        ms2 = MaskSampler.from_config(edict())
+        assert ms2.p_full(0) == 1.0 and abs(ms2.p_full(10 ** 6) - 0.5) < 1e-9
+
+    def test_sample_and_apply_zero_fills_and_respects_absence(self):
+        ms = MaskSampler(3, p_full_start=0.0, p_full_end=0.0)
+        feats = [unit(64, 16), unit(64, 16), unit(64, 16)]
+        feats[2][:32] = 0.0                                     # modality 2 really absent
+        g = torch.Generator().manual_seed(0)
+        masked, mask = ms.sample_and_apply(feats, step=0, generator=g)
+        pres = present_from_feats(masked)
+        assert (pres <= present_from_feats(feats)).all()        # never resurrects absence
+        assert (pres.sum(1) >= 1).all()                         # |M|=1 floor holds
+        assert (pres == present_from_feats(feats) * mask).all() # zero-fill == the draw
+
     def test_apply_mask_zero_fills_for_present_from_feats(self):
         feats = [unit(8, 16), unit(8, 16)]
         mask = torch.ones(8, 2); mask[3, 1] = 0.0
@@ -488,6 +510,39 @@ class TestEvalCalibration:
         assert abs(perfect - 1.0) < 1e-5
         rand = graded_ndcg(torch.randn(6, 20), s_star, k=5)
         assert 0.0 <= rand <= 1.0 + 1e-6
+
+
+# --------------------------------------------------------------------------- P4 grid driver
+
+class TestRunEvalGrids:
+    def test_run_grids_structure_synthetic_free(self):
+        # real CLIP features from the A10 workdir when available; otherwise loudly skipped
+        feats_path = os.path.join(os.path.dirname(__file__), '..',
+                                  'experiments/a10_workdir/features_test.pt')
+        if not os.path.exists(feats_path):
+            pytest.skip('A10 Flickr8k features not built (run scripts/smoke_test.sh stage 2)')
+        from evaluation.run_eval_grids import run_grids
+        d = torch.load(feats_path, map_location='cpu')
+        # k=2: one gallery modality -- rates cannot drop it (|M|=1 floor), grid still runs
+        res = run_grids(d['txt'][:200, 0], [d['img'][:200]],
+                        methods=('centroid', 'volume_masked'), rates=(0.0, 0.5))
+        assert res['setup']['k_gallery_modalities'] == 1
+        for m in ('centroid', 'volume_masked'):
+            assert res['e4'][m]['0%|rand']['R@1'] > 20.0        # real CLIP feats retrieve
+        # k=1 gallery: identical scores at every rate (nothing was droppable)
+        assert res['e4']['centroid']['0%|rand']['R@1'] == res['e4']['centroid']['50%|rand']['R@1']
+
+    def test_feature_file_loader_formats(self, tmp_path):
+        from evaluation.run_eval_grids import _load_features
+        t, g = unit(4, 8), unit(4, 8)
+        p1 = tmp_path / 'a.pt'
+        torch.save({'feat_t': t, 'gallery': {'v': g, 'a': g}}, p1)
+        ft, gal, gt, ids = _load_features(str(p1))
+        assert len(gal) == 2 and gt is None
+        p2 = tmp_path / 'bad.pt'
+        torch.save({'x': t}, p2)
+        with pytest.raises(KeyError):
+            _load_features(str(p2))
 
 
 # --------------------------------------------------------------------------- config expansion

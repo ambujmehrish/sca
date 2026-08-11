@@ -59,10 +59,31 @@ class GRAM(MMGeneralModule):
         self.audio_type_embeddings = nn.Parameter(0.02 * torch.randn(1, 1, self.multimodal_dim)) 
         self.subtitle_type_embeddings = nn.Parameter(0.02 * torch.randn(1, 1, self.multimodal_dim)) 
         self.beam_size  = config.beam_size
-        self.itm_ratio = config.itm_ratio   
+        self.itm_ratio = config.itm_ratio
         self.max_omni_caption_len = config.max_omni_caption_len
         self.max_caption_len = config.max_caption_len
         self.max_subtitle_len = config.max_subtitle_len
+        # ---- E4 2x2 train-time masking arm (SCA plan P4). Default OFF => this path is
+        # never entered and the GRAM computation is unchanged. When train_mask=true, an
+        # m-dagger draw zero-fills gallery features BEFORE the loss, so present_from_feats
+        # sees the drop and the volume trains at reduced arity (honest masked-(i) training).
+        # The SCA model has its own virtual-masking machinery (mu_M/mu_K) -- combining both
+        # would double-mask, so sca configs must keep train_mask off (guarded in sca.py).
+        self.train_mask = bool(getattr(self.config, 'train_mask', False))
+        if self.train_mask:
+            from data.mask_sampler import MaskSampler
+            self.train_mask_sampler = MaskSampler.from_config(self.config)
+            self.register_buffer('train_mask_step', torch.zeros((), dtype=torch.long))
+
+    def _apply_train_mask(self, feats):
+        """Zero-fill an m-dagger draw over the (B, d) gallery feature list; identity when
+        train_mask is off or in eval. Shared by GRAM's and PMRL's forward_ret."""
+        if not (self.train_mask and self.training):
+            return feats
+        masked, _ = self.train_mask_sampler.sample_and_apply(
+            feats, int(self.train_mask_step.item()))
+        self.train_mask_step += 1
+        return masked
 
 
 
@@ -475,6 +496,17 @@ class GRAM(MMGeneralModule):
             #extract depth features
             if "depth_pixels" in batch.keys():
                 feat_d = self.batch_get(batch,'feat_d')
+
+            # E4 train-masking arm (no-op unless train_mask=true): zero-fill an m-dagger
+            # draw so the volume below trains at reduced arity via present_from_feats
+            if self.train_mask and self.training:
+                _tm = [feat_v, feat_a]
+                if "raw_subtitles" in batch.keys(): _tm.append(feat_s)
+                if "depth_pixels" in batch.keys():  _tm.append(feat_d)
+                _tm = self._apply_train_mask(_tm)
+                feat_v, feat_a = _tm[0], _tm[1]
+                if "raw_subtitles" in batch.keys(): feat_s = _tm[2]
+                if "depth_pixels" in batch.keys():  feat_d = _tm[-1]
 
             # ---- Hypergraph refinement is on the main path. Refine before the gather so the volume
             # loss below (GRAM's own) is computed on the refined embeddings, and the eval branch

@@ -80,6 +80,30 @@ class MaskSampler:
             mask[rows, m_dagger] = 0.0
         return mask
 
+    @classmethod
+    def from_config(cls, cfg, num_modalities=4, prefix='train_mask_'):
+        """Build a sampler from config knobs named <prefix>{p_full_start,p_full_end,
+        schedule_steps,mode,freq,n_drop} -- shared by the E4 2x2 train-masking arm of the
+        GRAM/PMRL baselines (gram.py) and any future consumer."""
+        get = lambda k, d: getattr(cfg, prefix + k, d)
+        mode = get('mode', 'uniform')
+        return cls(num_modalities,
+                   p_full_start=float(get('p_full_start', 1.0)),
+                   p_full_end=float(get('p_full_end', 0.5)),
+                   schedule_steps=int(get('schedule_steps', 2000)),
+                   mode=mode,
+                   freq=get('freq', None) if mode == 'freq' else None,
+                   n_drop=int(get('n_drop', 1)))
+
+    def sample_and_apply(self, feats, step, generator=None):
+        """Draw a mask for a list of (B, d) modality features and zero-fill the drops so
+        every downstream present_from_feats consumer sees them. Respects real absence
+        (zero-filled inputs stay absent). Returns (masked_feats, mask)."""
+        present = torch.stack([(f.float().norm(dim=-1) > 0.5).float() for f in feats], dim=1)
+        mask = self.sample(present.shape[0], step, feats[0].device, present=present,
+                           generator=generator)
+        return self.apply_mask(feats, mask), mask
+
     @staticmethod
     def apply_mask(feats, mask):
         """Zero-fill dropped modalities so present_from_feats / doc_incidence see the drop.

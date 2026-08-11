@@ -98,6 +98,33 @@ All baselines share the trunk, so comparisons isolate the geometry:
 | PMRL head (raw, /\|M\|) | `model_type: pmrl`, `pmrl_variant: raw\|norm`, eval `score_mode: pmrl_raw\|pmrl_norm`; full-FT and LoRA-parity configs + 24-step smoke in `config/baselines/pretrain_cfg/` |
 | published rows | `benchmark_eval/published_rows.json` — GRAM paper rows auto-extracted from `make_results_xlsx.py` (`import_published_rows.py --regen/--check`); VAST/ImageBind/LanguageBind/UMT-L/InternVideo2/mPLUG-2/VideoPrism ship as explicit null slots (rendered as dashes, never 0) to be filled from the papers |
 
+## Eval grids (P4): the E4/E5/E6 2×2 design
+
+**Train axis** (which checkpoint):
+
+| method | train-full | train-masked |
+|---|---|---|
+| SCA | `sca_pretrain_nomask.json` (p_full ≡ 1) | `sca_pretrain.json` (default schedule) |
+| GRAM | `config/gram` pretrain (default) | `gram_masked_pretrain.json` (`train_mask: true`) |
+| PMRL | `pmrl_pretrain.json` | `pmrl_masked_pretrain.json` |
+
+`train_mask` is a default-off hook in `gram.py` (shared by gram/gram_lora/pmrl): an m†
+draw zero-fills gallery features before the loss, so `present_from_feats` trains the
+volume at reduced arity — honest masked-(i) training. SCA configs must keep it off (its
+own μ_M/μ_K virtual masking; combining would double-mask — guarded at construction).
+
+**Test axis**: `evaluation/run_eval_grids.py` — one encoder pass per checkpoint dumps
+features (`--config … --dump_features`), then every scorer × {0,25,50,75}% ×
+which-modality grid runs from the same tensors (`--features … --out …`, optional
+`--s_star` for the E6 block). Orchestrated over all cells by `scripts/run_e4_grid.sh`
+(`CKPTS="name=path …" EVAL_CFG=… bash scripts/run_e4_grid.sh` → `results/e4/*.json`).
+Per-cardinality score stats, rank-displacement bias, and the E5 affine calibration
+fit/apply are inside each E4 entry.
+
+**Finetune grid**: `slurm_scripts/ft_{msrvtt,didemo,activitynet,vatex,audiocaps}_sca.sh`
++ `ft_msrvtt_depth_sca.sh` (E10: 5-modal `ret%tvasd`, stacks on the finetuned msrvtt
+ckpt; the k=5 centroid needs zero code change).
+
 ## Guards (encoded as asserts/tests)
 
 - |M|=1 degeneracy: μ = the surviving embedding, A(M)≡1 with the gradient cut.

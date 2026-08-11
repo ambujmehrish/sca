@@ -295,6 +295,7 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         # score_mode selects the gallery geometry; 'volume' (default) is GRAM byte-for-byte.
         #   'centroid'           : SCA -- distance = 1 - cos(text, masked spherical mean)
         #   'volume_mean_imputed': GRAM-masked baseline (ii) -- missing vector mean-imputed
+        #   'pmrl_raw'/'pmrl_norm': PMRL head -- distance = -lambda_1 (/|M| for norm)
         _score_mode = getattr(model.config, 'score_mode', 'volume')
         if _score_mode == 'centroid':
             from model.centroid import masked_spherical_mean
@@ -304,6 +305,10 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         elif _score_mode == 'volume_mean_imputed':
             from utils.volume import volume_computation_mean_imputed
             area = volume_computation_mean_imputed(feat_t, _feats, present=_present)
+        elif _score_mode in ('pmrl_raw', 'pmrl_norm'):
+            from model.pmrl_loss import pmrl_lambda1
+            area = -pmrl_lambda1(feat_t.float(), [f.float() for f in _feats],
+                                 present=_present, variant=_score_mode.split('_')[1])
         else:
             area = volume_computation_masked(feat_t, _feats, present=_present)
         LOGGER.info(f"[SCORE] task={_task} mode={_score_mode} over T+"

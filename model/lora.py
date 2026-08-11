@@ -143,6 +143,34 @@ def unmerge_all(module):
             m.unmerge()
 
 
+def setup_lora_backbones(model, cfg, logger=None):
+    """Shared LoRA wiring for every model class that trains adapters on the trunk (SCA, the
+    GRAM-LoRA parity baseline, the PMRL head): inject into the attention W_q/W_v of the three
+    backbones with per-modality ranks. Returns the list of wrapped module paths (feed it to
+    remap_lora_checkpoint in modify_checkpoint). An encoder that yields ZERO wrapped layers is
+    a hard error -- a silent no-op adapter would "train" a fully frozen model."""
+    wrapped_all = []
+    lora_alpha = int(getattr(cfg, 'lora_alpha', 16))
+    lora_dropout = float(getattr(cfg, 'lora_dropout', 0.0))
+    for enc_name, r_key in (('vision_encoder', 'lora_r_vision'),
+                            ('audio_encoder', 'lora_r_audio'),
+                            ('multimodal_encoder', 'lora_r_text')):
+        r = int(getattr(cfg, r_key, 8))
+        if r <= 0 or not hasattr(model, enc_name):
+            continue
+        wrapped = inject_lora(getattr(model, enc_name), r=r, alpha=lora_alpha,
+                              dropout=lora_dropout, prefix=enc_name)
+        if not wrapped:
+            raise RuntimeError(
+                f'[LoRA] use_lora=true but no attention W_q/W_v layer was found in '
+                f'{enc_name} -- naming drift in the encoder? Refusing to run with a '
+                f'zero-parameter adapter.')
+        wrapped_all += wrapped
+        if logger is not None:
+            logger.info(f'[LoRA] {enc_name}: r={r}, wrapped {len(wrapped)} layers')
+    return wrapped_all
+
+
 def remap_lora_checkpoint(checkpoint, wrapped_paths):
     """A LoRA-wrapped linear renames <path>.weight -> <path>.base.weight. Remap a pretrained
     state dict (VAST ckpt, GRAM ckpts) so the frozen base weights still load after injection.

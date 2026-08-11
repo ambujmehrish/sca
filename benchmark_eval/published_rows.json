@@ -1,0 +1,564 @@
+{
+ "_meta": {
+  "metric": "[R@1, R@10] (VGGSound: [Acc@1, Acc@10])",
+  "note": "GRAM (paper) rows auto-extracted from make_results_xlsx.py \"Paper\" columns. null = not yet transcribed from the paper; renderers must show a dash, NEVER 0. Regenerate GRAM rows with --regen."
+ },
+ "GRAM (paper)": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": [
+    52.8,
+    82.9
+   ],
+   "MSR-VTT|T-VA": [
+    54.2,
+    83.9
+   ],
+   "MSR-VTT|T-VAS": [
+    54.8,
+    82.9
+   ],
+   "DiDeMo|T-V": [
+    54.0,
+    80.7
+   ],
+   "DiDeMo|T-VA": [
+    54.2,
+    79.3
+   ],
+   "ActivityNet|T-V": [
+    58.9,
+    91.2
+   ],
+   "ActivityNet|T-VA": [
+    59.0,
+    91.1
+   ],
+   "VATEX|T-V": [
+    81.1,
+    99.5
+   ],
+   "VATEX|T-VA": [
+    83.9,
+    98.6
+   ],
+   "VATEX|T-VAS": [
+    83.5,
+    98.8
+   ]
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": [
+    49.5,
+    81.7
+   ],
+   "MSR-VTT|T-VA": [
+    50.5,
+    82.2
+   ],
+   "MSR-VTT|T-VAS": [
+    52.9,
+    82.9
+   ],
+   "DiDeMo|T-V": [
+    52.3,
+    80.3
+   ],
+   "DiDeMo|T-VA": [
+    52.2,
+    78.9
+   ],
+   "ActivityNet|T-V": [
+    50.9,
+    85.4
+   ],
+   "ActivityNet|T-VA": [
+    50.4,
+    85.8
+   ],
+   "VATEX|T-V": [
+    79.0,
+    98.3
+   ],
+   "VATEX|T-VA": [
+    79.2,
+    99.0
+   ],
+   "VATEX|T-VAS": [
+    82.7,
+    98.1
+   ]
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": [
+    33.2,
+    75.3
+   ],
+   "VGGSound 5K (T-A-V)": [
+    40.6,
+    78.1
+   ]
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": [
+    55.7,
+    86.4
+   ],
+   "MSR-VTT|T-VA": [
+    58.4,
+    87.0
+   ],
+   "MSR-VTT|T-VAS": [
+    64.0,
+    89.3
+   ],
+   "DiDeMo|T-V": [
+    66.4,
+    89.9
+   ],
+   "DiDeMo|T-VA": [
+    67.3,
+    90.1
+   ],
+   "ActivityNet|T-V": [
+    66.5,
+    96.0
+   ],
+   "ActivityNet|T-VA": [
+    69.9,
+    96.1
+   ],
+   "VATEX|T-V": [
+    84.4,
+    99.8
+   ],
+   "VATEX|T-VA": [
+    87.0,
+    99.5
+   ],
+   "VATEX|T-VAS": [
+    87.7,
+    100.0
+   ]
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": [
+    56.4,
+    87.6
+   ],
+   "MSR-VTT|T-VA": [
+    59.0,
+    89.1
+   ],
+   "MSR-VTT|T-VAS": [
+    64.8,
+    91.5
+   ],
+   "DiDeMo|T-V": [
+    63.2,
+    91.6
+   ],
+   "DiDeMo|T-VA": [
+    63.5,
+    91.4
+   ],
+   "ActivityNet|T-V": [
+    64.6,
+    95.1
+   ],
+   "ActivityNet|T-VA": [
+    66.9,
+    95.4
+   ],
+   "VATEX|T-V": [
+    81.6,
+    99.8
+   ],
+   "VATEX|T-VA": [
+    84.6,
+    100.0
+   ],
+   "VATEX|T-VAS": [
+    84.2,
+    99.8
+   ]
+  }
+ },
+ "VAST": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ },
+ "ImageBind": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ },
+ "LanguageBind": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ },
+ "UMT-L": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ },
+ "InternVideo2": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ },
+ "mPLUG-2": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ },
+ "VideoPrism": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ }
+}

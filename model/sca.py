@@ -102,25 +102,8 @@ class SCA(GRAM):
         self.use_lora = bool(getattr(cfg, 'use_lora', False))
         self._lora_wrapped = []
         if self.use_lora:
-            from .lora import inject_lora
-            lora_alpha = int(getattr(cfg, 'lora_alpha', 16))
-            lora_dropout = float(getattr(cfg, 'lora_dropout', 0.0))
-            for enc_name, r_key in (('vision_encoder', 'lora_r_vision'),
-                                    ('audio_encoder', 'lora_r_audio'),
-                                    ('multimodal_encoder', 'lora_r_text')):
-                r = int(getattr(cfg, r_key, 8))
-                if r <= 0 or not hasattr(self, enc_name):
-                    continue
-                wrapped = inject_lora(getattr(self, enc_name), r=r, alpha=lora_alpha,
-                                      dropout=lora_dropout, prefix=enc_name)
-                if not wrapped:
-                    # silent no-op adapters would "train" a fully frozen model
-                    raise RuntimeError(
-                        f'[LoRA] use_lora=true but no attention W_q/W_v layer was found in '
-                        f'{enc_name} -- naming drift in the encoder? Refusing to run with a '
-                        f'zero-parameter adapter.')
-                self._lora_wrapped += wrapped
-                LOGGER.info(f'[LoRA] {enc_name}: r={r}, wrapped {len(wrapped)} layers')
+            from .lora import setup_lora_backbones
+            self._lora_wrapped = setup_lora_backbones(self, cfg, logger=LOGGER)
 
     def modify_checkpoint(self, checkpoint):
         checkpoint = super().modify_checkpoint(checkpoint)

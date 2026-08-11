@@ -85,6 +85,19 @@ A10/smoke scripts also run under 5.x (they touch only CLIP + sentence encoders).
 `model_cfg.score_mode` selects the eval geometry in `evaluation_mm`:
 `volume` (GRAM, default), `centroid` (SCA), `volume_mean_imputed` (masked baseline ii).
 
+## Baselines (P3)
+
+All baselines share the trunk, so comparisons isolate the geometry:
+
+| arm | how |
+|---|---|
+| GRAM | `model_type: gram` (byte-for-byte intact) |
+| GRAM masked-(i) | default eval scoring (`volume_computation_masked`, already per-clip) |
+| GRAM masked-(ii) | `score_mode: volume_mean_imputed` (`benchmark_eval/configs_baselines/zs_msrvtt_tvas_maskedii.json`, ckpt via `$EVAL_CKPT`) |
+| GRAM + LoRA parity | `model_type: gram_lora` (`config/baselines/pretrain_cfg/gram_lora_pretrain.json`) |
+| PMRL head (raw, /\|M\|) | `model_type: pmrl`, `pmrl_variant: raw\|norm`, eval `score_mode: pmrl_raw\|pmrl_norm`; full-FT and LoRA-parity configs + 24-step smoke in `config/baselines/pretrain_cfg/` |
+| published rows | `benchmark_eval/published_rows.json` — GRAM paper rows auto-extracted from `make_results_xlsx.py` (`import_published_rows.py --regen/--check`); VAST/ImageBind/LanguageBind/UMT-L/InternVideo2/mPLUG-2/VideoPrism ship as explicit null slots (rendered as dashes, never 0) to be filled from the papers |
+
 ## Guards (encoded as asserts/tests)
 
 - |M|=1 degeneracy: μ = the surviving embedding, A(M)≡1 with the gradient cut.

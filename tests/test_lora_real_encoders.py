@@ -17,7 +17,7 @@ import torch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from model.lora import (LoRALinear, LoRAQKVLinear, inject_lora, merge_all, unmerge_all,
-                        remap_lora_checkpoint)
+                        remap_lora_checkpoint, setup_lora_backbones)
 
 torch.manual_seed(0)
 
@@ -91,6 +91,54 @@ class TestBertAttention:
         wrapped = inject_lora(attn, r=4)
         assert sorted(wrapped) == ['query', 'value']
         assert not isinstance(attn.key, (LoRALinear, LoRAQKVLinear))
+
+
+class TestSetupLoraBackbones:
+    """The shared wiring used by SCA, GRAMLoRA and PMRL (model/baselines.py)."""
+
+    def _model(self):
+        eva = pytest.importorskip('model.vision_encoders.evaclip.eva_vit_model')
+        beats = pytest.importorskip('model.audio_encoders.beats.beats')
+        m = torch.nn.Module()
+        m.vision_encoder = torch.nn.Sequential(eva.Attention(dim=32, num_heads=4, subln=False))
+        m.audio_encoder = torch.nn.Sequential(beats.MultiheadAttention(32, 4, self_attention=True))
+        return m
+
+    def test_wraps_all_backbones_with_per_modality_ranks(self):
+        from easydict import EasyDict as edict
+        m = self._model()
+        cfg = edict(lora_r_vision=4, lora_r_audio=16, lora_r_text=8, lora_alpha=16)
+        wrapped = setup_lora_backbones(m, cfg)
+        assert sorted(wrapped) == ['audio_encoder.0.q_proj', 'audio_encoder.0.v_proj',
+                                   'vision_encoder.0.qkv']
+        assert m.vision_encoder[0].qkv.r == 4                      # per-modality ranks land
+        assert m.audio_encoder[0].q_proj.r == 16
+
+    def test_rank_zero_skips_encoder(self):
+        from easydict import EasyDict as edict
+        m = self._model()
+        wrapped = setup_lora_backbones(m, edict(lora_r_vision=0, lora_r_audio=8))
+        assert sorted(wrapped) == ['audio_encoder.0.q_proj', 'audio_encoder.0.v_proj']
+        assert not isinstance(m.vision_encoder[0].qkv, LoRAQKVLinear)
+
+    def test_zero_wrapped_layers_is_hard_error(self):
+        from easydict import EasyDict as edict
+        m = torch.nn.Module()
+        m.vision_encoder = torch.nn.Sequential(torch.nn.Linear(8, 8))   # no attention inside
+        with pytest.raises(RuntimeError, match='naming drift'):
+            setup_lora_backbones(m, edict(lora_r_vision=8))
+
+
+class TestPublishedRows:
+    def test_json_in_sync_and_schema_valid(self):
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'benchmark_eval'))
+        from import_published_rows import (load_published_rows, gram_rows_from_xlsx_source,
+                                           OTHER_BASELINES)
+        data = load_published_rows()                     # validates the [R@1, R@10] schema
+        assert data['GRAM (paper)'] == gram_rows_from_xlsx_source(), \
+            'published_rows.json out of sync with make_results_xlsx.py -- run --regen'
+        for b in OTHER_BASELINES:
+            assert b in data, f'{b} slot missing from published_rows.json'
 
 
 class TestCheckpointRemap:

@@ -11,6 +11,12 @@ class _LazyRegistry(dict):
             elif key == 'sca':
                 from .sca import SCA
                 self['sca'] = SCA
+            elif key == 'gram_lora':
+                from .baselines import GRAMLoRA
+                self['gram_lora'] = GRAMLoRA
+            elif key == 'pmrl':
+                from .baselines import PMRL
+                self['pmrl'] = PMRL
         return super().__getitem__(key)
 
 

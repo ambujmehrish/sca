@@ -7,7 +7,7 @@ in steps 1–6 (login node); step 7+ runs offline.
 Placeholders to set once (adjust to your allocation):
 
 ```bash
-export ACCOUNT=IscrC_CASPER-A_0                                   # your slurm account
+export ACCOUNT=AIFAC_S07_041                                   # your slurm account
 export WORK_ROOT=/leonardo_work/$ACCOUNT/$USER                    # big, backed up
 export DATA_ROOT=/leonardo_scratch/large/userexternal/$USER/Multimodal_HyperGraph_Dataset
 # If you are reusing the existing GRAM/HyperAlign staging, point WORK_ROOT/DATA_ROOT at

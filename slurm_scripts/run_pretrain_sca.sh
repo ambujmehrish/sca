@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -A IscrC_CASPER-A_0
+#SBATCH -A AIFAC_S07_041
 #SBATCH -p boost_usr_prod
 #SBATCH --qos=normal
 #SBATCH --time=06:00:00

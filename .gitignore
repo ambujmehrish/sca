@@ -9,3 +9,7 @@ experiments/a10_workdir/
 experiments/*_prepare.log
 experiments/a10_sweep.log
 pretrained_weights/
+results
+slurm_scripts/logs
+smoke_gpu_*.out
+datasets/

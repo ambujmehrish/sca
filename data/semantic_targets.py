@@ -10,14 +10,18 @@ import torch.nn.functional as F
 # Sparsified to per-row top-k so the 150k x 150k affinity never materialises.
 
 _ID_KEYS = ('video_id', 'clip_id', 'id', 'image_id', 'audio_id')
-_CAP_KEYS = ('desc', 'caption', 'text', 'raw_caption')
+# priority order; 'vast_cap' is VAST-27M's omni caption -- the text the model trains
+# against on vast27m_150k, hence the right S* source there
+_CAP_KEYS = ('desc', 'caption', 'text', 'raw_caption', 'vast_cap')
 
 
-def _read_annotations(path):
-    """Strict annotation reader: every item MUST carry an id (one of _ID_KEYS) and a
-    caption (one of _CAP_KEYS). Anything else is a hard error -- silently skipping items
-    or substituting list indices for ids would produce an S* cache that mismatches the
-    training batches in ways that only surface (or worse, don't) much later."""
+def _read_annotations(path, caption_key=None):
+    """Strict annotation reader. The id key and caption key are resolved ONCE (from the
+    first item, by the priority in _ID_KEYS/_CAP_KEYS, or forced via caption_key) and then
+    REQUIRED on every item -- no per-item guessing, no skipping, no index-substituted ids:
+    any of those would produce an S* cache that mismatches the training batches in ways
+    that only surface (or worse, don't) much later. Returns (ids, caps, id_key, cap_key)
+    so the builder can record the resolved keys in the cache meta."""
     with open(path) as f:
         anno = json.load(f)
     if isinstance(anno, dict):
@@ -28,20 +32,32 @@ def _read_annotations(path):
         anno = anno['data']
     if not isinstance(anno, list) or not anno:
         raise ValueError(f'{path}: expected a non-empty list of annotation items')
+
+    first = anno[0]
+    id_key = next((k for k in _ID_KEYS if k in first), None)
+    if caption_key is not None:
+        cap_key = caption_key if caption_key in first else None
+    else:
+        cap_key = next((k for k in _CAP_KEYS if k in first), None)
+    if id_key is None or cap_key is None:
+        want = f'caption key {caption_key!r}' if caption_key else f'caption keys {_CAP_KEYS}'
+        raise ValueError(
+            f'{path}: item 0 lacks {"an id" if id_key is None else "a caption"} '
+            f'(keys present: {sorted(first)[:10]}; accepted id keys {_ID_KEYS}, {want}) '
+            f'-- pick the right field via --caption_key if the schema differs.')
+
     ids, caps = [], []
     for i, item in enumerate(anno):
-        vid = next((item[k] for k in _ID_KEYS if k in item), None)
-        cap = next((item[k] for k in _CAP_KEYS if k in item), None)
-        if vid is None or cap is None:
+        if id_key not in item or cap_key not in item:
             raise ValueError(
-                f'{path}: item {i} lacks {"an id" if vid is None else "a caption"} '
-                f'(keys present: {sorted(item)[:10]}; accepted id keys {_ID_KEYS}, '
-                f'caption keys {_CAP_KEYS}) -- refusing to skip or substitute.')
+                f'{path}: item {i} lacks {id_key!r} or {cap_key!r} (resolved from item 0; '
+                f'keys present: {sorted(item)[:10]}) -- inconsistent schema, refusing.')
+        cap = item[cap_key]
         if isinstance(cap, list):
             cap = cap[0]
-        ids.append(str(vid))
+        ids.append(str(item[id_key]))
         caps.append(cap)
-    return ids, caps
+    return ids, caps, id_key, cap_key
 
 
 @torch.no_grad()
@@ -84,7 +100,8 @@ def _embed_captions(captions, model_name, device, batch_size=256, impl='sbert'):
 def build_semantic_targets(annotation_json, out_path,
                            model_name='sentence-transformers/all-mpnet-base-v2',
                            tau_star=0.5, topk=64, threshold=0.0,
-                           batch_size=256, chunk=2048, device=None, embedding_impl='sbert'):
+                           batch_size=256, chunk=2048, device=None, embedding_impl='sbert',
+                           caption_key=None):
     """Compute and cache the sparsified S* affinity.
 
     Affinity: s*_ij = ((cos_ij + 1) / 2) ** (1 / tau_star)  in [0, 1]; tau_star < 1 sharpens
@@ -92,7 +109,8 @@ def build_semantic_targets(annotation_json, out_path,
     >= threshold are stored (indices + values); everything else is treated as 0 downstream.
     """
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-    ids, caps = _read_annotations(annotation_json)
+    ids, caps, id_key, cap_key = _read_annotations(annotation_json, caption_key=caption_key)
+    print(f'[S*] {len(ids)} items; id key {id_key!r}, caption key {cap_key!r}', flush=True)
     assert len(ids) == len(set(ids)), 'duplicate ids in annotation file'
     emb = _embed_captions(caps, model_name, device, batch_size, impl=embedding_impl)
 
@@ -113,6 +131,7 @@ def build_semantic_targets(annotation_json, out_path,
     cache = {'ids': ids, 'topk_idx': topk_idx, 'topk_val': topk_val.half(),
              'meta': {'model_name': model_name, 'tau_star': tau_star, 'topk': topk,
                       'threshold': threshold, 'embedding_impl': embedding_impl,
+                      'id_key': id_key, 'caption_key': cap_key,
                       'annotation_json': os.path.abspath(annotation_json)}}
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     torch.save(cache, out_path)
@@ -169,11 +188,15 @@ def main():
     p.add_argument('--chunk', type=int, default=2048)
     p.add_argument('--embedding_impl', default='sbert', choices=['sbert', 'hf'],
                    help='explicit embedding implementation; recorded in the cache meta')
+    p.add_argument('--caption_key', default=None,
+                   help='force a specific caption field (default: priority auto-resolve, '
+                        'e.g. vast_cap on VAST-27M); recorded in the cache meta')
     args = p.parse_args()
     cache = build_semantic_targets(args.annotation_json, args.out_path, args.model_name,
                                    args.tau_star, args.topk, args.threshold,
                                    args.batch_size, args.chunk,
-                                   embedding_impl=args.embedding_impl)
+                                   embedding_impl=args.embedding_impl,
+                                   caption_key=args.caption_key)
     print(f"S* cache: {len(cache['ids'])} rows, top-{cache['topk_idx'].shape[1]} -> {args.out_path}")
 
 

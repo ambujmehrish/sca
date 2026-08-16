@@ -698,21 +698,42 @@ class TestAnnotationReader:
         p.write_text(json.dumps(obj))
         return str(p)
 
-    def test_valid_list(self, tmp_path):
+    def test_valid_list_and_key_resolution(self, tmp_path):
         from data.semantic_targets import _read_annotations
-        ids, caps = _read_annotations(self._write(tmp_path, [
-            {'video_id': 'a', 'caption': 'x'}, {'clip_id': 'b', 'desc': 'y'}]))
+        ids, caps, id_key, cap_key = _read_annotations(self._write(tmp_path, [
+            {'video_id': 'a', 'caption': 'x'}, {'video_id': 'b', 'caption': 'y'}]))
         assert ids == ['a', 'b'] and caps == ['x', 'y']
+        assert id_key == 'video_id' and cap_key == 'caption'
 
-    def test_missing_caption_is_hard_error(self, tmp_path):
+    def test_vast27m_schema(self, tmp_path):
+        # the real vast27m_150k item shape: clip_id + vast_cap (list) among other caps
         from data.semantic_targets import _read_annotations
-        with pytest.raises(ValueError, match='refusing to skip'):
+        item = {'clip_id': 'G1DRYgjsZTw.63', 'clip_span': ['a', 'b'], 'url': 'u',
+                'vision_cap': ['v'], 'audio_cap': ['a'], 'subtitle': 's',
+                'vast_cap': ['the omni caption']}
+        ids, caps, id_key, cap_key = _read_annotations(self._write(tmp_path, [item]))
+        assert ids == ['G1DRYgjsZTw.63'] and caps == ['the omni caption']
+        assert id_key == 'clip_id' and cap_key == 'vast_cap'
+        # explicit override picks a different field
+        _, caps2, _, ck2 = _read_annotations(self._write(tmp_path, [item]),
+                                             caption_key='vision_cap')
+        assert caps2 == ['v'] and ck2 == 'vision_cap'
+
+    def test_inconsistent_schema_is_hard_error(self, tmp_path):
+        # caption key resolved from item 0 must exist on EVERY item
+        from data.semantic_targets import _read_annotations
+        with pytest.raises(ValueError, match='inconsistent schema'):
             _read_annotations(self._write(tmp_path, [
-                {'video_id': 'a', 'caption': 'x'}, {'video_id': 'b'}]))
+                {'video_id': 'a', 'caption': 'x'}, {'video_id': 'b', 'desc': 'y'}]))
+
+    def test_missing_caption_on_first_item_is_hard_error(self, tmp_path):
+        from data.semantic_targets import _read_annotations
+        with pytest.raises(ValueError, match='caption'):
+            _read_annotations(self._write(tmp_path, [{'video_id': 'b'}]))
 
     def test_missing_id_is_hard_error(self, tmp_path):
         from data.semantic_targets import _read_annotations
-        with pytest.raises(ValueError, match='refusing to skip'):
+        with pytest.raises(ValueError, match='an id'):
             _read_annotations(self._write(tmp_path, [{'caption': 'x'}]))
 
     def test_dict_without_data_key_is_hard_error(self, tmp_path):
@@ -720,8 +741,8 @@ class TestAnnotationReader:
         with pytest.raises(ValueError, match='refusing to guess'):
             _read_annotations(self._write(tmp_path, {'items': [{'video_id': 'a',
                                                                 'caption': 'x'}]}))
-        ids, _ = _read_annotations(self._write(tmp_path, {'data': [{'video_id': 'a',
-                                                                    'caption': 'x'}]}))
+        ids, _, _, _ = _read_annotations(self._write(tmp_path, {'data': [{'video_id': 'a',
+                                                                          'caption': 'x'}]}))
         assert ids == ['a']
 
     def test_embedding_impl_is_explicit(self):

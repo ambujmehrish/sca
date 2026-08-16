@@ -62,6 +62,10 @@ class PMRL(_LoRACkptMixin, GRAM):
         assert self.pmrl_variant in ('raw', 'norm'), self.pmrl_variant
         self.pmrl_ortho_w = float(getattr(self.config, 'pmrl_ortho_w', 0.1))
         self.pmrl_temp = float(getattr(self.config, 'pmrl_temp', 0.07))
+        # declare the eval geometry (matching the trained variant) so a bare eval config
+        # can never silently score a PMRL checkpoint with GRAM's volume
+        if not getattr(self.config, 'score_mode', None):
+            self.config.score_mode = f'pmrl_{self.pmrl_variant}'
         self._lora_wrapped = []
         if bool(getattr(self.config, 'use_lora', False)):
             from .lora import setup_lora_backbones

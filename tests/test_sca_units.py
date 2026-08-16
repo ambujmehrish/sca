@@ -689,6 +689,47 @@ class TestEnvExpansion:
 
 # --------------------------------------------------------------------------- S* gather
 
+class TestAnnotationReader:
+    """The S* builder's input contract: no skipped items, no index-substituted ids,
+    no guessed dict layouts."""
+
+    def _write(self, tmp_path, obj):
+        p = tmp_path / 'anno.json'
+        p.write_text(json.dumps(obj))
+        return str(p)
+
+    def test_valid_list(self, tmp_path):
+        from data.semantic_targets import _read_annotations
+        ids, caps = _read_annotations(self._write(tmp_path, [
+            {'video_id': 'a', 'caption': 'x'}, {'clip_id': 'b', 'desc': 'y'}]))
+        assert ids == ['a', 'b'] and caps == ['x', 'y']
+
+    def test_missing_caption_is_hard_error(self, tmp_path):
+        from data.semantic_targets import _read_annotations
+        with pytest.raises(ValueError, match='refusing to skip'):
+            _read_annotations(self._write(tmp_path, [
+                {'video_id': 'a', 'caption': 'x'}, {'video_id': 'b'}]))
+
+    def test_missing_id_is_hard_error(self, tmp_path):
+        from data.semantic_targets import _read_annotations
+        with pytest.raises(ValueError, match='refusing to skip'):
+            _read_annotations(self._write(tmp_path, [{'caption': 'x'}]))
+
+    def test_dict_without_data_key_is_hard_error(self, tmp_path):
+        from data.semantic_targets import _read_annotations
+        with pytest.raises(ValueError, match='refusing to guess'):
+            _read_annotations(self._write(tmp_path, {'items': [{'video_id': 'a',
+                                                                'caption': 'x'}]}))
+        ids, _ = _read_annotations(self._write(tmp_path, {'data': [{'video_id': 'a',
+                                                                    'caption': 'x'}]}))
+        assert ids == ['a']
+
+    def test_embedding_impl_is_explicit(self):
+        from data.semantic_targets import _embed_captions
+        with pytest.raises(ValueError, match='unknown embedding impl'):
+            _embed_captions(['x'], 'any-model', 'cpu', impl='auto')
+
+
 class TestSemanticTargets:
     def test_gather_roundtrip(self, tmp_path):
         import torch as T

@@ -36,6 +36,10 @@ class SCA(GRAM):
         super().__init__(config)
 
         cfg = self.config
+        # the model declares its own eval geometry: without this, an eval config lacking
+        # score_mode would silently score an SCA checkpoint with GRAM's volume
+        if not getattr(cfg, 'score_mode', None):
+            cfg.score_mode = 'centroid'
         if bool(getattr(cfg, 'train_mask', False)):
             raise ValueError(
                 "train_mask=true is the GRAM/PMRL 2x2 arm; SCA masks via its own "

@@ -56,11 +56,14 @@ if [ ! -f "$DATA_ROOT/vast27m_150k/annotations150k.json" ]; then
   echo "[stage 3] FAILED: $DATA_ROOT/vast27m_150k/annotations150k.json not found" >&2
   exit 1
 fi
-if [ ! -f "$DATA_ROOT/vast27m_150k/s_star_150k.pt" ]; then
+# S* caches live in SCA_CACHE_ROOT (DATA_ROOT may be a read-only shared staging)
+: "${SCA_CACHE_ROOT:?export SCA_CACHE_ROOT=<writable cache dir, e.g. \$WORK/sca_caches>}"
+mkdir -p "$SCA_CACHE_ROOT"
+if [ ! -f "$SCA_CACHE_ROOT/s_star_150k.pt" ]; then
   echo "[stage 3] building the S* cache (one-time preprocessing job)"
   python3 data/semantic_targets.py \
     --annotation_json "$DATA_ROOT/vast27m_150k/annotations150k.json" \
-    --out_path "$DATA_ROOT/vast27m_150k/s_star_150k.pt"
+    --out_path "$SCA_CACHE_ROOT/s_star_150k.pt"
 fi
 NPROC="${NPROC:-4}"
 export WANDB_MODE="${WANDB_MODE:-offline}"

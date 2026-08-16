@@ -61,7 +61,7 @@ export MODELS_DIR=$WORK_ROOT/sca_models
 # 1. one-time: build the S* cache (per dataset; ~minutes on one GPU)
 python3 data/semantic_targets.py \
   --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json \
-  --out_path $DATA_ROOT/vast27m_150k/s_star_150k.pt
+  --out_path $SCA_CACHE_ROOT/s_star_150k.pt
 
 # 2. REQUIRED pre-flight gate (stages 1-2 anywhere; stage 3 = real 24-step k=4 smoke
 #    on vast27m_150k with LoRA where $DATA_ROOT is visible)

@@ -35,9 +35,9 @@ A2 (alignment-measure comparison) is an analysis pass: `evaluation/measure_compa
 
 A9 cache builds (login node, once each):
 ```bash
-python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --model_name sentence-transformers/all-MiniLM-L6-v2 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_minilm.pt   # A9_sstar_minilm
-python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --tau_star 0.3 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_tau03.pt   # A9_taustar_0.3
-python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --tau_star 1.0 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_tau10.pt   # A9_taustar_1.0
-python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --topk 32 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_top32.pt   # A9_topk_32
-python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --topk 128 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_top128.pt   # A9_topk_128
+python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --model_name sentence-transformers/all-MiniLM-L6-v2 --out_path $SCA_CACHE_ROOT/s_star_150k_minilm.pt   # A9_sstar_minilm
+python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --tau_star 0.3 --out_path $SCA_CACHE_ROOT/s_star_150k_tau03.pt   # A9_taustar_0.3
+python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --tau_star 1.0 --out_path $SCA_CACHE_ROOT/s_star_150k_tau10.pt   # A9_taustar_1.0
+python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --topk 32 --out_path $SCA_CACHE_ROOT/s_star_150k_top32.pt   # A9_topk_32
+python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --topk 128 --out_path $SCA_CACHE_ROOT/s_star_150k_top128.pt   # A9_topk_128
 ```

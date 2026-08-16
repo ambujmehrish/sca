@@ -59,25 +59,25 @@ GRID = {
     'A8_unif_weighted': ({'l_unif_weighted': True}, '(1 - S*)-weighted repulsion', 'E8'),
     # A9 -- S* source / tau* / sparsification (config points at a differently-built cache;
     # the matching build commands are in the manifest)
-    'A9_sstar_minilm': ({'s_star_path': '${DATA_ROOT}/vast27m_150k/s_star_150k_minilm.pt'},
+    'A9_sstar_minilm': ({'s_star_path': '${SCA_CACHE_ROOT}/s_star_150k_minilm.pt'},
                         'S* from all-MiniLM-L6-v2', 'E6'),
-    'A9_taustar_0.3': ({'s_star_path': '${DATA_ROOT}/vast27m_150k/s_star_150k_tau03.pt',
+    'A9_taustar_0.3': ({'s_star_path': '${SCA_CACHE_ROOT}/s_star_150k_tau03.pt',
                         'sca_tau_star': 0.3}, 'tau* = 0.3 (sharper)', 'E6'),
-    'A9_taustar_1.0': ({'s_star_path': '${DATA_ROOT}/vast27m_150k/s_star_150k_tau10.pt',
+    'A9_taustar_1.0': ({'s_star_path': '${SCA_CACHE_ROOT}/s_star_150k_tau10.pt',
                         'sca_tau_star': 1.0}, 'tau* = 1.0 (no sharpening)', 'E6'),
-    'A9_topk_32': ({'s_star_path': '${DATA_ROOT}/vast27m_150k/s_star_150k_top32.pt'},
+    'A9_topk_32': ({'s_star_path': '${SCA_CACHE_ROOT}/s_star_150k_top32.pt'},
                    'top-32 sparsification', 'E6'),
-    'A9_topk_128': ({'s_star_path': '${DATA_ROOT}/vast27m_150k/s_star_150k_top128.pt'},
+    'A9_topk_128': ({'s_star_path': '${SCA_CACHE_ROOT}/s_star_150k_top128.pt'},
                     'top-128 sparsification', 'E6'),
 }
 
 A9_BUILDS = {
     'A9_sstar_minilm': '--model_name sentence-transformers/all-MiniLM-L6-v2 '
-                       '--out_path $DATA_ROOT/vast27m_150k/s_star_150k_minilm.pt',
-    'A9_taustar_0.3': '--tau_star 0.3 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_tau03.pt',
-    'A9_taustar_1.0': '--tau_star 1.0 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_tau10.pt',
-    'A9_topk_32': '--topk 32 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_top32.pt',
-    'A9_topk_128': '--topk 128 --out_path $DATA_ROOT/vast27m_150k/s_star_150k_top128.pt',
+                       '--out_path $SCA_CACHE_ROOT/s_star_150k_minilm.pt',
+    'A9_taustar_0.3': '--tau_star 0.3 --out_path $SCA_CACHE_ROOT/s_star_150k_tau03.pt',
+    'A9_taustar_1.0': '--tau_star 1.0 --out_path $SCA_CACHE_ROOT/s_star_150k_tau10.pt',
+    'A9_topk_32': '--topk 32 --out_path $SCA_CACHE_ROOT/s_star_150k_top32.pt',
+    'A9_topk_128': '--topk 128 --out_path $SCA_CACHE_ROOT/s_star_150k_top128.pt',
 }
 
 

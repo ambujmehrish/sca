@@ -12,7 +12,7 @@
  "model_cfg": {
   "default": "./config/sca/default_model_cfg.json",
   "vision_encoder_type": "evaclip01_giant",
-  "s_star_path": "${DATA_ROOT}/vast27m_150k/s_star_150k_top32.pt",
+  "s_star_path": "${SCA_CACHE_ROOT}/s_star_150k_top32.pt",
   "use_lora": true,
   "lora_r_vision": 8,
   "lora_r_audio": 8,

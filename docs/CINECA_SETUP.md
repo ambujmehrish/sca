@@ -26,7 +26,8 @@ export SCRATCH_ROOT=$SCRATCH_ROOT
 export CODE_DIR=\$WORK/sca
 # configs read these two:
 export WORK_ROOT=\$WORK                                  # \${WORK_ROOT}/GRAM/... = VAST ckpt
-export DATA_ROOT=\$SCRATCH_ROOT/Multimodal_HyperGraph_Dataset
+export DATA_ROOT=/leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset  # shared read-only staging (verified readable)
+export SCA_CACHE_ROOT=\$WORK/sca_caches                  # WRITABLE: S* caches live here
 export MODELS_DIR=\$FAST/models/sca_models               # prefetch target + offline env.sh
 # every cache on FAST (reusing your existing dirs), never \$HOME
 export PIP_CACHE_DIR=\$FAST/pip_cache
@@ -136,7 +137,7 @@ srun -A $ACCOUNT -p boost_usr_prod --qos=boost_qos_dbg --time=00:30:00 \
      --gres=gpu:1 --mem=64G --pty \
   python3 data/semantic_targets.py \
     --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json \
-    --out_path $DATA_ROOT/vast27m_150k/s_star_150k.pt
+    --out_path $SCA_CACHE_ROOT/s_star_150k.pt
 ```
 
 ## 8. Smoke test — CPU stages on the login node

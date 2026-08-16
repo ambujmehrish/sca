@@ -105,7 +105,7 @@ All baselines share the trunk, so comparisons isolate the geometry:
 | method | train-full | train-masked |
 |---|---|---|
 | SCA | `sca_pretrain_nomask.json` (p_full ≡ 1) | `sca_pretrain.json` (default schedule) |
-| GRAM | `config/gram` pretrain (default) | `gram_masked_pretrain.json` (`train_mask: true`) |
+| GRAM | `gram_pretrain.json` (plain, stage A) | `gram_masked_pretrain.json` (`train_mask: true`) |
 | PMRL | `pmrl_pretrain.json` | `pmrl_masked_pretrain.json` |
 
 `train_mask` is a default-off hook in `gram.py` (shared by gram/gram_lora/pmrl): an m†

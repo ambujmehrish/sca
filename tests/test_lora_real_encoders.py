@@ -58,6 +58,73 @@ class TestEvaClipAttention:
         assert torch.allclose(attn.qkv.base(x), ref, atol=1e-5)  # base restored exactly
 
 
+class TestRealForwardPaths:
+    """The trunk reads raw .weight tensors instead of calling the wrapped module:
+    eva_vit_model.py:310 does F.linear(x, self.qkv.weight, qkv_bias) and BEATs' MHA
+    torch.cat's proj weights. These tests run the REAL encoder forwards end-to-end after
+    injection -- the exact failure the smoke gate caught on the cluster
+    (AttributeError: 'LoRAQKVLinear' object has no attribute 'weight')."""
+
+    def test_eva_fused_forward_end_to_end(self):
+        eva = pytest.importorskip('model.vision_encoders.evaclip.eva_vit_model')
+        torch.manual_seed(0)
+        attn = eva.Attention(dim=64, num_heads=4, subln=False).eval()
+        x = torch.randn(2, 16, 64)
+        with torch.no_grad():
+            ref = attn(x)
+        inject_lora(attn, r=4)
+        with torch.no_grad():
+            out0 = attn(x)
+        assert torch.allclose(out0, ref, atol=1e-5)          # zero-init == baseline forward
+        with torch.no_grad():
+            attn.qkv.lora_B_q.normal_(); attn.qkv.lora_B_v.normal_()
+            out1 = attn(x)
+        assert not torch.allclose(out1, ref, atol=1e-3)      # adapters reach the output
+        merge_all(attn)
+        with torch.no_grad():
+            assert torch.allclose(attn(x), out1, atol=1e-4)  # merged == unmerged forward
+        unmerge_all(attn)
+
+    def test_eva_subln_forward_end_to_end(self):
+        eva = pytest.importorskip('model.vision_encoders.evaclip.eva_vit_model')
+        torch.manual_seed(0)
+        attn = eva.Attention(dim=64, num_heads=4, subln=True).eval()
+        x = torch.randn(2, 16, 64)
+        with torch.no_grad():
+            ref = attn(x)
+        inject_lora(attn, r=4)
+        with torch.no_grad():
+            assert torch.allclose(attn(x), ref, atol=1e-5)
+        with torch.no_grad():
+            attn.q_proj.lora_B.normal_()
+            assert not torch.allclose(attn(x), ref, atol=1e-3)
+
+    def test_beats_forward_end_to_end(self):
+        beats = pytest.importorskip('model.audio_encoders.beats.beats')
+        torch.manual_seed(0)
+        m = beats.MultiheadAttention(64, 4, self_attention=True).eval()
+        x = torch.randn(10, 2, 64)                            # (T, B, C) fairseq layout
+        with torch.no_grad():
+            ref, _, _ = m(query=x, key=x, value=x, position_bias=None)
+        inject_lora(m, r=4)
+        with torch.no_grad():
+            out0, _, _ = m(query=x, key=x, value=x, position_bias=None)
+        assert torch.allclose(out0, ref, atol=1e-5)
+        with torch.no_grad():
+            m.q_proj.lora_B.normal_()
+            out1, _, _ = m(query=x, key=x, value=x, position_bias=None)
+        assert not torch.allclose(out1, ref, atol=1e-3)
+
+    def test_effective_weight_gradients_flow_to_lora(self):
+        # F.linear against the .weight property must train A/B, never the frozen base
+        base = torch.nn.Linear(16, 48, bias=False)
+        lora = LoRAQKVLinear(base, r=4)
+        x = torch.randn(3, 16)
+        torch.nn.functional.linear(x, lora.weight).sum().backward()
+        assert lora.lora_A_q.grad is not None and torch.isfinite(lora.lora_A_q.grad).all()
+        assert lora.base.weight.grad is None                  # frozen base untouched
+
+
 class TestBeatsAttention:
     def test_q_v_wrapped(self):
         beats = pytest.importorskip('model.audio_encoders.beats.beats')

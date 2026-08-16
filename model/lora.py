@@ -19,7 +19,27 @@ _V_NAMES = ('v_proj', 'value')
 _QKV_NAMES = ('qkv',)
 
 
-class LoRALinear(nn.Module):
+class _EffectiveWeightMixin:
+    """Some trunk call sites bypass the module call and read the raw tensor -- EVA-CLIP's
+    Attention does F.linear(x, self.qkv.weight, ...) and BEATs' fairseq-style MHA
+    torch.cat's q/k/v_proj.weight in its fast path. Exposing `weight`/`bias` as the
+    EFFECTIVE tensors (base + LoRA delta, unmerged; plain base when merged -- the delta is
+    already folded in) makes the wrappers transparent to every such site, with gradients
+    flowing to lora_A/B through the delta exactly as through the module call."""
+
+    @property
+    def weight(self):
+        w = self.base.weight
+        if self.merged:
+            return w
+        return w + self._delta().to(w.dtype)
+
+    @property
+    def bias(self):
+        return self.base.bias
+
+
+class LoRALinear(_EffectiveWeightMixin, nn.Module):
     """Wraps a frozen nn.Linear with a rank-r update: y = W x + (alpha/r) * B A x."""
 
     def __init__(self, base, r=8, alpha=16, dropout=0.0):
@@ -59,7 +79,7 @@ class LoRALinear(nn.Module):
             self.merged = False
 
 
-class LoRAQKVLinear(nn.Module):
+class LoRAQKVLinear(_EffectiveWeightMixin, nn.Module):
     """LoRA on the q and v slices of a fused qkv nn.Linear (out_features = 3 * d).
     k stays frozen with no update, matching the W_q/W_v-only recipe."""
 

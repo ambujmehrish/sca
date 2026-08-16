@@ -78,7 +78,22 @@ def main():
     for flag in ('HF_HUB_OFFLINE', 'TRANSFORMERS_OFFLINE', 'HF_DATASETS_OFFLINE'):
         os.environ.pop(flag, None)
 
+    import shutil
     from huggingface_hub import snapshot_download, hf_hub_download
+
+    def fetch_to(repo_id, filename, dest):
+        """Download into the HF cache, then COPY the real bytes to dest. Never uses
+        local_dir: older hub versions (<1.0) may materialize local_dir files as symlinks
+        into the cache, which break across symlinked directories (e.g. pretrained_weights
+        -> FAST) -- exactly the failure mode this replaces."""
+        cached = hf_hub_download(repo_id=repo_id, filename=filename)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        if os.path.islink(dest) and not os.path.exists(dest):
+            os.unlink(dest)                                 # broken symlink from an old run
+        shutil.copyfile(os.path.realpath(cached), dest)     # follow symlinks, real bytes
+        if not (os.path.exists(dest) and os.path.getsize(dest) > 0):
+            raise RuntimeError(f'copy to {dest} failed (source {cached})')
+        return dest
 
     failures = []
 
@@ -114,27 +129,23 @@ def main():
         report('bert/bert-base-uncased', 'PRESENT')
     else:
         try:
-            os.makedirs(bert_dir, exist_ok=True)
             for f in BERT_FILES:
-                hf_hub_download(repo_id=BERT_REPO, filename=f, local_dir=bert_dir)
+                fetch_to(BERT_REPO, f, os.path.join(bert_dir, f))
             report('bert/bert-base-uncased', 'FETCHED')
         except Exception as e:
             report('bert/bert-base-uncased', 'MISSING')
-            failures.append(f'bert: {e}')
+            failures.append(f'bert: {type(e).__name__}: {e}')
 
     eva_path = os.path.join(pw, 'clip', EVA_FILE)
-    if os.path.exists(eva_path):
+    if os.path.exists(eva_path) and os.path.getsize(eva_path) > 0:
         report(f'clip/{EVA_FILE}', 'PRESENT')
     else:
         try:
-            os.makedirs(os.path.dirname(eva_path), exist_ok=True)
-            got = hf_hub_download(repo_id=EVA_REPO, filename=EVA_FILE,
-                                  local_dir=os.path.dirname(eva_path))
-            assert os.path.exists(eva_path), got
+            fetch_to(EVA_REPO, EVA_FILE, eva_path)
             report(f'clip/{EVA_FILE}', 'FETCHED')
         except Exception as e:
             report(f'clip/{EVA_FILE}', 'MISSING')
-            failures.append(f'evaclip: {e}')
+            failures.append(f'evaclip: {type(e).__name__}: {e}')
 
     beats_path = os.path.join(pw, 'beats', 'BEATs_iter3_plus_AS2M.pt')
     if os.path.exists(beats_path):

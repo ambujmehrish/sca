@@ -101,8 +101,10 @@ def main():
         print(f'  [{status:>7s}] {name}', flush=True)
 
     print(f'== HF cache -> {os.environ["HF_HOME"]}')
-    # skip alternative-runtime weight copies (onnx/openvino/tf/flax) -- torch only
-    skip = ['onnx/*', 'openvino/*', '*.onnx', '*.h5', 'tf_*', 'flax_*', '*.msgpack']
+    # skip alternative-runtime weight copies (onnx/openvino/tf/flax) -- torch only.
+    # Single source of truth shared with the offline resolver in data/semantic_targets.py
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+    from data.semantic_targets import HF_IGNORE_PATTERNS as skip
     hf_models = SBERT_MODELS + (SMOKE_MODELS if args.with_smoke_data else [])
     for repo in hf_models:
         try:

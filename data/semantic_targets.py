@@ -9,6 +9,10 @@ import torch.nn.functional as F
 # s_star_150k.pt) with a FROZEN sentence-embedding model; training only gathers cached rows.
 # Sparsified to per-row top-k so the 150k x 150k affinity never materialises.
 
+# alternative-runtime weight copies never fetched NOR required from the cache; MUST match
+# what scripts/prefetch_models.py skips (it imports this constant)
+HF_IGNORE_PATTERNS = ['onnx/*', 'openvino/*', '*.onnx', '*.h5', 'tf_*', 'flax_*', '*.msgpack']
+
 _ID_KEYS = ('video_id', 'clip_id', 'id', 'image_id', 'audio_id')
 # priority order; 'vast_cap' is VAST-27M's omni caption -- the text the model trains
 # against on vast27m_150k, hence the right S* source there
@@ -60,6 +64,30 @@ def _read_annotations(path, caption_key=None):
     return ids, caps, id_key, cap_key
 
 
+def _resolve_sbert_model(model_name):
+    """Resolve the model to a LOCAL snapshot directory from the HF cache whenever one
+    exists. sentence-transformers 2.2.x ignores HF_HUB_OFFLINE and phones home from its
+    own snapshot_download, so on offline compute nodes it must be handed a filesystem
+    path, never a hub name. Online with no cached copy: return the name unchanged (the
+    normal first fetch on a login node)."""
+    if os.path.isdir(model_name):
+        return model_name
+    from huggingface_hub import snapshot_download
+    try:
+        return snapshot_download(repo_id=model_name, local_files_only=True,
+                                 ignore_patterns=HF_IGNORE_PATTERNS)
+    except Exception as e:
+        offline = (os.environ.get('HF_HUB_OFFLINE') == '1'
+                   or os.environ.get('TRANSFORMERS_OFFLINE') == '1')
+        if offline:
+            raise RuntimeError(
+                f'S* builder: {model_name!r} is not in the local HF cache '
+                f'(HF_HOME={os.environ.get("HF_HOME", "~/.cache/huggingface")}) and this '
+                'node is OFFLINE. Run scripts/prefetch_models.py on a login node first.'
+            ) from e
+        return model_name
+
+
 @torch.no_grad()
 def _embed_captions(captions, model_name, device, batch_size=256, impl='sbert'):
     """Frozen sentence embeddings. impl is EXPLICIT, never inferred from what happens to
@@ -76,7 +104,7 @@ def _embed_captions(captions, model_name, device, batch_size=256, impl='sbert'):
                 '(pip install sentence-transformers) or EXPLICITLY pass --embedding_impl '
                 'hf -- refusing to switch implementations silently, the resulting S* '
                 'would differ.') from e
-        model = SentenceTransformer(model_name, device=device)
+        model = SentenceTransformer(_resolve_sbert_model(model_name), device=device)
         emb = model.encode(captions, batch_size=batch_size, convert_to_tensor=True,
                            normalize_embeddings=True, show_progress_bar=True)
         return emb.float().cpu()

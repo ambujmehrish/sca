@@ -1,7 +1,8 @@
 {
  "_meta": {
   "metric": "[R@1, R@10] (VGGSound: [Acc@1, Acc@10])",
-  "note": "GRAM (paper) rows auto-extracted from make_results_xlsx.py \"Paper\" columns. null = not yet transcribed from the paper; renderers must show a dash, NEVER 0. Regenerate GRAM rows with --regen."
+  "note": "GRAM (paper) rows auto-extracted from make_results_xlsx.py \"Paper\" columns. null = not yet transcribed from the paper; renderers must show a dash, NEVER 0. Regenerate GRAM rows with --regen.",
+  "provenance": "GRAM (paper) rows: auto-extracted from make_results_xlsx.py. Other baselines: transcribed from GRAM, ICLR 2025 (arXiv:2412.11959) Tables 1/3; only complete [R@1,R@10] pairs are filled, absent table cells stay null. Audio rows use each method's own best modality as reported there (LanguageBind T-A/T-V, ImageBind T-A, VAST T-AV). InternVideo-L R@1-only and VideoPrism-b R@1-only rows were NOT filled (no R@10 in the table)."
  },
  "GRAM (paper)": {
   "zeroshot_t2v": {
@@ -186,15 +187,33 @@
  "VAST": {
   "zeroshot_t2v": {
    "MSR-VTT|T-V": null,
-   "MSR-VTT|T-VA": null,
-   "MSR-VTT|T-VAS": null,
+   "MSR-VTT|T-VA": [
+    49.3,
+    80.0
+   ],
+   "MSR-VTT|T-VAS": [
+    50.7,
+    74.4
+   ],
    "DiDeMo|T-V": null,
-   "DiDeMo|T-VA": null,
+   "DiDeMo|T-VA": [
+    49.5,
+    76.9
+   ],
    "ActivityNet|T-V": null,
-   "ActivityNet|T-VA": null,
+   "ActivityNet|T-VA": [
+    51.4,
+    83.6
+   ],
    "VATEX|T-V": null,
-   "VATEX|T-VA": null,
-   "VATEX|T-VAS": null
+   "VATEX|T-VA": [
+    80.0,
+    95.7
+   ],
+   "VATEX|T-VAS": [
+    82.1,
+    96.8
+   ]
   },
   "zeroshot_v2t": {
    "MSR-VTT|T-V": null,
@@ -209,8 +228,14 @@
    "VATEX|T-VAS": null
   },
   "zeroshot_audio": {
-   "AudioCaps (T-V-A)": null,
-   "VGGSound 5K (T-A-V)": null
+   "AudioCaps (T-V-A)": [
+    32.1,
+    65.4
+   ],
+   "VGGSound 5K (T-A-V)": [
+    39.6,
+    74.5
+   ]
   },
   "finetune_t2v": {
    "MSR-VTT|T-V": null,
@@ -263,7 +288,10 @@
    "VATEX|T-VAS": null
   },
   "zeroshot_audio": {
-   "AudioCaps (T-V-A)": null,
+   "AudioCaps (T-V-A)": [
+    9.3,
+    42.3
+   ],
    "VGGSound 5K (T-A-V)": null
   },
   "finetune_t2v": {
@@ -293,12 +321,21 @@
  },
  "LanguageBind": {
   "zeroshot_t2v": {
-   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-V": [
+    44.8,
+    78.7
+   ],
    "MSR-VTT|T-VA": null,
    "MSR-VTT|T-VAS": null,
-   "DiDeMo|T-V": null,
+   "DiDeMo|T-V": [
+    39.9,
+    74.6
+   ],
    "DiDeMo|T-VA": null,
-   "ActivityNet|T-V": null,
+   "ActivityNet|T-V": [
+    41.0,
+    80.0
+   ],
    "ActivityNet|T-VA": null,
    "VATEX|T-V": null,
    "VATEX|T-VA": null,
@@ -317,8 +354,14 @@
    "VATEX|T-VAS": null
   },
   "zeroshot_audio": {
-   "AudioCaps (T-V-A)": null,
-   "VGGSound 5K (T-A-V)": null
+   "AudioCaps (T-V-A)": [
+    19.7,
+    67.6
+   ],
+   "VGGSound 5K (T-A-V)": [
+    37.2,
+    62.0
+   ]
   },
   "finetune_t2v": {
    "MSR-VTT|T-V": null,
@@ -347,64 +390,16 @@
  },
  "UMT-L": {
   "zeroshot_t2v": {
-   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-V": [
+    40.7,
+    71.8
+   ],
    "MSR-VTT|T-VA": null,
    "MSR-VTT|T-VAS": null,
-   "DiDeMo|T-V": null,
-   "DiDeMo|T-VA": null,
-   "ActivityNet|T-V": null,
-   "ActivityNet|T-VA": null,
-   "VATEX|T-V": null,
-   "VATEX|T-VA": null,
-   "VATEX|T-VAS": null
-  },
-  "zeroshot_v2t": {
-   "MSR-VTT|T-V": null,
-   "MSR-VTT|T-VA": null,
-   "MSR-VTT|T-VAS": null,
-   "DiDeMo|T-V": null,
-   "DiDeMo|T-VA": null,
-   "ActivityNet|T-V": null,
-   "ActivityNet|T-VA": null,
-   "VATEX|T-V": null,
-   "VATEX|T-VA": null,
-   "VATEX|T-VAS": null
-  },
-  "zeroshot_audio": {
-   "AudioCaps (T-V-A)": null,
-   "VGGSound 5K (T-A-V)": null
-  },
-  "finetune_t2v": {
-   "MSR-VTT|T-V": null,
-   "MSR-VTT|T-VA": null,
-   "MSR-VTT|T-VAS": null,
-   "DiDeMo|T-V": null,
-   "DiDeMo|T-VA": null,
-   "ActivityNet|T-V": null,
-   "ActivityNet|T-VA": null,
-   "VATEX|T-V": null,
-   "VATEX|T-VA": null,
-   "VATEX|T-VAS": null
-  },
-  "finetune_v2t": {
-   "MSR-VTT|T-V": null,
-   "MSR-VTT|T-VA": null,
-   "MSR-VTT|T-VAS": null,
-   "DiDeMo|T-V": null,
-   "DiDeMo|T-VA": null,
-   "ActivityNet|T-V": null,
-   "ActivityNet|T-VA": null,
-   "VATEX|T-V": null,
-   "VATEX|T-VA": null,
-   "VATEX|T-VAS": null
-  }
- },
- "InternVideo2": {
-  "zeroshot_t2v": {
-   "MSR-VTT|T-V": null,
-   "MSR-VTT|T-VA": null,
-   "MSR-VTT|T-VAS": null,
-   "DiDeMo|T-V": null,
+   "DiDeMo|T-V": [
+    48.6,
+    79.0
+   ],
    "DiDeMo|T-VA": null,
    "ActivityNet|T-V": null,
    "ActivityNet|T-VA": null,
@@ -455,6 +450,66 @@
  },
  "mPLUG-2": {
   "zeroshot_t2v": {
+   "MSR-VTT|T-V": [
+    47.1,
+    79.0
+   ],
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": [
+    45.7,
+    71.1
+   ],
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "zeroshot_audio": {
+   "AudioCaps (T-V-A)": null,
+   "VGGSound 5K (T-A-V)": null
+  },
+  "finetune_t2v": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  },
+  "finetune_v2t": {
+   "MSR-VTT|T-V": null,
+   "MSR-VTT|T-VA": null,
+   "MSR-VTT|T-VAS": null,
+   "DiDeMo|T-V": null,
+   "DiDeMo|T-VA": null,
+   "ActivityNet|T-V": null,
+   "ActivityNet|T-VA": null,
+   "VATEX|T-V": null,
+   "VATEX|T-VA": null,
+   "VATEX|T-VAS": null
+  }
+ },
+ "InternVideo-L": {
+  "zeroshot_t2v": {
    "MSR-VTT|T-V": null,
    "MSR-VTT|T-VA": null,
    "MSR-VTT|T-VAS": null,
@@ -507,7 +562,7 @@
    "VATEX|T-VAS": null
   }
  },
- "VideoPrism": {
+ "VideoPrism-b": {
   "zeroshot_t2v": {
    "MSR-VTT|T-V": null,
    "MSR-VTT|T-VA": null,

@@ -22,8 +22,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 XLSX_SRC = os.path.join(HERE, '..', 'make_results_xlsx.py')
 OUT = os.path.join(HERE, 'published_rows.json')
 
-OTHER_BASELINES = ['VAST', 'ImageBind', 'LanguageBind', 'UMT-L', 'InternVideo2',
-                   'mPLUG-2', 'VideoPrism']
+OTHER_BASELINES = ['VAST', 'ImageBind', 'LanguageBind', 'UMT-L', 'InternVideo-L',
+                   'mPLUG-2', 'VideoPrism-b']
 
 
 def _extract_list(src, name):

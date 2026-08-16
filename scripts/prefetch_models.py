@@ -114,14 +114,34 @@ def main():
             report(repo, 'MISSING')
             failures.append(f'{repo}: {e}')
     if args.with_smoke_data:
-        from datasets import load_dataset
+        # download the raw parquet shards + write a manifest of local paths: `datasets`
+        # versions <2.16 cannot resolve a hub dataset OFFLINE even when cached, so the
+        # smoke loads from these files directly (a10_prepare_flickr8k reads the manifest)
+        import json as _json
+        from huggingface_hub import HfApi
         for d in SMOKE_DATASETS:
             try:
-                load_dataset(d)
-                report(f'{d} (dataset)', 'FETCHED')
+                files = sorted(f for f in HfApi().list_repo_files(d, repo_type='dataset')
+                               if f.endswith('.parquet'))
+                assert files, f'no parquet files listed in {d}'
+                manifest = {}
+                for f in files:
+                    local = hf_hub_download(d, f, repo_type='dataset')
+                    base = os.path.basename(f)
+                    split = ('train' if base.startswith('train') else
+                             'test' if base.startswith('test') else
+                             'validation' if base.startswith(('valid', 'val')) else None)
+                    assert split, f'cannot infer split from parquet name {f!r}'
+                    manifest.setdefault(split, []).append(os.path.realpath(local))
+                mpath = os.path.join(args.models_dir,
+                                     f"{d.replace('/', '__')}_parquet.json")
+                with open(mpath, 'w') as fh:
+                    _json.dump(manifest, fh, indent=1)
+                report(f'{d} (dataset, {sum(len(v) for v in manifest.values())} shards)',
+                       'FETCHED')
             except Exception as e:
                 report(f'{d} (dataset)', 'MISSING')
-                failures.append(f'{d}: {e}')
+                failures.append(f'{d}: {type(e).__name__}: {e}')
 
     pw = os.path.join(args.repo_dir, 'pretrained_weights')
     print(f'== trunk weights -> {pw}')

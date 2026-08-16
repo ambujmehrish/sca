@@ -69,7 +69,29 @@ def main():
     from data.semantic_targets import build_semantic_targets
 
     print(f'[prepare] loading flickr8k (real data) on {device}', flush=True)
-    dsd = load_dataset('jxie/flickr8k')
+    # Prefer the prefetch manifest of local parquet shards (works on OFFLINE nodes --
+    # `datasets`<2.16 cannot resolve a hub dataset offline even when cached). Same real
+    # data either way; offline with no manifest is a hard error.
+    manifest_path = os.path.join(os.environ.get('MODELS_DIR', ''),
+                                 'jxie__flickr8k_parquet.json')
+    offline = (os.environ.get('HF_HUB_OFFLINE') == '1'
+               or os.environ.get('HF_DATASETS_OFFLINE') == '1')
+    if os.environ.get('MODELS_DIR') and os.path.exists(manifest_path):
+        from datasets import Image as HFImage
+        with open(manifest_path) as f:
+            data_files = json.load(f)
+        missing = [p for ps in data_files.values() for p in ps if not os.path.exists(p)]
+        assert not missing, f'manifest shards missing on disk: {missing[:3]}'
+        dsd = load_dataset('parquet', data_files=data_files)
+        dsd = dsd.cast_column('image', HFImage())          # parquet stores raw bytes
+        print(f'[prepare] flickr8k from local parquet manifest ({manifest_path})', flush=True)
+    elif offline:
+        raise RuntimeError(
+            'OFFLINE node and no local flickr8k manifest: run scripts/prefetch_models.py '
+            '--models_dir $MODELS_DIR --with-smoke-data on a login node first '
+            '(and export MODELS_DIR here).')
+    else:
+        dsd = load_dataset('jxie/flickr8k')
     clip = CLIPModel.from_pretrained(CLIP_NAME).to(device).eval()
     processor = CLIPProcessor.from_pretrained(CLIP_NAME)
 

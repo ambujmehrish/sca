@@ -34,6 +34,13 @@ echo "=== [stage 1/3] unit + guard suite ==="
 python3 -m pytest tests/ -q
 
 echo "=== [stage 2/3] real-data SCA loss-block smoke (Flickr8k, frozen CLIP) ==="
+# Flickr8k is STAGE-0 VALIDATION ONLY (loss-block mechanics on a small real image-text
+# corpus) -- it is not a benchmark and no number from it enters any table. On the cluster
+# the binding real-data gate is stage 3 (vast27m_150k); skip this stage explicitly with
+# SMOKE_SKIP_STAGE2=1 if you don't want its one-time feature build there.
+if [ "${SMOKE_SKIP_STAGE2:-0}" = "1" ]; then
+  echo "[stage 2] SKIPPED by SMOKE_SKIP_STAGE2=1 (stage 3 on vast27m_150k is the binding gate)"
+else
 if [ ! -f experiments/a10_workdir/features_train.pt ]; then
   if [ "${HF_HUB_OFFLINE:-0}" = "1" ]; then
     echo "[stage 2] features missing on an OFFLINE node: prefetch with"
@@ -45,6 +52,7 @@ if [ ! -f experiments/a10_workdir/features_train.pt ]; then
   python3 experiments/a10_prepare_flickr8k.py --workdir experiments/a10_workdir
 fi
 python3 experiments/smoke_sca_losses.py --workdir experiments/a10_workdir
+fi
 
 echo "=== [stage 3/3] cluster k=4 pretrain smoke (vast27m_150k, LoRA, 24 steps) ==="
 if [ -z "${DATA_ROOT:-}" ] || [ -z "${WORK_ROOT:-}" ]; then

@@ -112,9 +112,13 @@ pip install "numpy<2" "transformers==4.31.0" "tokenizers<0.14" \
     sentence-transformers==2.2.2 "huggingface_hub<0.20" \
     easydict opencv-python-headless einops timm ftfy regex tqdm \
     decord soundfile audioread ffmpeg-python yacs pyyaml \
-    wandb openpyxl pytest scikit-learn "datasets<2.16" pillow ipdb
+    wandb openpyxl pytest scikit-learn "datasets<2.16" pillow ipdb toolz
 # transformers PINNED <5: the trunk's bert.py needs the 4.x API. apex NOT needed
 # (torch.cuda.amp). xformers optional (EVA prints a hint without it; runs fine).
+# toolz: needed by the upstream data/ loader package (IndexAnno.py).
+# After step 4a (copying the upstream data/ package), verify its imports resolve and
+# pip-install anything still reported missing:
+#   python3 -c "import data; print('data package imports OK')"
 python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ```
 

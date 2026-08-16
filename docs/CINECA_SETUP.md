@@ -72,24 +72,29 @@ cp -n /path/to/HyperAlign/data/*.py $CODE_DIR/data/
 # and the annotation files the val loaders read (datasets/annotations/...):
 cp -rn /path/to/HyperAlign/datasets $CODE_DIR/ 2>/dev/null || true
 
-# (b) BEATs weights -- NO verifiable HF mirror exists (do not use random re-uploads).
-#     Source options, in order of preference:
-#       1. The group's existing GRAM/HyperAlign staging (owner anag0000, IscrC_GMEG):
-#          ask for read access or a copy into your project space, then:
-#            cp <shared>/pretrained_weights/beats/BEATs_iter3_plus_AS2M.pt pretrained_weights/beats/
-#       2. Official release: https://github.com/microsoft/unilm/tree/master/beats
-#          (BEATs_iter3+ AS2M checkpoint) -- download in a browser on your laptop, then:
-#            rsync -P BEATs_iter3_plus_AS2M.pt \
-#              amehrish@login.leonardo.cineca.it:/leonardo_scratch/fast/AIFAC_S07_041/models/sca_pretrained_weights/beats/
+# (b) BEATs weights -- official microsoft/unilm OneDrive release, fetched headless via
+#     Microsoft's share API (no verifiable HF mirror exists; random re-uploads refused):
 mkdir -p pretrained_weights/beats
+url='https://1drv.ms/u/s!AqeByhGUtINrgcpke6_lRSZEKD5j2Q?e=A3FpOf'   # BEATs_iter3+ (AS2M),
+enc=$(printf '%s' "$url" | base64 -w0 | tr '+/' '-_' | tr -d '=')   # from the unilm README
+curl -L "https://api.onedrive.com/v1.0/shares/u!$enc/root/content" \
+     -o pretrained_weights/beats/BEATs_iter3_plus_AS2M.pt
+python3 -c "import torch; c=torch.load('pretrained_weights/beats/BEATs_iter3_plus_AS2M.pt', map_location='cpu'); print('ok:', sorted(c)[:3])"
+#     (if the API route is ever blocked: browser-download from
+#      github.com/microsoft/unilm/tree/master/beats and rsync up)
 
-# (c) VAST starting ckpt (model_step_204994.pt) -- released via the official VAST repo's
-#     Google-Drive links (github.com/TXH-mercury/VAST), also not on HF. Same two options:
-#     copy from the group staging, or browser-download + rsync up, then place it at the
-#     path the configs read:
+# (c) VAST starting ckpt -- official VAST repo (github.com/TXH-mercury/VAST) public
+#     Google-Drive release, fetched headless with gdown:
+pip install -q gdown
 mkdir -p $WORK/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt
-# cp/ln -s <your copy>/model_step_204994.pt \
-#    $WORK/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/
+cd $WORK/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt
+gdown 1ZkeZpis2Fggy4MyTFPqQj37MgPZxdJ53
+#     Inspect what arrived: if it is an archive, extract it; the file the configs read is
+#     model_step_204994.pt at THIS directory. Rename/move accordingly, then:
+ls -la $WORK/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/
+cd $CODE_DIR
+#     (alternative for both files: copy from the group's existing GRAM/HyperAlign staging
+#      if you have read access -- byte-identical to the official releases)
 
 # (d) the dataset root on SCRATCH: $DATA_ROOT must hold vast27m_150k/, MSRVTT_full/, ...
 #     (copy/rsync from the existing staging if this scratch does not have it yet)

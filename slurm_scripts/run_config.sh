@@ -32,7 +32,11 @@ mkdir -p "$OUTDIR" slurm_scripts/logs
 RESUME=""
 ls "$OUTDIR"/ckpt/optimizer_step_*.pt >/dev/null 2>&1 && { RESUME="--resume true"; echo "RESUME from $OUTDIR/ckpt"; } || echo "FRESH"
 echo "START $(date +%T)  config=$CONFIG  out=$OUTDIR"
+# filter the benign h264 decoder noise (mmco/*ref* warnings from mid-GOP YouTube clip
+# cuts -- harmless, but hundreds of MB over a full pretrain). pipefail + `|| true` on the
+# grep keeps the pipeline's exit code = srun's.
 srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_node 4 \
   --master_port $((9000 + RANDOM % 999)) \
-  ./run.py --config "$CONFIG" --output_dir "$OUTDIR" --checkpointing true $RESUME "$@" 2>&1
+  ./run.py --config "$CONFIG" --output_dir "$OUTDIR" --checkpointing true $RESUME "$@" 2>&1 \
+  | { grep -v --line-buffered -E "mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($" || true; }
 echo "EXIT=$? DONE $(date +%T)"

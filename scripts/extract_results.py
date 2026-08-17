@@ -16,9 +16,12 @@ measured-row JSONs in the make_latex_tables.py schema.
       --run "PMRL=workdir_pretrain/pmrl" \
       --rows_out results/rows [--section zeroshot_t2v]
 
-The headline families: ret_area_forward is the method's own scorer T->V (centroid for
-SCA, volume for GRAM, lambda_1 for PMRL -- each model declares its score_mode), and
-ret_area_backard the V->T direction. cosine_* are per-modality diagnostics.
+METRIC PROTOCOL (verified against the reference repo's committed eval logs): the numbers
+reported by GRAM/HyperAlign tables are the ITM-RERANKED metric (volume_ITM_T2D/D2T in
+ret_itm_area) -- their own trained model logs raw volume 25.0 vs ITM 49.0 on msrvtt tvas.
+Table rows are therefore emitted from ret_itm_area. ret_area_forward/backard (each
+method's raw scorer: centroid/volume/lambda_1) are reported in the summary as the
+embedding-space diagnostics that feed E4/E5/E6.
 """
 import os
 import re
@@ -54,39 +57,45 @@ def parse_log(path):
     return out
 
 
-def r1_r10(metrics):
-    """(R@1, R@10) from a metrics dict; recall strings are 'r1/r5/r10'."""
-    r1 = next((v for k, v in metrics.items() if k.endswith('_r1')), None)
-    rec = next((v for k, v in metrics.items() if k.endswith('_recall')), None)
+def r1_r10(metrics, prefix=None):
+    """(R@1, R@10) from a metrics dict; recall strings are 'r1/r5/r10'. prefix selects a
+    direction inside multi-direction dicts (e.g. 'volume_ITM_T2D' in ret_itm_area)."""
+    keys = [k for k in metrics if prefix is None or k.startswith(prefix)]
+    r1 = next((metrics[k] for k in keys if k.endswith('_r1')), None)
+    rec = next((metrics[k] for k in keys if k.endswith('_recall')), None)
     r10 = float(rec.split('/')[-1]) if isinstance(rec, str) and rec.count('/') == 2 else None
     return r1, r10
 
 
 def summarize(family_runs):
-    """-> {family: {'best': (step, r1, r10), 'final': (step, r1, r10), 'n_evals': int}}"""
+    """-> {family[:direction]: {'best': (step, r1, r10), 'final': ..., 'n_evals': int}};
+    the itm family is split into :T2D and :D2T pseudo-families."""
     out = {}
     for fam, entries in family_runs.items():
-        scored = [(s, *r1_r10(d)) for s, d in entries]
-        scored = [t for t in scored if t[1] is not None]
-        if not scored:
-            continue
-        out[fam] = {'best': max(scored, key=lambda t: t[1]),
-                    'final': max(scored, key=lambda t: t[0]),
-                    'n_evals': len(scored)}
+        variants = ([(f'{fam}:T2D', 'volume_ITM_T2D'), (f'{fam}:D2T', 'volume_ITM_D2T')]
+                    if 'ret_itm_area' in fam else [(fam, None)])
+        for name, prefix in variants:
+            scored = [(s, *r1_r10(d, prefix)) for s, d in entries]
+            scored = [t for t in scored if t[1] is not None]
+            if not scored:
+                continue
+            out[name] = {'best': max(scored, key=lambda t: t[1]),
+                         'final': max(scored, key=lambda t: t[0]),
+                         'n_evals': len(scored)}
     return out
 
 
 def _row_key(family):
-    """'ret%tvas--msrvtt_ret_ret_area_forward' -> ('MSR-VTT|T-VAS', direction)."""
-    m = re.match(r'ret%(\w+)--(\w+?)_ret_ret_area_(forward|backard|backward)', family)
+    """Table rows come from the ITM-reranked metric (the reference protocol):
+    'ret%tvas--msrvtt_ret_ret_itm_area:T2D' -> ('MSR-VTT|T-VAS', 't2v')."""
+    m = re.match(r'ret%(\w+)--(\w+?)_ret_ret_itm_area:(T2D|D2T)', family)
     if not m:
         return None, None
     mode = MODE.get(m.group(1))
     bench = BENCH.get(m.group(2))
     if not (mode and bench):
         return None, None
-    direction = 't2v' if m.group(3) == 'forward' else 'v2t'
-    return f'{bench}|{mode}', direction
+    return f'{bench}|{mode}', ('t2v' if m.group(3) == 'T2D' else 'v2t')
 
 
 def main():
@@ -116,7 +125,10 @@ def main():
             continue
         for fam in sorted(summary):
             b, f = summary[fam]['best'], summary[fam]['final']
-            star = '  <-- headline' if 'ret_area_forward' in fam else ''
+            star = ('  <-- TABLE metric (ITM-reranked, reference protocol)'
+                    if 'ret_itm_area:T2D' in fam else
+                    '  <-- raw scorer (E4/E5/E6 diagnostics)'
+                    if 'ret_area_forward' in fam else '')
             print(f'   {fam}\n'
                   f'      best  step {b[0]:>6}: R@1 {b[1]:5.1f}  R@10 {b[2] if b[2] is not None else "-"}\n'
                   f'      final step {f[0]:>6}: R@1 {f[1]:5.1f}  R@10 {f[2] if f[2] is not None else "-"}{star}')

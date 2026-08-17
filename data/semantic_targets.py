@@ -139,8 +139,19 @@ def build_semantic_targets(annotation_json, out_path,
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
     ids, caps, id_key, cap_key = _read_annotations(annotation_json, caption_key=caption_key)
     print(f'[S*] {len(ids)} items; id key {id_key!r}, caption key {cap_key!r}', flush=True)
-    assert len(ids) == len(set(ids)), 'duplicate ids in annotation file'
     emb = _embed_captions(caps, model_name, device, batch_size, impl=embedding_impl)
+    if len(ids) != len(set(ids)):
+        # multi-caption annotations (e.g. MSR-VTT train: 20 caption rows per video) list one
+        # row per caption; the clip-level S* embedding is the L2-normalised mean of that
+        # clip's caption embeddings (normalising the sum == normalising the mean)
+        uniq_ids = list(dict.fromkeys(ids))
+        row = {v: i for i, v in enumerate(uniq_ids)}
+        agg = torch.zeros(len(uniq_ids), emb.shape[1])
+        agg.index_add_(0, torch.tensor([row[v] for v in ids]), emb)
+        emb = F.normalize(agg, dim=-1)
+        print(f'[S*] {len(ids)} captions over {len(uniq_ids)} unique ids '
+              f'-> per-id mean caption embedding', flush=True)
+        ids = uniq_ids
 
     N = emb.shape[0]
     k = min(topk, N)

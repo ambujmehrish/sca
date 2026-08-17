@@ -15,7 +15,7 @@ smoke_gpu_*.out
 wandb/
 *.pt
 experiments/a10_workdir/
-experiments/*_prepare.log
+experiments/*.log
 # upstream VAST/GRAM data-loader package (cluster-local, never committed here);
 # repo-owned data modules are explicitly un-ignored
 data/*.py

@@ -1,15 +1,23 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+# repo-root run outputs / symlinks into SCRATCH-FAST (anchored: results elsewhere, e.g.
+# experiments/results, ARE tracked)
+/results
+/workdir
+/workdir_pretrain
 workdir*/
-wandb/
-*.pt
-!benchmark_eval/**/*.json
-experiments/a10_workdir/
-experiments/*_prepare.log
-experiments/a10_sweep.log
+/pretrained_weights
 pretrained_weights/
-results
+/datasets
 slurm_scripts/logs
 smoke_gpu_*.out
-datasets/
+wandb/
+*.pt
+experiments/a10_workdir/
+experiments/*_prepare.log
+# upstream VAST/GRAM data-loader package (cluster-local, never committed here);
+# repo-owned data modules are explicitly un-ignored
+data/*.py
+!data/semantic_targets.py
+!data/mask_sampler.py

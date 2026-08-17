@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\caption{Zero-shot text-to-video retrieval (R@1 / R@10)}
+\label{tab:zeroshot_t2v}
+\small
+\begin{tabular}{lcccccccccc}
+\toprule
+Method & MSR-VTT T-VAS & MSR-VTT T-V & MSR-VTT T-VA & DiDeMo T-V & DiDeMo T-VA & ActivityNet T-V & ActivityNet T-VA & VATEX T-V & VATEX T-VA & VATEX T-VAS \\
+\midrule
+GRAM-LoRA & 53.3 / \textbf{83.1} & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+GRAM-masked & 52.1 / 80.0 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+GRAM (repro) & 52.6 / 82.6 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+PMRL-LoRA & 53.9 / 82.0 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+PMRL-masked & 52.6 / 80.9 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+PMRL & 51.9 / 80.6 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+SCA-nomask & 53.4 / 80.1 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+SCA (ours) & 53.5 / 81.9 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+GRAM (paper) & \textbf{54.8} / 82.9 & \textbf{52.8} / \textbf{82.9} & \textbf{54.2} / \textbf{83.9} & \textbf{54.0} / \textbf{80.7} & \textbf{54.2} / \textbf{79.3} & \textbf{58.9} / \textbf{91.2} & \textbf{59.0} / \textbf{91.1} & \textbf{81.1} / \textbf{99.5} & \textbf{83.9} / \textbf{98.6} & \textbf{83.5} / \textbf{98.8} \\
+VAST & 50.7 / 74.4 & -- & 49.3 / 80.0 & -- & 49.5 / 76.9 & -- & 51.4 / 83.6 & -- & 80.0 / 95.7 & 82.1 / 96.8 \\
+LanguageBind & -- & 44.8 / 78.7 & -- & 39.9 / 74.6 & -- & 41.0 / 80.0 & -- & -- & -- & -- \\
+UMT-L & -- & 40.7 / 71.8 & -- & 48.6 / 79.0 & -- & -- & -- & -- & -- & -- \\
+mPLUG-2 & -- & 47.1 / 79.0 & -- & 45.7 / 71.1 & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}

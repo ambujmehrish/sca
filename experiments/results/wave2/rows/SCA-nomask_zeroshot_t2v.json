@@ -1,0 +1,10 @@
+{
+ "method": "SCA-nomask",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   53.4,
+   80.1
+  ]
+ }
+}

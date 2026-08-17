@@ -7,7 +7,7 @@
  "model_cfg": {
   "default": "./config/sca/default_model_cfg.json",
   "max_caption_len": 70,
-  "s_star_path": "datasets/annotations/activitynet/s_star_descs_ret_train.pt"
+  "s_star_path": "${SCA_CACHE_ROOT}/s_star_ft_activitynet_train.pt"
  },
  "data_cfg": {
   "train": [

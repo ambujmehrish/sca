@@ -6,7 +6,7 @@
  },
  "model_cfg": {
   "default": "./config/sca/default_model_cfg.json",
-  "s_star_path": "datasets/annotations/vatex/s_star_descs_ret_train_aug.pt"
+  "s_star_path": "${SCA_CACHE_ROOT}/s_star_ft_vatex_train_aug.pt"
  },
  "data_cfg": {
   "train": [

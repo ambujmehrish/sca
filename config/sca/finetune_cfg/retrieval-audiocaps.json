@@ -5,7 +5,7 @@
  },
  "model_cfg": {
   "default": "./config/sca/default_model_cfg.json",
-  "s_star_path": "benchmark_eval/s_star_audiocaps_tva_annotation.pt"
+  "s_star_path": "${SCA_CACHE_ROOT}/s_star_ft_audiocaps.pt"
  },
  "data_cfg": {
   "train": [

@@ -44,4 +44,6 @@ fi
 srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_node 4 --master_port 9894 \
   ./run.py --config ./config/sca/pretrain_cfg/sca_pretrain.json \
   --output_dir ./workdir_pretrain/sca --checkpointing true $RESUME 2>&1
-echo "DONE $(date +%T)"
+rc=$?
+echo "EXIT=$rc DONE $(date +%T)"
+exit $rc

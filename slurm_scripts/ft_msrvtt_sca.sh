@@ -27,4 +27,6 @@ echo "START $(date +%T)  SCA finetune MSR-VTT  (init=$INIT)"
 srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_node 4 --master_port 9901 \
   ./run.py --config ./config/sca/finetune_cfg/retrieval-msrvtt.json \
   --output_dir ./workdir/sca_ft_msrvtt --checkpoint "$INIT" --save_best true --checkpointing true $RESUME 2>&1
-echo "DONE $(date +%T)"
+rc=$?
+echo "EXIT=$rc DONE $(date +%T)"
+exit $rc

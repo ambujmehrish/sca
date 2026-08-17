@@ -39,4 +39,6 @@ srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_no
   --master_port $((9000 + RANDOM % 999)) \
   ./run.py --config "$CONFIG" --output_dir "$OUTDIR" --checkpointing true $RESUME "$@" 2>&1 \
   | { grep -v --line-buffered -E "mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($" || true; }
-echo "EXIT=$? DONE $(date +%T)"
+rc=$?
+echo "EXIT=$rc DONE $(date +%T)"
+exit $rc

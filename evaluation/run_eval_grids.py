@@ -80,6 +80,14 @@ def collect_features(config_path, dump_path):
     """Cluster-side feature extraction: mirrors evaluation_mm's collection loop (model
     eval branch -> feat_t / feat_v / feat_a / feat_s / feat_d + ids), dumps one tensor
     file the grids (and any later re-scoring) run from."""
+    # the trunk's args/initialize assume a torch.distributed launcher; default a
+    # single-process group so this also runs bare inside an sbatch/srun allocation
+    os.environ.setdefault('LOCAL_RANK', '0')
+    os.environ.setdefault('RANK', '0')
+    os.environ.setdefault('WORLD_SIZE', '1')
+    os.environ.setdefault('MASTER_ADDR', '127.0.0.1')
+    os.environ.setdefault('MASTER_PORT', '29511')
+
     from easydict import EasyDict as edict                       # heavy imports stay lazy
     from utils.args import get_args
     from utils.initialize import initialize

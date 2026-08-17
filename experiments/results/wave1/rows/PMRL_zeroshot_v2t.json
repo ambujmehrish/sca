@@ -1,0 +1,10 @@
+{
+ "method": "PMRL",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   35.9,
+   75.6
+  ]
+ }
+}

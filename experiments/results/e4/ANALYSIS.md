@@ -18,15 +18,24 @@ modalities drawn i.i.d. per gallery item at the given rate, seed 0.
 | PMRL + λ₁ | 26.8 | 24.0 | 21.5 | 21.2 | 5.6 |
 | PMRL-LoRA + λ₁ | 32.9 | 29.8 | 27.6 | 25.2 | 7.7 |
 
-**DoD-2 verdict — supported, with one honest nuance.**
-- vs masked-GRAM(i): SCA degrades half as much (4.8 vs 9.0) and is ABOVE it at every
-  nonzero rate despite a lower 0% start (29.4 vs 26.0 at 75%).
+**DoD-2 verdict — the DEGRADATION claim is supported; the paper must claim the slope
+and the crossover, NOT raw-space superiority at every rate.**
+- GRAM's volume scorer is genuinely stronger in raw space at low missingness: it starts
+  3.5–5.4 points higher (consistent with Wave 1 / the official ckpt's 38.7) and stays
+  ahead of SCA at 25% and 50%.
+- SCA loses 4.8 points 0→75% where every GRAM arm loses 9.0–9.8 (14% vs ~26% relative)
+  — the curves CROSS: by 75% SCA has overtaken GRAM (29.4 vs 27.9) and masked-GRAM(i)
+  (26.0) from a weaker start. vs masked-GRAM(i) cell-by-cell: above at 25% (32.2/31.1),
+  tie at 50% (27.7/27.8), above at 75%.
+- GRAM-LoRA is the honest edge case: ahead of SCA at every rate, 29.8 vs 29.4 at 75% —
+  inside single-seed noise. Resolve with seeds + a 90% rate before the camera-ready
+  plot (both CPU-cheap on the cached dumps); the slopes say the gap opens past 75%.
 - vs masked-GRAM(ii): total collapse of the baseline (see proposition below).
-- vs masked-PMRL: SCA is 6–8 points above at EVERY rate (29.4 vs 21.5 at 75%). PMRL's
+- vs masked-PMRL: SCA is 4–8 points above at every rate (29.4 vs 21.5 at 75%). PMRL's
   slope is comparable (4.4) but from a base 8 points lower — flat-because-weak, exactly
   the "λ₁ space stays weak" pattern Wave 2 predicted. State both numbers in the paper.
-- 27.7@50 vs 29.4@75 non-monotonicity = single mask-draw noise; rerun grids with
-  `--seed 1 2` (CPU, minutes) for error bars before the camera-ready plot.
+- 27.7@50 vs 29.4@75 non-monotonicity = single mask-draw noise (same seeds+rates rerun
+  supplies the error bars).
 
 **Proposition (measured + provable): mean imputation is DEGENERATE under volume
 scoring.** The imputed row is an exact linear combination (the mean) of the present

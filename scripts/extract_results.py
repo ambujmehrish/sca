@@ -30,7 +30,9 @@ import json
 import glob
 import argparse
 
-HEADER = re.compile(r'====-evaluation--(?P<name>.+?)=====step (?P<step>\d+)--')
+# two header dialects: training-time '====-evaluation--<name>=====step N--' and the
+# run_eval.py runner's '==== evaluation--<name>========' (no step; recorded as step 0)
+HEADER = re.compile(r'====[- ]evaluation--(?P<name>.+?)====(?:=step (?P<step>\d+)--)?')
 BENCH = {'msrvtt': 'MSR-VTT', 'didemo': 'DiDeMo', 'activitynet': 'ActivityNet',
          'vatex': 'VATEX', 'audiocaps': 'AudioCaps', 'vggsound': 'VGGSound 5K'}
 MODE = {'tv': 'T-V', 'ta': 'T-A', 'tva': 'T-VA', 'tvas': 'T-VAS', 'tvasd': 'T-VASD',
@@ -44,7 +46,7 @@ def parse_log(path):
     for line in open(path, errors='replace'):
         m = HEADER.search(line)
         if m:
-            pending = (m.group('name'), int(m.group('step')))
+            pending = (m.group('name'), int(m.group('step') or 0))
             continue
         if pending and '{' in line:
             try:
@@ -110,7 +112,10 @@ def main():
 
     for spec in args.run:
         name, _, workdir = spec.partition('=')
-        logs = sorted(glob.glob(os.path.join(workdir, 'log', 'log*.txt')))
+        if os.path.isfile(workdir):                      # direct log file (e.g. a slurm .out
+            logs = [workdir]                             # section from split_cell_log.py)
+        else:
+            logs = sorted(glob.glob(os.path.join(workdir, 'log', 'log*.txt')))
         if not logs:
             print(f'\n== {name}: NO log/log*.txt under {workdir} -- wrong path?')
             continue

@@ -1,0 +1,21 @@
+
+== SCA zs DiDeMo  (workdir/e1_zs/sca_didemo; 1 log file(s))
+   no evaluation blocks found (run not validated yet?)
+
+== SCA zs ActivityNet  (workdir/e1_zs/sca_activitynet; 1 log file(s))
+   no evaluation blocks found (run not validated yet?)
+
+== SCA zs VATEX  (workdir/e1_zs/sca_vatex; 1 log file(s))
+   no evaluation blocks found (run not validated yet?)
+
+== SCA zs AudioCaps  (workdir/e1_zs/sca_audiocaps; 1 log file(s))
+   no evaluation blocks found (run not validated yet?)
+
+== GRAM zs DiDeMo  (workdir/e1_zs/gram_didemo; 1 log file(s))
+   no evaluation blocks found (run not validated yet?)
+
+== GRAM zs ActivityNet  (workdir/e1_zs/gram_activitynet; 1 log file(s))
+   no evaluation blocks found (run not validated yet?)
+
+== GRAM zs VATEX  (workdir/e1_zs/gram_vatex; 1 log file(s))
+   no evaluation blocks found (run not validated yet?)

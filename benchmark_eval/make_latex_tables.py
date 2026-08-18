@@ -76,7 +76,7 @@ def section_table(section, title, published, measured):
     for k in keys:
         vals = [(m, cell(m, k)) for m in methods]
         for j in (0, 1):
-            have = [(m, v[j]) for m, v in vals if v is not None]
+            have = [(m, v[j]) for m, v in vals if v is not None and v[j] is not None]
             if have:
                 best[(k, j)] = max(x for _, x in have)
 
@@ -92,7 +92,8 @@ def section_table(section, title, published, measured):
             if v is None:
                 cells.append('--')
             else:
-                parts = [(r'\textbf{%.1f}' % x) if best.get((k, j)) == x else ('%.1f' % x)
+                parts = ['--' if x is None else
+                         (r'\textbf{%.1f}' % x) if best.get((k, j)) == x else ('%.1f' % x)
                          for j, x in enumerate(v)]
                 cells.append(' / '.join(parts))
         lines.append(_esc(m) + ' & ' + ' & '.join(cells) + r' \\')

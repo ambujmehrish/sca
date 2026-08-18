@@ -1,0 +1,10 @@
+{
+ "method": "SCA ft ActivityNet",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "ActivityNet|T-VA": [
+   58.4,
+   88.3
+  ]
+ }
+}

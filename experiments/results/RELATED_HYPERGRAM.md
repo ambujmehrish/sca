@@ -7,10 +7,11 @@ norm (std 0.005 around det≈1); hyperbolic inner products preserve variance (st
 
 ## Why it matters to us
 
-**Same experimental budget as ours**: they pretrain on VAST150k for 1 epoch on the VAST
-trunk (EVA-CLIP ViT-g/14 + BEATs + BERT-base) — the equal-budget protocol our campaign
-uses. Independent confirmation that the 150k setting is the emerging standard for this
-comparison (good for defending our setup), and a direct competitor row for our tables.
+**Same experimental budget as ours — and as everyone's**: GRAM (paper), PMRL (paper)
+and HyperGRAM all continue-pretrain from the VAST checkpoint on the 150k subset
+(verified verbatim in all three papers). The 150k setting IS the family standard;
+the 27M scale lives only in the shared VAST initialization. HyperGRAM is a direct
+competitor row at the same budget.
 
 ## Their zero-shot R@1 (their Table 1) vs ours
 
@@ -27,14 +28,15 @@ comparison (good for defending our setup), and a direct competitor row for our t
 
 ## Protocol audit — absolutes are NOT cross-comparable
 
-Their GRAM@150k MSR-VTT cell is 54.8 — exactly the GRAM paper's 27M-pretrain number,
-and +2.3 above what the OFFICIAL 27M GRAM checkpoint scores through our
-official-checkpoint-validated pipeline (52.5; HyperAlign reference eval of the same
-ckpt: 53.4). A 1-epoch 150k rerun out-scoring the official 27M checkpoint under an
-identical protocol is implausible; their eval protocol is systematically hotter by
-~1.5–2.5 points (undisclosed eval details — like GRAM's paper, no mention of the
-reranking stage; no R@10 anywhere; no code released to check). Cross-paper comparisons
-must therefore use each method's Δ over its own GRAM baseline, not absolutes.
+CORRECTED: GRAM's published numbers are themselves 150k-budget (their Sec 4.1:
+"further pretrain ... on a small subset of VAST27M comprising 150k samples"), so
+HyperGRAM's GRAM row (54.8) simply cites GRAM's published same-budget number —
+internally consistent. The non-comparability is ENVIRONMENTAL, and we can measure it
+exactly: the same officially released GRAM checkpoint scores 54.8 (their/GRAM's env),
+53.4 (HyperAlign's env), 52.5 (ours). Published rows in this family run ~2 R@1 hotter
+than our environment (undisclosed eval details — no reranking mention, no R@10, no
+code). Cross-paper comparisons must therefore use each method's Δ over its own GRAM
+baseline, or a single shared environment, not absolutes.
 
 Honest reading of the deltas: their zero-shot gain over GRAM (+1.5…+2.9 T2V) is larger
 than ours (+0.4…+0.9). Zero-shot full-modality R@1 is their strong axis.

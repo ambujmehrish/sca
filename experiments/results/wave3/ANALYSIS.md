@@ -2,9 +2,11 @@
 
 All five finetunes start from the Wave-1 SCA Stage-1 pretrain checkpoint (150k-clip,
 LoRA) and run the GRAM finetune recipe (4 epochs, bs 64, lr 2e-5). ITM = table metric
-(reference protocol, T2D); paper column = GRAM (ICLR 2025) finetuned rows, which start
-from the FULL 27M-clip GRAM pretrain — so the paper delta bundles the pretrain-scale
-gap already measured in Wave 1, not just method differences.
+(reference protocol, T2D); paper column = GRAM (ICLR 2025) finetuned rows.
+CORRECTION (verified against GRAM Sec 4.1): GRAM's paper ALSO pretrains on the 150k
+VAST-27M subset — the paper delta is an EVAL-ENVIRONMENT offset (their env scores the
+same released checkpoint ~2 R@1 hotter than ours) plus finetune-recipe differences,
+NOT pretrain scale.
 
 | benchmark (task) | ITM best / final | raw scorer best / final | GRAM paper ft | Δ vs paper |
 |---|---|---|---|---|
@@ -19,14 +21,12 @@ gap already measured in Wave 1, not just method differences.
 1. **Finetuning works on top of the SCA pretrain**: MSR-VTT goes 53.5 (zs, Wave 1) →
    57.1 ft. Every benchmark trains stably; best→final decay is ≤ 0.7 ITM points on all
    five (the Wave-2 stability picture carries over to finetuning).
-2. **The 5.5–7-point gaps to the paper's ft rows are the pretrain-scale gap, not a
-   finetune failure.** The paper finetunes from the 27M-clip pretrain; ours from the
-   150k subset. Wave 1 already measured this same gap at ~1.3 points zero-shot with
-   VAST-ckpt initialization; finetuning amplifies whatever the trunk absorbed at scale.
-   The apples-to-apples claim the plan makes (DoD) is SCA vs GRAM **under the identical
-   150k budget** — the zero-shot version of that comparison is done (Wave 1/2); a
-   GRAM-repro finetune arm (same recipe, from `workdir_pretrain/gram` best) is the
-   matching ft comparison if we want finetuned parity rows too.
+2. **The 5.5–7-point gaps to the paper's ft rows are NOT pretrain scale** (corrected:
+   GRAM's paper also pretrains on the 150k subset). Known contributors: the measured
+   eval-environment offset (~2 R@1 on the same released checkpoint: 54.8 published vs
+   52.5 in our env) and finetune-recipe differences; the remainder is unattributed
+   until the GRAM-repro finetune (same recipe, same env, from `workdir_pretrain/gram`
+   best) lands — THAT number is the only valid finetuned comparison.
 3. **VATEX exceeds the paper by 6.5** (94.2 vs 87.7) — RESOLVED: not comparable. The
    HyperAlign VATEX test annotation is `descs_ret_test_431.json`, a 431-clip
    audio-complete subset, not the standard 1,500-video split; a smaller gallery inflates

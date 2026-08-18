@@ -32,7 +32,7 @@ Sources: `wave1/`, `wave2/`, `wave3/`, `a10_flickr8k_k2.md`, `wave1/validation_o
 | PMRL-masked | full-FT | schedule | 52.6 / 45.9 | 25.9 / 20.5 |
 | PMRL-LoRA | LoRA | off | 53.9 / 53.3 | 32.9 / 32.6 |
 | official GRAM ckpt | — | — | 52.5 | 38.7 |
-| GRAM paper (27M pretrain) | — | — | 54.8 | — |
+| GRAM paper (150k, authors' env) | — | — | 54.8 | — |
 
 Supported findings (wave2/ANALYSIS.md): SCA ≥ every GRAM arm at equal budget; stability
 is the objective, not the adapter (GRAM-LoRA decays −3.2 with the identical LoRA budget);
@@ -49,8 +49,9 @@ modality alive (A→T 5.3 vs 0.4 without).
 | VATEX T-VAS | 94.2 (†431-clip audio subset — NOT comparable to paper's split) | 87.7 |
 | AudioCaps T-VA | 51.6 | 33.2 (zs only) |
 
-Gaps vs paper = pretrain-scale (150k vs 27M), consistent with Wave 1. Same-budget ft
-comparison (GRAM-repro ft) not run — optional arm.
+Gaps vs paper = eval-env offset (~2 R@1, measured on the same released ckpt) +
+recipe differences — NOT pretrain scale (GRAM's paper also pretrains on 150k).
+Same-env ft comparison (GRAM-repro ft) is the arm that settles it — running.
 
 ## 2. Experiment grid: status
 

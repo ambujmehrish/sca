@@ -1,40 +1,52 @@
-% Main results as ONE table, ours last. The Pretrain column carries the tiering:
-% full-scale rows (>=10M) are reference, 150k rows are the equal-budget comparison.
-% Bold = best within the 150k tier. dagger: 431-clip audio-complete VATEX subset;
-% *: standard VATEX split (not comparable with dagger).
+% Main results as ONE table, ours last.
+% CORRECTED TIERING (GRAM Sec 4.1: "further pretrain ... on a small subset of VAST27M
+% comprising 150k samples"; PMRL: "VAST-150K ... is utilized"): GRAM, PMRL and
+% HyperGRAM papers ALL continue-pretrain from the VAST checkpoint on 150k clips --
+% the same budget as our arms. Only the VAST initialization saw 27M.
+% para: reported in the authors' eval environments, which run hotter than ours by a
+% measured offset -- the SAME released GRAM checkpoint scores 54.8 (paper) / 53.4
+% (HyperAlign env) / 52.5 (our env). All our rows are measured in ONE environment
+% anchored by that official-checkpoint validation.
 \begin{table}[t]
 \centering
-\caption{Zero-shot text-to-video retrieval (R@1\,/\,R@10, ITM protocol). Rows are
-grouped by pretraining budget; the 150k-clip rows share identical data, recipe and
-evaluation. Bold: best at the 150k budget. $\dagger$: 431-clip audio-complete VATEX
-subset; $*$: standard VATEX split (the two are not comparable). Pretrain column:
-video-text pretraining clips as reported (VAST-27M for the VAST family; ours is a
-150k-clip subset of it); $\S$: 36M curated video-caption pairs + 582M clips with
-noisy ASR text.}
+\caption{Zero-shot text-to-video retrieval (R@1\,/\,R@10, ITM protocol). All
+VAST-family methods (middle and bottom blocks) continue-pretrain from the VAST
+checkpoint on the same 150k-clip subset of VAST-27M. Bottom block: measured in our
+single evaluation environment, anchored by evaluating the officially released GRAM
+checkpoint (52.5 here vs 54.8 as published -- the environments differ by
+$\sim$2 R@1). Bold: best measured. $\P$: authors' own eval environment; comparable
+to each other, not to our rows. $\dagger$: 431-clip audio-complete VATEX subset;
+$*$: standard VATEX split; $\S$: 36M curated + 582M noisy-ASR clips.}
 \label{tab:main_single}
 \small
 \begin{tabular}{llccccc}
 \toprule
-Method & Pretrain & MSR-VTT & DiDeMo & ActivityNet & VATEX$^{\dagger}$ & AudioCaps \\
+Method & Data & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps \\
  & & T-VAS & T-VA & T-VA & T-VAS & T-VA \\
 \midrule
+\multicolumn{7}{l}{\emph{External foundation models, as reported}} \\
 ImageBind & -- & 36.8\,/\,70.0 & -- & -- & -- & 9.3\,/\,42.3 \\
 UMT-L & 25M & 40.7\,/\,71.8 & 48.6\,/\,79.0 & 41.9\,/\,-- & -- & -- \\
 LanguageBind & 10M & 44.8\,/\,78.7 & 39.9\,/\,74.6 & 41.0\,/\,80.0 & -- & 19.7\,/\,67.6 \\
 mPLUG-2 & -- & 47.1\,/\,79.0 & 45.7\,/\,71.1 & -- & -- & -- \\
 VideoPrism-b & 36M+582M$^{\S}$ & 51.4\,/\,-- & -- & 49.6\,/\,-- & 62.5$^{*}$\,/\,-- & -- \\
 VAST & 27M & 50.7\,/\,74.4 & 49.5\,/\,76.9 & 51.4\,/\,83.6 & 82.1$^{*}$\,/\,96.8 & 32.1\,/\,65.4 \\
-GRAM (paper) & 27M & 54.8\,/\,82.9 & 54.2\,/\,79.3 & 59.0\,/\,91.1 & 83.5$^{*}$\,/\,98.8 & 33.2\,/\,75.3 \\
-PMRL (paper) & 27M & 54.5\,/\,-- & 50.6\,/\,-- & 56.0\,/\,-- & 80.5$^{*}$\,/\,-- & 36.1\,/\,75.9 \\
 \midrule
+\multicolumn{7}{l}{\emph{VAST ckpt + 150k continued pretrain, as reported (authors' eval envs$^{\P}$)}} \\
+GRAM (paper) & 150k & 54.8\,/\,82.9 & 54.2\,/\,79.3 & 59.0\,/\,91.1 & 83.5$^{*}$\,/\,98.8 & 33.2\,/\,75.3 \\
+PMRL (paper) & 150k & 54.5\,/\,-- & 50.6\,/\,-- & 56.0\,/\,-- & 80.5$^{*}$\,/\,-- & 36.1\,/\,75.9 \\
+HyperGRAM (CVPR'26) & 150k & 56.6\,/\,-- & 51.3\,/\,-- & 58.2\,/\,-- & 79.9$^{*}$\,/\,-- & -- \\
+\midrule
+\multicolumn{7}{l}{\emph{VAST ckpt + 150k continued pretrain, measured in ONE env (ours)}} \\
+\emph{GRAM official ckpt (env anchor)} & 150k & \emph{52.5\,/\,82.5} & -- & -- & -- & -- \\
 PMRL (repro) & 150k & 51.9\,/\,80.6 & -- & -- & -- & -- \\
 PMRL-masked & 150k & 52.6\,/\,80.9 & -- & -- & -- & -- \\
 PMRL-LoRA & 150k & 53.9\,/\,82.0 & -- & -- & -- & -- \\
-GRAM (repro) & 150k & 52.6\,/\,82.6 & 49.6\,/\,76.6 & 52.0\,/\,84.1 & 88.9\,/\,\textbf{99.5} & 33.1\,/\,73.0 \\
+GRAM (repro) & 150k & 52.6\,/\,82.6 & 49.6\,/\,76.6 & 52.0\,/\,84.1 & 88.9$^{\dagger}$\,/\,\textbf{99.5} & 33.1\,/\,73.0 \\
 GRAM-masked & 150k & 52.1\,/\,80.0 & -- & -- & -- & -- \\
 GRAM-LoRA & 150k & 53.3\,/\,\textbf{83.1} & -- & -- & -- & -- \\
 SCA-nomask & 150k & 53.4\,/\,80.1 & -- & -- & -- & -- \\
-\textbf{SCA (ours)} & 150k & \textbf{53.5}\,/\,81.9 & \textbf{50.0}\,/\,\textbf{78.4} & \textbf{52.6}\,/\,\textbf{85.7} & \textbf{90.3}\,/\,99.3 & \textbf{35.2}\,/\,\textbf{75.6} \\
+\textbf{SCA (ours)} & 150k & \textbf{53.5}\,/\,81.9 & \textbf{50.0}\,/\,\textbf{78.4} & \textbf{52.6}\,/\,\textbf{85.7} & \textbf{90.3}$^{\dagger}$\,/\,99.3 & \textbf{35.2}\,/\,\textbf{75.6} \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -5,7 +5,7 @@ validation), evaluated cold on each benchmark's test set, full ITM protocol.
 
 ## Table metric (ITM-reranked R@1, T2D)
 
-| benchmark | SCA | GRAM (repro) | Δ | GRAM paper (27M) |
+| benchmark | SCA | GRAM (repro) | Δ | GRAM paper (150k, their env) |
 |---|---|---|---|---|
 | MSR-VTT T-VAS | **53.5** | 52.6 | +0.9 | 54.8 |
 | DiDeMo T-VA | **50.0** | 49.6 | +0.4 | 54.2 |
@@ -15,10 +15,11 @@ validation), evaluated cold on each benchmark's test set, full ITM protocol.
 
 **SCA wins 5/5 zero-shot benchmarks at equal budget.** D2T direction: 3 wins
 (ActivityNet +2.1, VATEX tie 86.1, AudioCaps +1.6), 1 loss (DiDeMo 47.3 vs 48.5),
-MSR-VTT +? (52.6 best in wave rows). Highlight: **SCA at 150k clips beats the GRAM
-paper's own 27M-pretrain zero-shot AudioCaps number** (35.2 vs 33.2) — 180× less
-pretraining data (protocol caveat: our AudioCaps eval uses the HyperAlign T-VA
-annotation; theirs is labeled T-V-A — verify comparability before headlining).
+MSR-VTT +? (52.6 best in wave rows). Highlight (corrected framing): **SCA beats GRAM's published zero-shot AudioCaps
+number (35.2 vs 33.2) at the same 150k budget, measured in an environment that
+scores ~2 R@1 COLDER than theirs** (the same released GRAM checkpoint: 54.8
+published vs 52.5 here). Protocol caveat: our AudioCaps eval uses the HyperAlign
+T-VA annotation; theirs is labeled T-V-A — verify comparability before headlining.
 
 ## Raw scorers — cross-dataset transfer flips the MSR-VTT picture
 

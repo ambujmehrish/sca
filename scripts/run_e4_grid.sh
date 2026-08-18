@@ -10,28 +10,30 @@
 # THE SAME dumped features -- one encoder pass per checkpoint, honest comparisons.
 #
 # Usage (cluster; DATA_ROOT/WORK_ROOT/MODELS_DIR exported, checkpoints trained):
-#   CKPTS="sca_full=./workdir_pretrain/sca_nomask/ckpt/model_step_XXXX.pt \
-#          sca_masked=./workdir_pretrain/sca/ckpt/model_step_XXXX.pt \
-#          gram_full=... gram_masked=... pmrl_full=... pmrl_masked=..." \
-#   EVAL_CFG=./benchmark_eval/configs_baselines/zs_msrvtt_tvas_maskedii.json \
-#   S_STAR=$DATA_ROOT/... bash scripts/run_e4_grid.sh
+#   CKPTS="name=<ckpt.pt>=<dump_cfg.json> [ ... ]" bash scripts/run_e4_grid.sh
+# The third field is the family's feature-dump config (benchmark_eval/configs_e4/*.json):
+# it selects the RIGHT model class for the checkpoint -- loading a LoRA checkpoint into a
+# plain-GRAM model silently drops the adapter deltas, so the cfg is per-checkpoint, not
+# global. A two-field pair falls back to $EVAL_CFG. slurm_scripts/e4_grid.sh builds the
+# CKPTS string automatically from workdir_pretrain/.
 #
 # Each cell -> results/e4/<name>.json (features dumped once per ckpt to results/e4/feats/).
 set -euo pipefail
 cd "$(dirname "$0")/.."
-: "${CKPTS:?export CKPTS=\"name=path [name=path ...]\" (train-axis checkpoints)}"
-: "${EVAL_CFG:?export EVAL_CFG=<eval config whose val loader defines the test set>}"
+: "${CKPTS:?export CKPTS=\"name=ckpt[=cfg] [name=ckpt[=cfg] ...]\" (train-axis checkpoints)}"
 if [ -n "${MODELS_DIR:-}" ]; then source "$MODELS_DIR/env.sh"; fi
 mkdir -p results/e4/feats
 
 for pair in $CKPTS; do
-  name="${pair%%=*}"; ckpt="${pair#*=}"
+  name="${pair%%=*}"; rest="${pair#*=}"; ckpt="${rest%%=*}"
+  cfg="${rest#*=}"; [ "$cfg" = "$ckpt" ] && cfg="${EVAL_CFG:?pair $name has no cfg field and EVAL_CFG is unset}"
   [ -f "$ckpt" ] || { echo "FATAL: checkpoint $ckpt ($name) not found" >&2; exit 1; }
+  [ -f "$cfg" ] || { echo "FATAL: dump config $cfg ($name) not found" >&2; exit 1; }
   feats="results/e4/feats/${name}.pt"
   if [ ! -f "$feats" ]; then
-    echo "== [$name] extracting features (one encoder pass)"
+    echo "== [$name] extracting features (one encoder pass, cfg=$cfg)"
     EVAL_CKPT="$ckpt" python3 evaluation/run_eval_grids.py \
-      --config "$EVAL_CFG" --dump_features "$feats"
+      --config "$cfg" --dump_features "$feats"
   fi
   echo "== [$name] running E4/E5/E6 grids on cached features"
   python3 evaluation/run_eval_grids.py --features "$feats" \

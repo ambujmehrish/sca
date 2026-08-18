@@ -1,0 +1,10 @@
+{
+ "method": "GRAM (official ckpt)",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   52.5,
+   82.5
+  ]
+ }
+}

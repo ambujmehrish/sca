@@ -1,0 +1,10 @@
+{
+ "method": "GRAM (repro)",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   49.3,
+   80.9
+  ]
+ }
+}

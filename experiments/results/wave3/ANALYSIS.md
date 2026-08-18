@@ -27,10 +27,11 @@ gap already measured in Wave 1, not just method differences.
    150k budget** — the zero-shot version of that comparison is done (Wave 1/2); a
    GRAM-repro finetune arm (same recipe, from `workdir_pretrain/gram` best) is the
    matching ft comparison if we want finetuned parity rows too.
-3. **VATEX exceeds the paper by 6.5** (94.2 vs 87.7). Treat with caution until the eval
-   protocol is double-checked (VATEX has multiple public test-split conventions; ours is
-   the HyperAlign `descs_ret_test.json`). If their split differs, this row is not
-   comparable in either direction.
+3. **VATEX exceeds the paper by 6.5** (94.2 vs 87.7) — RESOLVED: not comparable. The
+   HyperAlign VATEX test annotation is `descs_ret_test_431.json`, a 431-clip
+   audio-complete subset, not the standard 1,500-video split; a smaller gallery inflates
+   R@1. Our VATEX rows must be footnoted "431-clip audio-complete subset" and never
+   bolded against the paper's number.
 4. **AudioCaps at 51.6 ITM (T-VA)** vs GRAM's 33.2 zero-shot: no finetuned AudioCaps row
    is published in the extracted tables, so this is our finetuned number vs their
    zero-shot — not a like-for-like win, just the E1 grid cell filled.

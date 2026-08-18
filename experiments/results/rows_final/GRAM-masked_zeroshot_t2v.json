@@ -1,0 +1,10 @@
+{
+ "method": "GRAM-masked",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   52.1,
+   80.0
+  ]
+ }
+}

@@ -46,7 +46,7 @@ modality alive (A→T 5.3 vs 0.4 without).
 | MSR-VTT T-VAS | 57.1 | 64.0 |
 | DiDeMo T-VA | 61.8 | 67.3 |
 | ActivityNet T-VA | 62.9 | 69.9 |
-| VATEX T-VAS | 94.2 (†split check) | 87.7 |
+| VATEX T-VAS | 94.2 (†431-clip audio subset — NOT comparable to paper's split) | 87.7 |
 | AudioCaps T-VA | 51.6 | 33.2 (zs only) |
 
 Gaps vs paper = pretrain-scale (150k vs 27M), consistent with Wave 1. Same-budget ft

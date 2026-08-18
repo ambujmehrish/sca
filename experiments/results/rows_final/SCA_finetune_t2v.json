@@ -1,0 +1,26 @@
+{
+ "method": "SCA (ours, 150k pretrain)",
+ "section": "finetune_t2v",
+ "rows": {
+  "ActivityNet|T-VA": [
+   62.9,
+   91.3
+  ],
+  "AudioCaps|T-VA": [
+   51.6,
+   95.0
+  ],
+  "DiDeMo|T-VA": [
+   61.8,
+   85.5
+  ],
+  "MSR-VTT|T-VAS": [
+   57.1,
+   87.3
+  ],
+  "VATEX|T-VAS": [
+   94.2,
+   99.8
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+\begin{table}[t]
+\centering
+\caption{Fine-tuned video-to-text retrieval (R@1 / R@10)}
+\label{tab:finetune_v2t}
+\small
+\begin{tabular}{lccccccccccc}
+\toprule
+Method & ActivityNet T-VA & AudioCaps T-VA & DiDeMo T-VA & MSR-VTT T-VAS & VATEX T-VAS & MSR-VTT T-V & MSR-VTT T-VA & DiDeMo T-V & ActivityNet T-V & VATEX T-V & VATEX T-VA \\
+\midrule
+SCA (ours, 150k pretrain) & 58.4 / 88.3 & \textbf{50.6} / \textbf{95.6} & 60.0 / 83.4 & 58.9 / 88.2 & \textbf{91.0} / \textbf{99.8} & -- & -- & -- & -- & -- & -- \\
+GRAM (paper) & \textbf{66.9} / \textbf{95.4} & -- & \textbf{63.5} / \textbf{91.4} & \textbf{64.8} / \textbf{91.5} & 84.2 / \textbf{99.8} & \textbf{56.4} / \textbf{87.6} & \textbf{59.0} / \textbf{89.1} & \textbf{63.2} / \textbf{91.6} & \textbf{64.6} / \textbf{95.1} & \textbf{81.6} / \textbf{99.8} & \textbf{84.6} / \textbf{100.0} \\
+\bottomrule
+\end{tabular}
+\end{table}

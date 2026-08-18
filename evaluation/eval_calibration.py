@@ -82,7 +82,11 @@ def calibration_grid(feat_t, gallery_feats, s_star, methods=('centroid', 'volume
         for m in methods:
             d = score(feat_t, gallery_feats, present, m)
             sim = 1.0 - d if m == 'centroid' else -d
-            entry = calibration_regression(sim, s_star, present=present)
+            # known-pairs-only is THE calibration metric (A10): sparsified S* zeros mean
+            # "unknown", and fitting against them is a storage artifact, not miscalibration.
+            # The all-pairs fit is kept as a secondary diagnostic under 'overall_allpairs'.
+            entry = calibration_regression(sim, s_star, present=present, known_only=True)
+            entry['overall_allpairs'] = calibration_regression(sim, s_star)['overall']
             entry['graded_ndcg'] = graded_ndcg(sim, s_star, k=ndcg_k)
             results[m][f'{int(rate * 100)}%'] = entry
     return results

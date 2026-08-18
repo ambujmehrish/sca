@@ -1,0 +1,10 @@
+{
+ "method": "GRAM zs VATEX",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "VATEX|T-VAS": [
+   88.9,
+   99.5
+  ]
+ }
+}

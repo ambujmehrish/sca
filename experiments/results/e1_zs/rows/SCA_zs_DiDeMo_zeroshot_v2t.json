@@ -1,0 +1,10 @@
+{
+ "method": "SCA zs DiDeMo",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "DiDeMo|T-VA": [
+   47.3,
+   76.6
+  ]
+ }
+}

@@ -11,7 +11,7 @@ validation), evaluated cold on each benchmark's test set, full ITM protocol.
 | DiDeMo T-VA | **50.0** | 49.6 | +0.4 | 54.2 |
 | ActivityNet T-VA | **52.6** | 52.0 | +0.6 | 59.0 |
 | VATEX T-VAS (431 subset) | **90.3** | 88.9 | +1.4 | (83.5, std split — n/c) |
-| AudioCaps T-VA | **35.2** | 33.1 | +2.1 | **33.2 (27M!)** |
+| AudioCaps T-VA | **35.2** | 33.1 | +2.1 | **33.2 (beaten in a ~2-pt-colder env)** |
 
 **SCA wins 5/5 zero-shot benchmarks at equal budget.** D2T direction: 3 wins
 (ActivityNet +2.1, VATEX tie 86.1, AudioCaps +1.6), 1 loss (DiDeMo 47.3 vs 48.5),

@@ -39,7 +39,7 @@ is the objective, not the adapter (GRAM-LoRA decays −3.2 with the identical Lo
 masked training is free for SCA, costly for GRAM (−0.5/−2.8); masking keeps the audio
 modality alive (A→T 5.3 vs 0.4 without).
 
-### Finetuned SCA — Wave 3 (ITM best; paper column = GRAM ft from 27M pretrain)
+### Finetuned SCA — Wave 3 (ITM best; paper column = GRAM ft, 150k pretrain, authors' env)
 
 | benchmark | SCA ft | GRAM paper ft |
 |---|---|---|

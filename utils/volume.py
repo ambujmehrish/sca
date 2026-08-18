@@ -329,3 +329,50 @@ def volume_computation(language, *inputs):
     # Compute the square root of the absolute value of the determinants
     res = torch.sqrt(torch.abs(gram_det))
     return res
+
+
+def volume_computation_lorentz(language, inputs, present=None):
+    """HyperGRAM repro (Na et al., CVPR 2026): Lorentzian Gramian pseudo-volume.
+
+    Each vector x is projected onto the Lorentz hyperboloid pi(x) = [sqrt(1+||x||^2), x];
+    Gram entries are Lorentzian inner products <x,y>_L = x.y - x0*y0 (so every diagonal
+    entry is EXACTLY -1, the hyperboloid constraint); V = sqrt(|det G|) (their Eq. 6, the
+    absolute value handling the (-,+,+,+) signature).
+
+    Pass the PRE-normalisation projections: varying spatial norms are the paper's entire
+    variance-preservation mechanism -- L2-normalised inputs degenerate the Lorentz Gram to
+    a constant shift of the cosine Gram. Masking uses the same identity row/col trick as
+    volume_computation_masked (pure linear algebra, geometry-agnostic: zeroing a row/col
+    and putting 1 on the diagonal collapses det(G) to the present sub-Gram's det).
+    Returns (B1, B2), distance-like: smaller volume = better aligned (as in GRAM).
+    """
+    B1 = language.shape[0]
+    B2 = inputs[0].shape[0]
+    L = len(inputs)
+    lang = language.float()
+    feats = [x.float() for x in inputs]
+    t0 = torch.sqrt(1.0 + (lang * lang).sum(-1))                        # (B1,) timelike
+    x0 = [torch.sqrt(1.0 + (x * x).sum(-1)) for x in feats]             # (B2,) each
+
+    ll = torch.full((B1, B2), -1.0, device=lang.device)                 # <t,t>_L == -1
+    l_in = [lang @ feats[i].T - t0.unsqueeze(1) * x0[i].unsqueeze(0) for i in range(L)]
+    rows = [torch.stack([ll] + l_in, dim=-1)]
+    for i in range(L):
+        row = [l_in[i]]
+        for j in range(L):
+            if i == j:
+                e = torch.full((B2,), -1.0, device=lang.device)         # exact constraint
+            else:
+                e = torch.einsum('bi,bi->b', feats[i], feats[j]) - x0[i] * x0[j]
+            row.append(e.unsqueeze(0).expand(B1, -1))
+        rows.append(torch.stack(row, dim=-1))
+    G = torch.stack(rows, dim=-2)                                       # (B1, B2, M, M)
+
+    if present is not None:
+        present = present.to(G.dtype)
+        ones = torch.ones(B2, 1, device=G.device, dtype=G.dtype)
+        pres_full = torch.cat([ones, present], dim=1)
+        keep = (pres_full.unsqueeze(2) * pres_full.unsqueeze(1)).unsqueeze(0)
+        G = G * keep + torch.diag_embed(1.0 - pres_full).unsqueeze(0)
+
+    return torch.sqrt(torch.abs(torch.det(G.float())) + 1e-8)

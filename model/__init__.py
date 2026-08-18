@@ -17,6 +17,9 @@ class _LazyRegistry(dict):
             elif key == 'pmrl':
                 from .baselines import PMRL
                 self['pmrl'] = PMRL
+            elif key == 'gram_hyp':
+                from .baselines import GRAMHyp
+                self['gram_hyp'] = GRAMHyp
         return super().__getitem__(key)
 
 

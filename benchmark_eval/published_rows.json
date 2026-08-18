@@ -2,7 +2,7 @@
  "_meta": {
   "metric": "[R@1, R@10] (VGGSound: [Acc@1, Acc@10])",
   "note": "GRAM (paper) rows auto-extracted from make_results_xlsx.py \"Paper\" columns. null = not yet transcribed from the paper; renderers must show a dash, NEVER 0. Regenerate GRAM rows with --regen.",
-  "provenance": "GRAM (paper) rows: auto-extracted from make_results_xlsx.py. Other baselines: transcribed from GRAM, ICLR 2025 (arXiv:2412.11959) Tables 1/3; only complete [R@1,R@10] pairs are filled, absent table cells stay null. Audio rows use each method's own best modality as reported there (LanguageBind T-A/T-V, ImageBind T-A, VAST T-AV). InternVideo-L R@1-only and VideoPrism-b R@1-only rows were NOT filled (no R@10 in the table). | Expanded 2026-08-18: baselines transcribed from GRAM (arXiv:2412.11959) Tables 1-3 and PMRL (arXiv:2507.17343) Tables 1-3; [r1, null] = R@10 not printed; v2t cells kept only where the two papers agree; existing non-null values never overwritten. PMRL (paper) rows use the VAST full-modality eval (mapped to T-VAS/T-VA keys)."
+  "provenance": "GRAM (paper) rows: auto-extracted from make_results_xlsx.py. Other baselines: transcribed from GRAM, ICLR 2025 (arXiv:2412.11959) Tables 1/3; only complete [R@1,R@10] pairs are filled, absent table cells stay null. Audio rows use each method's own best modality as reported there (LanguageBind T-A/T-V, ImageBind T-A, VAST T-AV). InternVideo-L R@1-only and VideoPrism-b R@1-only rows were NOT filled (no R@10 in the table). | Expanded 2026-08-18: baselines transcribed from GRAM (arXiv:2412.11959) Tables 1-3 and PMRL (arXiv:2507.17343) Tables 1-3; [r1, null] = R@10 not printed; v2t cells kept only where the two papers agree; existing non-null values never overwritten. PMRL (paper) rows use the VAST full-modality eval (mapped to T-VAS/T-VA keys). | HyperGRAM rows: CVPR 2026 (Na et al.), VAST150k/1-epoch pretrain, own eval env (their GRAM@150k MSR-VTT cell exceeds the official 27M ckpt under our validated pipeline by +2.3 -- absolutes not cross-comparable, use deltas)."
  },
  "GRAM (paper)": {
   "zeroshot_t2v": {
@@ -1111,6 +1111,44 @@
    "AudioCaps (T-V-A)": [
     36.1,
     75.9
+   ]
+  }
+ },
+ "HyperGRAM (paper, 150k)": {
+  "zeroshot_t2v": {
+   "MSR-VTT|T-VAS": [
+    56.6,
+    null
+   ],
+   "DiDeMo|T-VA": [
+    51.3,
+    null
+   ],
+   "ActivityNet|T-VA": [
+    58.2,
+    null
+   ],
+   "VATEX|T-VAS": [
+    79.9,
+    null
+   ]
+  },
+  "zeroshot_v2t": {
+   "MSR-VTT|T-VAS": [
+    53.6,
+    null
+   ],
+   "DiDeMo|T-VA": [
+    49.5,
+    null
+   ],
+   "ActivityNet|T-VA": [
+    51.8,
+    null
+   ],
+   "VATEX|T-VAS": [
+    75.7,
+    null
    ]
   }
  }

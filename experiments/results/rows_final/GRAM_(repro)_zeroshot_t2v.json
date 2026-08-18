@@ -5,6 +5,22 @@
   "MSR-VTT|T-VAS": [
    52.6,
    82.6
+  ],
+  "ActivityNet|T-VA": [
+   52.0,
+   84.1
+  ],
+  "AudioCaps|T-VA": [
+   33.1,
+   73.0
+  ],
+  "DiDeMo|T-VA": [
+   49.6,
+   76.6
+  ],
+  "VATEX|T-VAS": [
+   88.9,
+   99.5
   ]
  }
 }

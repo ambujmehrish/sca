@@ -3,20 +3,20 @@
 \caption{Zero-shot video-to-text retrieval (R@1 / R@10)}
 \label{tab:zeroshot_v2t}
 \small
-\begin{tabular}{lcccccccccc}
+\begin{tabular}{lccccccccccc}
 \toprule
-Method & MSR-VTT T-VAS & MSR-VTT T-V & MSR-VTT T-VA & DiDeMo T-V & DiDeMo T-VA & ActivityNet T-V & ActivityNet T-VA & VATEX T-V & VATEX T-VA & VATEX T-VAS \\
+Method & MSR-VTT T-VAS & ActivityNet T-VA & AudioCaps T-VA & DiDeMo T-VA & VATEX T-VAS & MSR-VTT T-V & MSR-VTT T-VA & DiDeMo T-V & ActivityNet T-V & VATEX T-V & VATEX T-VA \\
 \midrule
-GRAM-LoRA & 50.6 / 80.9 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-GRAM-masked & 49.6 / 78.8 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-GRAM (repro) & 49.3 / 80.9 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-GRAM (official ckpt) & 50.5 / 81.2 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-PMRL-LoRA & 49.8 / 79.8 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-PMRL-masked & 49.9 / 79.5 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-PMRL & 49.7 / 79.9 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-SCA-nomask & 50.1 / 78.5 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-SCA (ours) & 49.9 / 78.1 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-GRAM (paper) & \textbf{52.9} / \textbf{82.9} & \textbf{49.5} / \textbf{81.7} & \textbf{50.5} / \textbf{82.2} & \textbf{52.3} / \textbf{80.3} & \textbf{52.2} / \textbf{78.9} & \textbf{50.9} / \textbf{85.4} & \textbf{50.4} / \textbf{85.8} & \textbf{79.0} / \textbf{98.3} & \textbf{79.2} / \textbf{99.0} & \textbf{82.7} / \textbf{98.1} \\
+GRAM-LoRA & 50.6 / 80.9 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+GRAM-masked & 49.6 / 78.8 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+GRAM (repro) & 49.3 / 80.9 & 46.2 / 79.4 & 32.8 / 74.9 & 48.5 / 76.8 & \textbf{86.1} / 98.4 & -- & -- & -- & -- & -- & -- \\
+GRAM (official ckpt) & 50.5 / 81.2 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+PMRL-LoRA & 49.8 / 79.8 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+PMRL-masked & 49.9 / 79.5 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+PMRL & 49.7 / 79.9 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+SCA-nomask & 50.1 / 78.5 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+SCA (ours) & 49.9 / 78.1 & 48.3 / 83.4 & \textbf{34.4} / \textbf{76.8} & 47.3 / 76.6 & \textbf{86.1} / \textbf{98.6} & -- & -- & -- & -- & -- & -- \\
+GRAM (paper) & \textbf{52.9} / \textbf{82.9} & \textbf{50.4} / \textbf{85.8} & -- & \textbf{52.2} / \textbf{78.9} & 82.7 / 98.1 & \textbf{49.5} / \textbf{81.7} & \textbf{50.5} / \textbf{82.2} & \textbf{52.3} / \textbf{80.3} & \textbf{50.9} / \textbf{85.4} & \textbf{79.0} / \textbf{98.3} & \textbf{79.2} / \textbf{99.0} \\
 \bottomrule
 \end{tabular}
 \end{table}

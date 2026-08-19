@@ -124,6 +124,44 @@ def fig_e6(indir, outdir):
     plt.close(fig)
 
 
+TARMS = {'sca_t1': ('SCA-T1 (ours)', 'centroid', BLUE, '-'),
+         'gram_lora': ('GRAM-LoRA', 'volume_masked', ORANGE, '--'),
+         'gram': ('GRAM', 'volume_masked', ORANGE, '-')}
+BENCH = [('didemo', 'DiDeMo'), ('activitynet', 'ActivityNet'), ('audiocaps', 'AudioCaps')]
+
+
+def fig_transfer(indir, outdir):
+    """E4 grids OFF the selection benchmark: three panels, shared y-label."""
+    fig, axes = plt.subplots(1, 3, figsize=(9.2, 2.9), dpi=200, sharey=True)
+    for ax, (key, title) in zip(axes, BENCH):
+        _style(ax)
+        for arm, (label, m, color, ls) in TARMS.items():
+            seeds = [json.load(open(p))
+                     for p in sorted(glob.glob(f'{indir}/{arm}_{key}_s*.json'))]
+            if not seeds:
+                continue
+            mu = [st.mean([d['e4'][m][r]['R@1'] for d in seeds]) for r in RATES]
+            sd = [st.stdev([d['e4'][m][r]['R@1'] for d in seeds]) if len(seeds) > 1 else 0
+                  for r in RATES]
+            ax.plot(X, mu, ls, color=color, lw=2, label=label, solid_capstyle='round')
+            ax.fill_between(X, [a - b for a, b in zip(mu, sd)],
+                            [a + b for a, b in zip(mu, sd)], color=color, alpha=0.12, lw=0)
+        ax.set_xticks(X)
+        ax.set_xticklabels([f'{x}%' for x in X], fontsize=7.5)
+        ax.set_title(title, color=INK, fontsize=9, loc='left')
+        ax.set_xlabel('missing rate', color=INK, fontsize=8.5)
+    axes[0].set_ylabel('R@1 (raw embedding space)', color=INK, fontsize=8.5)
+    axes[0].legend(frameon=False, fontsize=8, loc='upper right',
+                   labelcolor=INK, handlelength=1.6)
+    fig.suptitle('Off the selection benchmark: SCA beats GRAM at every rate, and overtakes '
+                 'GRAM-LoRA as modalities disappear (mean ± std, 3 mask seeds)',
+                 color=INK, fontsize=9.5, x=0.02, ha='left')
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    for ext in ('pdf', 'png'):
+        fig.savefig(f'{outdir}/fig_e4_transfer.{ext}', bbox_inches='tight')
+    plt.close(fig)
+
+
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--indir', default='experiments/results/e4')
@@ -132,4 +170,9 @@ if __name__ == '__main__':
     os.makedirs(a.outdir, exist_ok=True)
     fig_e4(a.indir, a.outdir)
     fig_e6(a.indir, a.outdir)
+    tdir = a.indir.replace('/e4', '/e4_transfer')
+    if glob.glob(f'{tdir}/*.json'):
+        fig_transfer(tdir, a.outdir)
     print(f'-> {a.outdir}/fig_e4_missingness.(pdf|png), fig_e6_calibration.(pdf|png)')
+
+

@@ -1,0 +1,10 @@
+{
+ "method": "A6 asym",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   50.1,
+   77.9
+  ]
+ }
+}

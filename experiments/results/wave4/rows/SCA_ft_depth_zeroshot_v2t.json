@@ -1,0 +1,10 @@
+{
+ "method": "SCA ft depth",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VASD": [
+   56.2,
+   88.7
+  ]
+ }
+}

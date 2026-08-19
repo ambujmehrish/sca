@@ -1,0 +1,10 @@
+{
+ "method": "A8 lam0.05",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   49.7,
+   78.6
+  ]
+ }
+}

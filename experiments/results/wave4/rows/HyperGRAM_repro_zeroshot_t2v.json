@@ -1,0 +1,10 @@
+{
+ "method": "HyperGRAM repro",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   35.2,
+   63.6
+  ]
+ }
+}

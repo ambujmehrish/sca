@@ -1,0 +1,10 @@
+{
+ "method": "A6 r16",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   53.6,
+   82.5
+  ]
+ }
+}

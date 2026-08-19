@@ -75,6 +75,45 @@ class GRAM(MMGeneralModule):
             self.train_mask_sampler = MaskSampler.from_config(self.config)
             self.register_buffer('train_mask_step', torch.zeros((), dtype=torch.long))
 
+        # ---- E4-ITM arm: TEST-TIME modality dropping at the ENCODER-OUTPUT level, so the
+        # missing modality is absent for BOTH stages -- the contrastive scorer AND the ITM
+        # cross-encoder (whose condition_feats are built from these same tensors). Mirrors
+        # eval_missing.drop_mask: a `rate` fraction of clips lose exactly one modality,
+        # drawn uniformly. The decision is a deterministic function of (clip id, seed), so
+        # it is identical across T2D/D2T passes, across arms, and nested across rates.
+        # eval_mask_rate = 0 (default) => byte-for-byte the untouched eval path.
+        self.eval_mask_rate = float(getattr(self.config, 'eval_mask_rate', 0.0))
+        self.eval_mask_seed = int(getattr(self.config, 'eval_mask_seed', 0))
+        self._EVAL_MASK_KEYS = ('vision_output', 'audio_output', 'subtitle_output',
+                                'depth_output')
+
+    def _eval_mask_drop(self, clip_id, n_mod):
+        """-> index of the modality dropped for this clip, or None. Deterministic."""
+        import hashlib
+        h = hashlib.md5(f'{self.eval_mask_seed}|{clip_id}'.encode()).digest()
+        u = int.from_bytes(h[:4], 'big') / 2 ** 32
+        if u >= self.eval_mask_rate:
+            return None
+        return int.from_bytes(h[4:8], 'big') % n_mod
+
+    def batch_get(self, batch, key):
+        out = self._batch_get_impl(batch, key)
+        if (self.eval_mask_rate <= 0 or self.training
+                or key not in self._EVAL_MASK_KEYS or out is None):
+            return out
+        present_keys = [k for k in self._EVAL_MASK_KEYS
+                        if k == 'vision_output'
+                        or (k == 'audio_output')
+                        or (k == 'subtitle_output' and 'raw_subtitles' in batch.keys())
+                        or (k == 'depth_output' and 'depth_pixels' in batch.keys())]
+        m_idx = present_keys.index(key)
+        ids = batch['ids'] if 'ids' in batch.keys() else list(range(out.shape[0]))
+        assert len(ids) == out.shape[0], (len(ids), out.shape)
+        for b, cid in enumerate(ids):
+            if self._eval_mask_drop(str(cid), len(present_keys)) == m_idx:
+                out[b] = 0.0                      # zero encoder output -> feat AND ITM cond
+        return out
+
     def _apply_train_mask(self, feats):
         """Zero-fill an m-dagger draw over the (B, d) gallery feature list; identity when
         train_mask is off or in eval. Shared by GRAM's and PMRL's forward_ret."""
@@ -116,7 +155,7 @@ class GRAM(MMGeneralModule):
 
         
 
-    def batch_get(self, batch, key):
+    def _batch_get_impl(self, batch, key):
         if key in batch:
             return batch[key]
 

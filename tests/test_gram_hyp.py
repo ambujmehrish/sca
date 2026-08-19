@@ -95,3 +95,46 @@ def test_gram_hyp_registry_entry():
     import inspect
     src = inspect.getsource(type(model.model_registry).__getitem__)
     assert 'gram_hyp' in src
+
+
+# ---- eval-time modality masking (E4-ITM arm) ----
+
+class _FakeBatch(dict):
+    def keys(self):
+        return super().keys()
+
+
+def test_eval_mask_default_off_is_identity():
+    """eval_mask_rate=0 must leave batch_get byte-for-byte unchanged (GRAM path guard)."""
+    from model.gram import GRAM
+    m = GRAM.__new__(GRAM)
+    m.eval_mask_rate, m.eval_mask_seed, m.training = 0.0, 0, False
+    m._EVAL_MASK_KEYS = ('vision_output', 'audio_output', 'subtitle_output', 'depth_output')
+    t = torch.randn(4, 3)
+    m._batch_get_impl = lambda batch, key: t
+    out = GRAM.batch_get(m, _FakeBatch(ids=['a', 'b', 'c', 'd']), 'audio_output')
+    assert out is t and torch.equal(out, t)
+
+
+def test_eval_mask_zeroes_only_selected_clips_and_is_deterministic():
+    from model.gram import GRAM
+    m = GRAM.__new__(GRAM)
+    m.eval_mask_rate, m.eval_mask_seed, m.training = 0.5, 0, False
+    m._EVAL_MASK_KEYS = ('vision_output', 'audio_output', 'subtitle_output', 'depth_output')
+    ids = [f'v{i}' for i in range(200)]
+    batch = _FakeBatch(ids=ids, raw_subtitles=['x'] * 200)
+    zeroed = {}
+    for key in ('vision_output', 'audio_output', 'subtitle_output'):
+        t = torch.ones(200, 5)
+        m._batch_get_impl = lambda batch, key, _t=t: _t
+        out = GRAM.batch_get(m, batch, key)
+        zeroed[key] = {i for i in range(200) if out[i].abs().sum() == 0}
+    # each clip loses AT MOST one modality, and ~50% lose one
+    all_hits = [i for s in zeroed.values() for i in s]
+    assert len(all_hits) == len(set(all_hits)), 'a clip lost more than one modality'
+    assert 0.4 < len(all_hits) / 200 < 0.6, len(all_hits) / 200
+    # deterministic: same ids -> same victims
+    t2 = torch.ones(200, 5)
+    m._batch_get_impl = lambda batch, key, _t=t2: _t
+    again = GRAM.batch_get(m, batch, 'audio_output')
+    assert {i for i in range(200) if again[i].abs().sum() == 0} == zeroed['audio_output']

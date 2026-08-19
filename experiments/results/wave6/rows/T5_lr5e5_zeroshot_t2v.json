@@ -1,0 +1,10 @@
+{
+ "method": "T5 lr5e5",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   54.2,
+   82.3
+  ]
+ }
+}

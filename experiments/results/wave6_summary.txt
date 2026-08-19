@@ -1,0 +1,112 @@
+
+== SCA ft v2b fullft  (workdir/sca_ft_msrvtt_fullft; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step   7860: R@1   9.0  R@10 33.7
+      final step  11229: R@1   8.9  R@10 34.6
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step   7860: R@1  12.1  R@10 34.7
+      final step  11229: R@1  10.4  R@10 34.3
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step      0: R@1  40.8  R@10 78.9
+      final step  11229: R@1  39.3  R@10 79.3
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step   7860: R@1  42.2  R@10 82.3
+      final step  11229: R@1  41.9  R@10 82.5
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step   2245: R@1  42.7  R@10 81.0
+      final step  11229: R@1  42.0  R@10 82.9
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step   7860: R@1  42.5  R@10 82.7
+      final step  11229: R@1  41.9  R@10 82.8  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step  11229: R@1  60.9  R@10 91.0
+      final step  11229: R@1  60.9  R@10 91.0
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step  10106: R@1  59.4  R@10 90.0
+      final step  11229: R@1  58.5  R@10 90.0  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave6/rows/SCA_ft_v2b_fullft_zeroshot_t2v.json
+   rows -> experiments/results/wave6/rows/SCA_ft_v2b_fullft_zeroshot_v2t.json
+
+== T5 lr5e5  (workdir_pretrain/t5_lr5e5; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step   2384: R@1   4.9  R@10 21.1
+      final step   2649: R@1   4.5  R@10 21.1
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step   1854: R@1   7.3  R@10 22.8
+      final step   2649: R@1   7.2  R@10 23.2
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step    264: R@1  42.7  R@10 80.0
+      final step   2649: R@1  41.4  R@10 79.5
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step   2119: R@1  35.1  R@10 71.8
+      final step   2649: R@1  35.0  R@10 72.0
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    794: R@1  29.8  R@10 64.8
+      final step   2649: R@1  26.8  R@10 61.2
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step    794: R@1  36.0  R@10 73.5
+      final step   2649: R@1  35.3  R@10 70.8  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step    264: R@1  49.7  R@10 78.6
+      final step   2649: R@1  48.5  R@10 76.6
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step    794: R@1  54.2  R@10 82.3
+      final step   2649: R@1  54.1  R@10 83.4  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave6/rows/T5_lr5e5_zeroshot_t2v.json
+   rows -> experiments/results/wave6/rows/T5_lr5e5_zeroshot_v2t.json
+
+== T3 loralr  (workdir_pretrain/t3_loralr; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step    794: R@1   5.0  R@10 19.5
+      final step   2649: R@1   4.5  R@10 21.0
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step   2384: R@1   7.2  R@10 24.0
+      final step   2649: R@1   7.0  R@10 24.2
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step    529: R@1  41.8  R@10 78.7
+      final step   2649: R@1  41.4  R@10 78.0
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step   2119: R@1  35.8  R@10 73.4
+      final step   2649: R@1  35.8  R@10 73.5
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    264: R@1  30.2  R@10 66.3
+      final step   2649: R@1  27.4  R@10 59.7
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step   2384: R@1  35.5  R@10 72.9
+      final step   2649: R@1  35.1  R@10 72.9  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step    264: R@1  49.2  R@10 78.8
+      final step   2649: R@1  47.9  R@10 74.5
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step   1059: R@1  54.0  R@10 83.7
+      final step   2649: R@1  53.9  R@10 84.0  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave6/rows/T3_loralr_zeroshot_t2v.json
+   rows -> experiments/results/wave6/rows/T3_loralr_zeroshot_v2t.json
+
+== T4 fullft1e4  (workdir_pretrain/t4_fullft1e4; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step   2649: R@1   4.8  R@10 21.2
+      final step   2649: R@1   4.8  R@10 21.2
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step   1324: R@1   5.8  R@10 22.0
+      final step   2649: R@1   5.5  R@10 25.3
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step    264: R@1  41.6  R@10 78.2
+      final step   2649: R@1  34.6  R@10 69.6
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step    529: R@1  34.5  R@10 72.9
+      final step   2649: R@1  34.5  R@10 71.9
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    529: R@1  32.1  R@10 67.8
+      final step   2649: R@1  30.8  R@10 66.7
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step    794: R@1  33.7  R@10 66.7
+      final step   2649: R@1  32.6  R@10 67.4  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step    264: R@1  49.6  R@10 78.7
+      final step   2649: R@1  47.3  R@10 78.4
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step    264: R@1  53.0  R@10 81.5
+      final step   2649: R@1  48.3  R@10 78.3  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave6/rows/T4_fullft1e4_zeroshot_t2v.json
+   rows -> experiments/results/wave6/rows/T4_fullft1e4_zeroshot_v2t.json

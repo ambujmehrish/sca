@@ -114,8 +114,11 @@ Readings (final wording for the paper):
    Claim the slope + parity-at-heavy-missingness, NOT raw dominance.
 2. Masked training with error bars: nomask drops 15.4 vs 7.1–8.3 masked — the single
    largest effect in the grid, now seed-robust.
-3. gram_hyp fails across the entire surface (18.2 full-modality, nDCG 0.410) —
-   the HyperGRAM repro verdict is not a missingness artifact.
+3. gram_hyp (our v1 reproduction attempt of HyperGRAM, pre-norm reading) sits low
+   across the surface. Given the paper's ambiguity between two readings and no released
+   code, this is reported only as an appendix reproduction note — HyperGRAM's PUBLISHED
+   numbers are what our tables cite. No E4 row exists for their method: they report no
+   missing-modality experiments.
 
 ## E6 final (known-pairs-only, the A10 definition): the calibration table
 

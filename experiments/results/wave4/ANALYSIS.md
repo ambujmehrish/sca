@@ -27,18 +27,22 @@ GRAM's published 54.8 was trained at 1e-4. At the matched lr, same budget, same 
 
 **New headline config: sca_pretrain + learning_rate 1e-4 ("SCA-T1").**
 
-## 2. HyperGRAM does not reproduce on our trunk: 35.2 ITM / 18.2 raw
+## 2. HyperGRAM: we cite their published numbers; our reproduction is inconclusive
 
-Faithful repro (Lorentz pseudo-volume on pre-norm projections, hybrid learnable α,
-their loss structure; 7 unit tests pin the geometry): the arm trains but lands at
-35.2 ITM / 18.2 raw vs GRAM-repro's 52.6 / 37.7 — nowhere near their claimed 56.6
-(their env, ≈54.3 env-adjusted). Honest caveats: no code is released, so an
-undisclosed implementation detail (e.g. a normalization or scale on the hyperbolic
-branch — V_hyp magnitudes ~2.2 vs V_euc ≤1 under the shared temperature 0.07) could
-be the difference; our α trajectory should be checked in the run log. As it stands:
-the claimed gain does not reproduce from the paper's description in a validated
-environment, while our SCA-T1 gain (+2.3 over the same GRAM baseline) is measured.
-Paper treatment: reproducibility note + the repro row, worded neutrally.
+**Reported in our tables (from Na et al., CVPR 2026, Table 1): MSR-VTT 56.6 / 53.6,
+DiDeMo 51.3 / 49.5, ActivityNet 58.2 / 51.8, VATEX 79.9 / 75.7.** These are their
+same-budget (VAST ckpt + 150k, 1 epoch) numbers in their evaluation environment, and
+they are what Table 1 shows for HyperGRAM.
+
+Our reproduction attempt is an APPENDIX note, not a table row. v1 (hyperbolic branch on
+pre-normalisation features — the reading their method section motivates via "varying
+spatial norms") trained to 35.2 ITM. But their experiments section says the method
+"only changes the inner product computation", which on GRAM's L2-normalised features is
+a bounded shift of the cosine Gram — a different computation, and the only one
+consistent with their Fig. 5's volume range [2.0, 2.5]. v2 implements that reading
+(`hyp_use_prenorm=false`, volumes verified bounded [1.4, 3.5]) and has not been run to
+completion. With no code released and the paper ambiguous between the two readings, we
+make NO reproducibility claim: their published numbers stand as cited.
 
 ## 3. Same-env finetuned head-to-head: GRAM-ft wins MSR-VTT — with a known lever
 

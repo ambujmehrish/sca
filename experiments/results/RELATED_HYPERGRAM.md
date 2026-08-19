@@ -13,7 +13,7 @@ and HyperGRAM all continue-pretrain from the VAST checkpoint on the 150k subset
 the 27M scale lives only in the shared VAST initialization. HyperGRAM is a direct
 competitor row at the same budget.
 
-## Their zero-shot R@1 (their Table 1) vs ours
+## Their zero-shot R@1 (their Table 1 — the numbers WE CITE in our tables) vs ours
 
 | | MSR-VTT T2V/V2T | DiDeMo | ActivityNet | VATEX(std split) |
 |---|---|---|---|---|
@@ -34,8 +34,12 @@ HyperGRAM's GRAM row (54.8) simply cites GRAM's published same-budget number —
 internally consistent. The non-comparability is ENVIRONMENTAL, and we can measure it
 exactly: the same officially released GRAM checkpoint scores 54.8 (their/GRAM's env),
 53.4 (HyperAlign's env), 52.5 (ours). Published rows in this family run ~2 R@1 hotter
-than our environment (undisclosed eval details — no reranking mention, no R@10, no
-code). Cross-paper comparisons must therefore use each method's Δ over its own GRAM
+than our environment. NOTE (corrected): the two-stage protocol (dual-encoder scoring +
+ITM cross-encoder rerank of the top 50) is COMMON to GRAM, PMRL, HyperGRAM and ours —
+it is inherited from the shared VAST codebase, so it is not a differentiator and not a
+criticism; the papers simply do not describe it. What differs is the evaluation
+environment (library/decoder/annotation details), which the released-checkpoint anchor
+measures at ~2 R@1. Cross-paper comparisons must therefore use each method's Δ over its own GRAM
 baseline, or a single shared environment, not absolutes.
 
 Honest reading of the deltas: their zero-shot gain over GRAM (+1.5…+2.9 T2V) is larger

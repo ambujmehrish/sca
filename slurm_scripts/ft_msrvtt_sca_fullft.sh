@@ -20,14 +20,17 @@ set -uo pipefail
 MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 [ -f "$MODELS_DIR/env.sh" ] && source "$MODELS_DIR/env.sh" || { echo "FATAL: run scripts/prefetch_models.py first" >&2; exit 1; }
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
-mkdir -p slurm_scripts/logs workdir/sca_ft_msrvtt_fullft
+FT_CONFIG="${FT_CONFIG:-./config/sca/finetune_cfg/retrieval-msrvtt_fullft.json}"
+FT_OUTDIR="${FT_OUTDIR:-./workdir/sca_ft_msrvtt_fullft}"
+[ -f "$FT_CONFIG" ] || { echo "FATAL: FT_CONFIG $FT_CONFIG not found" >&2; exit 1; }
+mkdir -p slurm_scripts/logs "$FT_OUTDIR"
 INIT="${SCA_MERGED_CKPT:?export SCA_MERGED_CKPT=<merged ckpt from scripts/merge_lora_ckpt.py>}"
 [ -f "$INIT" ] || { echo "ERROR: SCA_MERGED_CKPT $INIT not found"; exit 1; }
-RESUME=""; ls workdir/sca_ft_msrvtt_fullft/ckpt/optimizer_step_*.pt >/dev/null 2>&1 && RESUME="--resume true"
+RESUME=""; ls "$FT_OUTDIR"/ckpt/optimizer_step_*.pt >/dev/null 2>&1 && RESUME="--resume true"
 echo "START $(date +%T)  SCA finetune MSR-VTT  (init=$INIT)"
 srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_node 4 --master_port 9907 \
-  ./run.py --config ./config/sca/finetune_cfg/retrieval-msrvtt_fullft.json \
-  --output_dir ./workdir/sca_ft_msrvtt_fullft --checkpoint "$INIT" --save_best true --checkpointing true $RESUME 2>&1
+  ./run.py --config "$FT_CONFIG" \
+  --output_dir "$FT_OUTDIR" --checkpoint "$INIT" --save_best true --checkpointing true $RESUME 2>&1
 rc=$?
 echo "EXIT=$rc DONE $(date +%T)"
 exit $rc

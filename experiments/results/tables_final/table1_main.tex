@@ -1,0 +1,53 @@
+% Table 1 -- main zero-shot table, grouped by setting (adapter / masked training).
+% Groups: (a) external foundation models, (b) same-budget rows as REPORTED by their
+% authors (hotter eval envs -- see the env-anchor footnote), (c) volume baselines and
+% (d) lambda_1 baselines measured HERE, (e) ours. Bold = best within a group.
+\begin{table}[t]
+\centering
+\caption{Zero-shot text-to-video retrieval on MSR-VTT (T-VAS), R@1\,/\,R@10.
+All rows in groups (c)--(e) are measured in a single evaluation environment, anchored
+by evaluating the officially released GRAM checkpoint (52.5 here vs 54.8 as published;
+the same weights score 53.4 in a third environment), so group (b) -- reported by its
+authors -- runs $\approx$2 R@1 hotter and is not directly comparable. All 150k rows
+continue-pretrain from the same VAST checkpoint on the same 150k-clip subset of
+VAST-27M for one epoch. $\pm$: std over 3 seeds. Bold: best within group.}
+\label{tab:main}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llccrr}
+\toprule
+Method & Adapter & Mask & Data & R@1 & R@10 \\
+\midrule
+\multicolumn{6}{l}{\emph{(a) External foundation models (reported)}} \\
+ImageBind & -- & -- & -- & 36.8 & 70.0 \\
+UMT-L & -- & -- & 25M & 40.7 & 71.8 \\
+LanguageBind & -- & -- & 10M & 44.8 & 78.7 \\
+mPLUG-2 & -- & -- & -- & 47.1 & 79.0 \\
+VideoPrism-b & -- & -- & 36M+582M & \textbf{51.4} & -- \\
+VAST & full-FT & \xmark & 27M & 50.7 & 74.4 \\
+\midrule
+\multicolumn{6}{l}{\emph{(b) VAST ckpt + 150k, reported in the authors' environments$^{\P}$}} \\
+GRAM & full-FT & \xmark & 150k & 54.8 & \textbf{82.9} \\
+PMRL & full-FT & \xmark & 150k & 54.5 & -- \\
+HyperGRAM & full-FT & \xmark & 150k & \textbf{56.6} & -- \\
+\midrule
+\multicolumn{6}{l}{\emph{(c) Gramian-volume baselines, measured here}} \\
+GRAM (released ckpt) & full-FT & \xmark & 150k & 52.5 & 82.5 \\
+GRAM (reproduced) & full-FT & \xmark & 150k & 52.4\,\tiny{$\pm$0.21} & 82.6 \\
+\quad + masked training & full-FT & \cmark & 150k & 52.1 & 80.0 \\
+\quad + LoRA & LoRA & \xmark & 150k & \textbf{53.3} & \textbf{83.1} \\
+HyperGRAM (reproduced) & full-FT & \xmark & 150k & 35.2 & 63.6 \\
+\midrule
+\multicolumn{6}{l}{\emph{(d) Leading-eigenvalue baselines, measured here}} \\
+PMRL (reproduced) & full-FT & \xmark & 150k & 51.9 & 80.6 \\
+\quad + masked training & full-FT & \cmark & 150k & 52.6 & 80.9 \\
+\quad + LoRA & LoRA & \xmark & 150k & \textbf{53.9} & \textbf{82.0} \\
+\midrule
+\multicolumn{6}{l}{\emph{(e) SCA (ours)}} \\
+SCA, no masked training & LoRA & \xmark & 150k & 53.4 & 80.1 \\
+SCA, full finetuning & full-FT & \cmark & 150k & 53.4 & 82.4 \\
+SCA, base learning rate & LoRA & \cmark & 150k & 53.5 & 81.9 \\
+\textbf{SCA} & LoRA & \cmark & 150k & \textbf{54.9}\,\tiny{$\pm$0.15} & \textbf{83.5} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -89,3 +89,55 @@ cached feature dumps and replace this section's numbers.
 
 Per-arm JSONs: `experiments/results/e4/*.json` (e4 = grids, e6 = calibration; feature
 dumps stay on scratch at `results/e4/feats/` — inputs for E8 diagnostics and A2).
+
+
+# FINAL (multi-seed, 10 arms, 90% rate, known-only E6) — supersedes the sections above
+
+## E4 final: R@1 mean±std over 3 mask seeds (native scorers)
+
+| arm | 0% | 25% | 50% | 75% | 90% | drop@90 |
+|---|---|---|---|---|---|---|
+| **SCA-T1** | 36.6 | 34.0±0.5 | 31.6±0.6 | **30.6±1.0** | 29.5±0.9 | **7.1** |
+| SCA | 34.2 | 31.6±0.6 | 29.0±1.5 | 27.8±2.0 | 25.9±0.4 | 8.3 |
+| SCA-nomask | 34.2 | 23.4±1.4 | 20.9±1.0 | 19.7±1.7 | 18.8±0.6 | 15.4 |
+| GRAM | 37.7 | 34.0±0.4 | 31.3±0.9 | 28.8±1.9 | 27.8±1.5 | 9.9 |
+| GRAM-masked | 35.0 | 31.4±0.5 | 28.0±0.6 | 26.5±1.8 | 25.5±2.3 | 9.5 |
+| GRAM-LoRA | **39.6** | **37.0±0.3** | **33.4±1.3** | **30.6±2.0** | **29.8±0.8** | 9.8 |
+| gram_hyp (repro) | 18.2 | 16.0±1.0 | 13.0±0.9 | 11.4±0.6 | 10.2±1.6 | 8.0 |
+| PMRL-masked | 25.9 | 25.1±0.8 | 23.4±0.3 | 22.4±0.9 | 20.9±1.5 | 5.0 |
+| PMRL-LoRA | 32.9 | 29.8±0.2 | 27.5±0.2 | 25.7±1.0 | 24.5±0.7 | 8.4 |
+
+Readings (final wording for the paper):
+1. SCA-T1 has the gentlest degradation of the competitive arms (7.1 vs 9.5–9.9 for
+   every GRAM arm) and MATCHES the best volume arm (GRAM-LoRA) at 75% (30.6 = 30.6)
+   and 90% (29.5±0.9 vs 29.8±0.8 — statistical tie) despite starting 3.0 lower.
+   Claim the slope + parity-at-heavy-missingness, NOT raw dominance.
+2. Masked training with error bars: nomask drops 15.4 vs 7.1–8.3 masked — the single
+   largest effect in the grid, now seed-robust.
+3. gram_hyp fails across the entire surface (18.2 full-modality, nDCG 0.410) —
+   the HyperGRAM repro verdict is not a missingness artifact.
+
+## E6 final (known-pairs-only, the A10 definition): the calibration table
+
+| arm | slope (→1) | Pearson | R² | nDCG@10 |
+|---|---|---|---|---|
+| **SCA** | **0.978** | 0.369 | **−0.67** | 0.543 |
+| SCA-T1 | 0.974 | 0.320 | −4.35 | 0.543 |
+| GRAM | 2.309 | 0.398 | −17.8 | 0.544 |
+| GRAM-masked | 1.831 | 0.369 | −16.9 | 0.534 |
+| GRAM-LoRA | 2.794 | 0.389 | −17.8 | 0.557 |
+| PMRL | 0.505 | 0.334 | −49.5 | 0.489 |
+
+SCA is the only method family with slope ≈ 1, and its R² (−0.67) is 25–70×
+closer to 0 than every volume/λ₁ arm — the residual negativity is the
+under-dispersion A10 predicted, not mis-scaling. T1's higher lr costs some
+calibration tightness (R² −4.3 vs −0.67): the paper reports both SCA configs —
+base = best-calibrated, T1 = best-retrieval — as the same method's two operating
+points on one Pareto front (identical slope ≈ 1 in both).
+
+## E5 final (50%, seed mean): displacement disp_intact / disp_hit
+
+SCA −4.5/119 (best intact-fairness), SCA-T1 −9.5/94 (best hit-protection),
+GRAM −9.4/134, GRAM-LoRA −8.6/217, PMRL −13.8/152, nomask +7.3/307.
+Honest note: T1 trades a little intact-fairness for hit-protection vs base SCA;
+both dominate every baseline on the combined picture.

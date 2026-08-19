@@ -1,0 +1,10 @@
+{
+ "method": "SCA ft v2a (from T1)",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   56.6,
+   87.0
+  ]
+ }
+}

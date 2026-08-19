@@ -1,0 +1,49 @@
+{
+ "run_cfg": {
+  "default": "./config/sca/default_run_cfg.json",
+  "new_params_name": [],
+  "learning_rate": 2e-05
+ },
+ "model_cfg": {
+  "default": "./config/sca/default_model_cfg.json",
+  "s_star_path": "${SCA_CACHE_ROOT}/s_star_ft_msrvtt_train.pt",
+  "use_lora": false
+ },
+ "data_cfg": {
+  "train": [
+   {
+    "type": "annoindexed",
+    "training": true,
+    "name": "msrvtt_ret",
+    "txt": "datasets/annotations/msrvtt/descs_ret_train.json",
+    "vision": "${DATA_ROOT}/MSRVTT_full/MSRVTT/videos/all",
+    "audio": "${DATA_ROOT}/MSRVTT_full/audios",
+    "vision_transforms": "crop_flip",
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 8,
+    "audio_sample_num": 1,
+    "task": "ret%tv%ta",
+    "epoch": 4,
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ],
+  "val": [
+   {
+    "type": "annoindexed",
+    "training": false,
+    "name": "msrvtt_ret",
+    "txt": "datasets/annotations/msrvtt/descs_ret_test.json",
+    "vision_transforms": "crop_flip",
+    "vision_format": "video_rawvideo",
+    "vision": "${DATA_ROOT}/MSRVTT_full/MSRVTT/videos/all",
+    "audio": "${DATA_ROOT}/MSRVTT_full/audios",
+    "vision_sample_num": 8,
+    "audio_sample_num": 1,
+    "task": "ret%tvas",
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ]
+ }
+}

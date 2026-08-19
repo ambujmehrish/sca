@@ -39,7 +39,7 @@ rc_all=0
 for cell in sca_didemo sca_activitynet sca_vatex sca_audiocaps \
             gram_didemo gram_activitynet gram_vatex gram_audiocaps; do
   fam="${cell%%_*}"
-  out="workdir/e1_zs/$cell"
+  out="workdir/e1_zs/${cell}${E1_TAG:-}"
   if [ -f "$out/.done" ]; then echo "== [$cell] already done, skip"; continue; fi
   ckpt="$SCA_CKPT"; [ "$fam" = gram ] && ckpt="$GRAM_CKPT"
   echo "== [$cell] START $(date +%T)  ckpt=$ckpt"

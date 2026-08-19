@@ -51,7 +51,9 @@ for spec in \
     "gram_lora:workdir_pretrain/gram_lora:benchmark_eval/configs_e4/gram_lora.json" \
     "pmrl:workdir_pretrain/pmrl:benchmark_eval/configs_e4/pmrl.json" \
     "pmrl_masked:workdir_pretrain/pmrl_masked:benchmark_eval/configs_e4/pmrl.json" \
-    "pmrl_lora:workdir_pretrain/pmrl_lora:benchmark_eval/configs_e4/pmrl_lora.json"; do
+    "pmrl_lora:workdir_pretrain/pmrl_lora:benchmark_eval/configs_e4/pmrl_lora.json" \
+    "sca_t1:workdir_pretrain/t1_lr1e4:benchmark_eval/configs_e4/sca.json" \
+    "gram_hyp:workdir_pretrain/gram_hyp:benchmark_eval/configs_e4/gram_hyp.json"; do
   name="${spec%%:*}"; rest="${spec#*:}"; wd="${rest%%:*}"; cfg="${rest#*:}"
   ckpt="$(best_ckpt "$wd" | head -1)"
   if [ -n "$ckpt" ]; then

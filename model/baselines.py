@@ -185,6 +185,14 @@ class GRAMHyp(_ScoreITM, GRAM):
                              "training variant is defined for it (train_mask must be off).")
         self.hyp_alpha = nn.Parameter(
             torch.tensor(float(getattr(self.config, 'hyp_alpha_init', 0.5))))
+        # The HyperGRAM paper is ambiguous between two readings: the method section
+        # motivates VARYING spatial norms (=> pre-normalisation features, v1), but the
+        # experiments claim the method "only changes the inner product computation"
+        # (=> the same L2-NORMALISED features GRAM uses, where the Lorentzian inner
+        # product is the bounded shift cos-2; their Fig. 5's tidy [2.0,2.5] volume
+        # range is only consistent with controlled norms). hyp_use_prenorm selects the
+        # reading; v2 (false) is the normalised one.
+        self.hyp_use_prenorm = bool(getattr(self.config, 'hyp_use_prenorm', True))
         self._alpha_log_every = 200
         self._alpha_step = 0
 
@@ -219,8 +227,11 @@ class GRAMHyp(_ScoreITM, GRAM):
             gallery.append(self.batch_get(batch, 'feat_s').float())
         if 'depth_pixels' in batch.keys():
             gallery.append(self.batch_get(batch, 'feat_d').float())
-        pren_t, pren_g = self._prenorm_feats(batch)
-        assert len(pren_g) == len(gallery), (len(pren_g), len(gallery))
+        if self.hyp_use_prenorm:
+            pren_t, pren_g = self._prenorm_feats(batch)
+            assert len(pren_g) == len(gallery), (len(pren_g), len(gallery))
+        else:                       # v2: Lorentz branch on the SAME normalised features
+            pren_t, pren_g = feat_t, gallery
         present = present_from_feats(gallery)
 
         feat_t_all = _gather(feat_t)

@@ -1,0 +1,10 @@
+{
+ "method": "SCA-T1 zs VATEX",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "VATEX|T-VAS": [
+   89.3,
+   99.5
+  ]
+ }
+}

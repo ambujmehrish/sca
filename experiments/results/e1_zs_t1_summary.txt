@@ -1,0 +1,112 @@
+
+== SCA-T1 zs DiDeMo  (/tmp/e1cells_t1/sca_didemo.txt; 1 log file(s))
+   ret%tva--didemo_ret_cosine_AT
+      best  step      0: R@1   2.7  R@10 13.9
+      final step      0: R@1   2.7  R@10 13.9
+   ret%tva--didemo_ret_cosine_TA
+      best  step      0: R@1   4.2  R@10 17.3
+      final step      0: R@1   4.2  R@10 17.3
+   ret%tva--didemo_ret_cosine_TV
+      best  step      0: R@1  35.4  R@10 70.0
+      final step      0: R@1  35.4  R@10 70.0
+   ret%tva--didemo_ret_cosine_VT
+      best  step      0: R@1  30.0  R@10 64.6
+      final step      0: R@1  30.0  R@10 64.6
+   ret%tva--didemo_ret_ret_area_backard
+      best  step      0: R@1  19.4  R@10 50.1
+      final step      0: R@1  19.4  R@10 50.1
+   ret%tva--didemo_ret_ret_area_forward
+      best  step      0: R@1  28.7  R@10 64.8
+      final step      0: R@1  28.7  R@10 64.8  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tva--didemo_ret_ret_itm_area:D2T
+      best  step      0: R@1  45.4  R@10 68.2
+      final step      0: R@1  45.4  R@10 68.2
+   ret%tva--didemo_ret_ret_itm_area:T2D
+      best  step      0: R@1  50.2  R@10 76.0
+      final step      0: R@1  50.2  R@10 76.0  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_DiDeMo_zeroshot_t2v.json
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_DiDeMo_zeroshot_v2t.json
+
+== SCA-T1 zs ActivityNet  (/tmp/e1cells_t1/sca_activitynet.txt; 1 log file(s))
+   ret%tva--activitynet_ret_cosine_AT
+      best  step      0: R@1   1.5  R@10 7.2
+      final step      0: R@1   1.5  R@10 7.2
+   ret%tva--activitynet_ret_cosine_TA
+      best  step      0: R@1   3.0  R@10 13.6
+      final step      0: R@1   3.0  R@10 13.6
+   ret%tva--activitynet_ret_cosine_TV
+      best  step      0: R@1  35.9  R@10 76.9
+      final step      0: R@1  35.9  R@10 76.9
+   ret%tva--activitynet_ret_cosine_VT
+      best  step      0: R@1  22.4  R@10 65.0
+      final step      0: R@1  22.4  R@10 65.0
+   ret%tva--activitynet_ret_ret_area_backard
+      best  step      0: R@1  12.6  R@10 44.8
+      final step      0: R@1  12.6  R@10 44.8
+   ret%tva--activitynet_ret_ret_area_forward
+      best  step      0: R@1  29.8  R@10 69.0
+      final step      0: R@1  29.8  R@10 69.0  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tva--activitynet_ret_ret_itm_area:D2T
+      best  step      0: R@1  43.6  R@10 71.0
+      final step      0: R@1  43.6  R@10 71.0
+   ret%tva--activitynet_ret_ret_itm_area:T2D
+      best  step      0: R@1  51.8  R@10 84.1
+      final step      0: R@1  51.8  R@10 84.1  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_ActivityNet_zeroshot_t2v.json
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_ActivityNet_zeroshot_v2t.json
+
+== SCA-T1 zs VATEX  (/tmp/e1cells_t1/sca_vatex.txt; 1 log file(s))
+   ret%tvas--vatex_ret_cosine_AT
+      best  step      0: R@1   9.0  R@10 32.3
+      final step      0: R@1   9.0  R@10 32.3
+   ret%tvas--vatex_ret_cosine_TA
+      best  step      0: R@1  14.4  R@10 49.9
+      final step      0: R@1  14.4  R@10 49.9
+   ret%tvas--vatex_ret_cosine_TV
+      best  step      0: R@1  80.3  R@10 98.8
+      final step      0: R@1  80.3  R@10 98.8
+   ret%tvas--vatex_ret_cosine_VT
+      best  step      0: R@1  68.2  R@10 97.2
+      final step      0: R@1  68.2  R@10 97.2
+   ret%tvas--vatex_ret_ret_area_backard
+      best  step      0: R@1  40.6  R@10 80.5
+      final step      0: R@1  40.6  R@10 80.5
+   ret%tvas--vatex_ret_ret_area_forward
+      best  step      0: R@1  69.8  R@10 96.3
+      final step      0: R@1  69.8  R@10 96.3  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--vatex_ret_ret_itm_area:D2T
+      best  step      0: R@1  84.2  R@10 95.8
+      final step      0: R@1  84.2  R@10 95.8
+   ret%tvas--vatex_ret_ret_itm_area:T2D
+      best  step      0: R@1  89.3  R@10 99.5
+      final step      0: R@1  89.3  R@10 99.5  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_VATEX_zeroshot_t2v.json
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_VATEX_zeroshot_v2t.json
+
+== SCA-T1 zs AudioCaps  (/tmp/e1cells_t1/sca_audiocaps.txt; 1 log file(s))
+   ret%tva--audiocaps_ret_cosine_AT
+      best  step      0: R@1  20.7  R@10 55.1
+      final step      0: R@1  20.7  R@10 55.1
+   ret%tva--audiocaps_ret_cosine_TA
+      best  step      0: R@1  28.4  R@10 68.9
+      final step      0: R@1  28.4  R@10 68.9
+   ret%tva--audiocaps_ret_cosine_TV
+      best  step      0: R@1  12.2  R@10 49.4
+      final step      0: R@1  12.2  R@10 49.4
+   ret%tva--audiocaps_ret_cosine_VT
+      best  step      0: R@1  10.2  R@10 42.6
+      final step      0: R@1  10.2  R@10 42.6
+   ret%tva--audiocaps_ret_ret_area_backard
+      best  step      0: R@1  17.6  R@10 55.4
+      final step      0: R@1  17.6  R@10 55.4
+   ret%tva--audiocaps_ret_ret_area_forward
+      best  step      0: R@1  27.7  R@10 70.3
+      final step      0: R@1  27.7  R@10 70.3  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tva--audiocaps_ret_ret_itm_area:D2T
+      best  step      0: R@1  30.1  R@10 69.5
+      final step      0: R@1  30.1  R@10 69.5
+   ret%tva--audiocaps_ret_ret_itm_area:T2D
+      best  step      0: R@1  32.8  R@10 72.9
+      final step      0: R@1  32.8  R@10 72.9  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_AudioCaps_zeroshot_t2v.json
+   rows -> experiments/results/e1_zs_t1/rows/SCA-T1_zs_AudioCaps_zeroshot_v2t.json

@@ -1,0 +1,10 @@
+{
+ "method": "T1 seed52",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   54.7,
+   83.2
+  ]
+ }
+}

@@ -26,3 +26,119 @@
       final step  11229: R@1  56.6  R@10 87.2  <-- TABLE metric (ITM-reranked, reference protocol)
    rows -> experiments/results/wave5/rows/SCA_ft_v2a_(from_T1)_zeroshot_t2v.json
    rows -> experiments/results/wave5/rows/SCA_ft_v2a_(from_T1)_zeroshot_v2t.json
+
+== T3 lora_lr 1e-4: NO log/log*.txt under workdir_pretrain/t3_loralr -- wrong path?
+
+== T4 fullft 1e-4: NO log/log*.txt under workdir_pretrain/t4_fullft1e4 -- wrong path?
+
+== T1 seed51  (workdir_pretrain/t1_s51; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step   1059: R@1   4.5  R@10 19.9
+      final step   2649: R@1   3.6  R@10 19.9
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step   2119: R@1   7.4  R@10 23.2
+      final step   2649: R@1   7.2  R@10 23.2
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step   1324: R@1  41.8  R@10 78.9
+      final step   2649: R@1  41.3  R@10 78.9
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step   2649: R@1  35.7  R@10 72.0
+      final step   2649: R@1  35.7  R@10 72.0
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    264: R@1  28.7  R@10 63.3
+      final step   2649: R@1  26.9  R@10 59.1
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step    794: R@1  36.2  R@10 71.5
+      final step   2649: R@1  35.9  R@10 70.7  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step   2119: R@1  49.4  R@10 76.2
+      final step   2649: R@1  48.6  R@10 76.7
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step   2649: R@1  55.0  R@10 83.2
+      final step   2649: R@1  55.0  R@10 83.2  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave5/rows/T1_seed51_zeroshot_t2v.json
+   rows -> experiments/results/wave5/rows/T1_seed51_zeroshot_v2t.json
+
+== T1 seed52  (workdir_pretrain/t1_s52; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step   1059: R@1   4.6  R@10 20.0
+      final step   2649: R@1   4.3  R@10 20.1
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step   1589: R@1   6.8  R@10 23.0
+      final step   2649: R@1   6.6  R@10 24.3
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step   1059: R@1  41.8  R@10 78.9
+      final step   2649: R@1  41.3  R@10 78.4
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step   1589: R@1  35.4  R@10 72.5
+      final step   2649: R@1  35.3  R@10 72.3
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    264: R@1  29.4  R@10 62.9
+      final step   2649: R@1  26.7  R@10 59.1
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step   2649: R@1  36.5  R@10 70.8
+      final step   2649: R@1  36.5  R@10 70.8  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step   1589: R@1  49.6  R@10 76.2
+      final step   2649: R@1  48.3  R@10 76.0
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step   1059: R@1  54.7  R@10 83.2
+      final step   2649: R@1  54.4  R@10 83.5  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave5/rows/T1_seed52_zeroshot_t2v.json
+   rows -> experiments/results/wave5/rows/T1_seed52_zeroshot_v2t.json
+
+== GRAM seed51  (workdir_pretrain/gram_s51; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step    264: R@1   5.5  R@10 23.7
+      final step   2649: R@1   3.9  R@10 17.2
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step    529: R@1   7.3  R@10 23.4
+      final step   2649: R@1   5.7  R@10 22.3
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step   2119: R@1  43.2  R@10 79.9
+      final step   2649: R@1  43.1  R@10 79.8
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step    264: R@1  36.9  R@10 74.4
+      final step   2649: R@1  28.3  R@10 66.9
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    794: R@1  36.0  R@10 75.0
+      final step   2649: R@1  31.8  R@10 71.6
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step    264: R@1  37.3  R@10 72.8
+      final step   2649: R@1  32.5  R@10 66.8  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step    264: R@1  50.2  R@10 79.2
+      final step   2649: R@1  48.4  R@10 79.0
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step    529: R@1  52.3  R@10 82.4
+      final step   2649: R@1  51.3  R@10 80.5  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave5/rows/GRAM_seed51_zeroshot_t2v.json
+   rows -> experiments/results/wave5/rows/GRAM_seed51_zeroshot_v2t.json
+
+== GRAM seed52  (workdir_pretrain/gram_s52; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step    264: R@1   5.9  R@10 23.8
+      final step   2649: R@1   4.5  R@10 16.3
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step    794: R@1   7.1  R@10 21.7
+      final step   2649: R@1   5.7  R@10 22.6
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step   1324: R@1  43.9  R@10 80.4
+      final step   2649: R@1  43.0  R@10 79.7
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step    264: R@1  37.5  R@10 74.7
+      final step   2649: R@1  28.0  R@10 65.9
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    264: R@1  35.4  R@10 72.2
+      final step   2649: R@1  32.0  R@10 71.4
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step    264: R@1  38.0  R@10 73.0
+      final step   2649: R@1  32.5  R@10 65.7  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step    264: R@1  49.6  R@10 79.3
+      final step   2649: R@1  48.9  R@10 78.0
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step    529: R@1  52.2  R@10 82.7
+      final step   2649: R@1  50.6  R@10 80.4  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave5/rows/GRAM_seed52_zeroshot_t2v.json
+   rows -> experiments/results/wave5/rows/GRAM_seed52_zeroshot_v2t.json

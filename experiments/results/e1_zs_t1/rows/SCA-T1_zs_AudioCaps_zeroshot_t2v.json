@@ -1,0 +1,10 @@
+{
+ "method": "SCA-T1 zs AudioCaps",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "AudioCaps|T-VA": [
+   32.8,
+   72.9
+  ]
+ }
+}

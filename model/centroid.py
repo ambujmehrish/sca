@@ -7,7 +7,8 @@ import torch.nn.functional as F
 # construction: the same code serves k=2..5 with zero changes (E10).
 
 
-def masked_spherical_mean(z, present=None, eps=1e-6, gates=None):
+def masked_spherical_mean(z, present=None, eps=1e-6, gates=None,
+                          weighting='uniform', tau_w=0.1):
     """Masked spherical mean mu(Z, present) and concentration A(M).
 
     z       : (B, L, d) stacked modality embeddings, each L2-normalised (a missing modality may
@@ -34,7 +35,11 @@ def masked_spherical_mean(z, present=None, eps=1e-6, gates=None):
         present = z.new_ones(B, L)
     present = present.to(z.dtype)
 
-    if gates is not None:
+    if weighting == 'reliability':
+        # per-sample, content-dependent weights (see reliability_weights)
+        w = reliability_weights(z, present, tau=tau_w, eps=eps)
+        s = (z * w.unsqueeze(-1)).sum(dim=1)
+    elif gates is not None:
         w = torch.softmax(gates.to(z.dtype)[:L], dim=0).unsqueeze(0) * present   # (B, L)
         w = w / w.sum(dim=1, keepdim=True).clamp(min=eps)
         s = (z * w.unsqueeze(-1)).sum(dim=1)                      # gated resultant (renormed)
@@ -44,13 +49,68 @@ def masked_spherical_mean(z, present=None, eps=1e-6, gates=None):
     n_safe = n.clamp(min=1.0)
 
     # A(M) is always the UNWEIGHTED mean resultant length (set property, gate-independent)
-    s_plain = (z * present.unsqueeze(-1)).sum(dim=1) if gates is not None else s
+    s_plain = ((z * present.unsqueeze(-1)).sum(dim=1)
+               if (gates is not None or weighting == 'reliability') else s)
     A = s_plain.norm(dim=-1) / n_safe
     # |M|=1: A is identically 1 -- skip its gradient (guard from the k=2 analysis)
     A = torch.where(n <= 1.0, A.detach(), A)
 
     mu = s / s.norm(dim=-1).clamp(min=eps).unsqueeze(-1)          # eps: centroid-norm blowup guard
     return mu, A, n
+
+
+def reliability_weights(z, present, tau=0.1, eps=1e-6):
+    """Per-sample modality weights from leave-one-out consensus.
+
+    The uniform centroid gives every present modality an equal share, which is the wrong
+    prior when a modality carries no signal for a given corpus. Measured on the zero-shot
+    grids: SCA's margin over the released GRAM checkpoint tracks how informative the
+    non-video modalities are almost monotonically --
+
+        AudioCaps  T->A 25.1 R@1 (audio share .65)   SCA -3.0 better
+        VATEX      T->A 15.1     (.16)               SCA +0.3
+        DiDeMo     T->A  4.1     (.10)               SCA -0.7
+        ActivityNet T->A 3.0     (.07)               SCA -3.7
+
+    On ActivityNet the audio stream retrieves at 3.0 R@1 -- it is close to noise -- and yet
+    it contributes a third of the centroid. A Gramian volume is far less sensitive to a
+    noise axis than a mean is, which is the shape of the deficit.
+
+    The fix keeps the centroid but stops assuming equal reliability. Each modality is scored
+    by how well it agrees with the consensus of the OTHERS,
+
+        a_m = cos(z_m, mu_{-m}),    mu_{-m} = normalise(sum_{k in M, k != m} z_k)
+
+    and weights are softmax(a / tau) over the present set. A modality that disagrees with
+    everything else is down-weighted for that clip; one that corroborates is up-weighted.
+
+    Properties that matter here: no new parameters (one temperature), nothing learned, so it
+    applies to an ALREADY-TRAINED checkpoint and can be measured on cached feature dumps
+    without retraining. It is arity-invariant like the plain mean, and it involves no
+    determinant, so Proposition 1 is untouched. With |M| <= 1 there is no consensus to
+    compare against and it falls back to the uniform weights exactly.
+
+    z       : (B, L, d) L2-normalised modality embeddings (absent ones may be zero).
+    present : (B, L) 0/1 mask.
+    tau     : softmax temperature. tau -> inf recovers the uniform centroid.
+    Returns : (B, L) weights, zero on absent modalities, rows summing to 1.
+    """
+    present = present.to(z.dtype)
+    s = (z * present.unsqueeze(-1)).sum(dim=1, keepdim=True)        # (B, 1, d) resultant
+    loo = s - z * present.unsqueeze(-1)                             # (B, L, d) leave-one-out
+    loo = loo / loo.norm(dim=-1, keepdim=True).clamp(min=eps)
+    agree = (z * loo).sum(dim=-1)                                   # (B, L) cos(z_m, mu_-m)
+
+    # absent modalities must never win weight: push them to -inf before the softmax
+    neg_inf = torch.finfo(z.dtype).min
+    logits = torch.where(present > 0, agree / max(tau, eps), z.new_full(agree.shape, neg_inf))
+    w = torch.softmax(logits, dim=1) * present
+    w = w / w.sum(dim=1, keepdim=True).clamp(min=eps)
+
+    # |M| <= 1: mu_{-m} is the zero vector and the agreement is meaningless -- use uniform.
+    n = present.sum(dim=1, keepdim=True)
+    uniform = present / n.clamp(min=1.0)
+    return torch.where(n > 1.0, w, uniform)
 
 
 def concept_resultant(mu, labels, num_classes=None, eps=1e-6):

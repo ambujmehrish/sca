@@ -415,3 +415,43 @@ report it as GRAM's depth result.
 **Their paper is internally inconsistent by 0.1 on one cell.** Tab. 1 gives GRAM T-VA on
 MSR-VTT as 54.2; Tab. 4 gives the same configuration as 54.1. We keep 54.2 (Tab. 1, the
 main results table) and note the discrepancy so nobody later "corrects" it.
+
+## F12 — implementation audit of the SCA model (2026-08-20)
+
+Prompted by the zero-shot results being incremental rather than by any single symptom.
+Checked, and CORRECT:
+
+- **Scorer selection.** `default_model_cfg.json` sets `score_mode=centroid`; the eval logs
+  confirm every SCA cell ran `mode=centroid` and every GRAM cell `mode=volume`.
+- **`max_caption_len`.** 70 on DiDeMo/ActivityNet, confirmed from each run's `hps.json`.
+  The truncation is fixed and did not move the numbers, so our queries never exceeded 40
+  tokens and that thread is closed.
+- **Presence masking.** Both `model/sca.py` and `evaluation/evaluation_mm.py` derive
+  `present` from the embedding norm, so a zero-filled modality is excluded rather than
+  averaged in, in training and in evaluation alike.
+- **Gallery composition.** Text is excluded from the centroid in both paths.
+
+One asymmetry found, and it is the strongest remaining lead:
+
+**The task string selects the modality set at EVAL but is ignored at TRAINING.**
+`evaluation_mm.py:275` takes `_mods = _task[1:]`, so `ret%tvas` scores a {v,a,s} centroid.
+`model/sca.py::_gallery_feats` ignores `task` and returns every modality in the batch.
+
+The consequence is not the modality set -- it is the objective. `model/gram.py:519` shows
+GRAM's `forward_ret` looping over sub-tasks, so `ret%tv%ta` trains a text-video volume AND
+a text-audio volume as two separate objectives. SCA's override collapses that into one
+centroid over {v,a} and one loss, so **SCA never trains a dedicated text-video alignment**:
+video is always blended with audio before meeting the text.
+
+That predicts the observed benchmark pattern. SCA's margin over the released GRAM
+checkpoint tracks how informative audio is -- AudioCaps (T->A 25.1) +3.0, VATEX (15.1)
++0.3, DiDeMo (4.1) -0.7, ActivityNet (3.0) -3.7. Where audio is near-noise the blended
+centroid is poor and there is no separately-trained text-video pathway to fall back on;
+GRAM has one.
+
+Not yet established: whether the virtual mask already supplies this signal. With
+`mask_n_drop=1` on a two-modality gallery the masked view is {v} or {a} alone, which is
+exactly the sub-task objective -- but `p_full` starts at 1.0, so early training sees only
+full views, and `L_align` is computed on the masked view only. Measuring how often a
+single-modality view is actually drawn, and how late, is the next diagnostic and needs no
+GPU.

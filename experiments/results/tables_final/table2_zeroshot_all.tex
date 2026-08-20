@@ -5,7 +5,9 @@
 \begin{table*}[t]
 \centering
 \caption{Zero-shot retrieval away from the selection benchmark, R@1 (T2V\,/\,V2T).
-MSR-VTT is Table~\ref{tab:main}. $^{\dagger}$ trained by us; all rows share one environment
+MSR-VTT is Table~\ref{tab:main}. $^{\ast}$ the authors' released weights, evaluated by us
+-- GRAM at its own recipe, and the reference for whether the reproduction is on-recipe;
+$^{\dagger}$ trained by us at lr $2{\times}10^{-5}$; all rows share one environment
 and the 150k budget, so \textbf{bold} is the best per column (ties bolded jointly). Rows~1
 and~2 are the \emph{recipe-matched} pair -- same learning rate, batch, schedule and budget,
 differing only in the alignment objective -- and SCA wins six of the eight columns there,
@@ -21,6 +23,7 @@ VATEX numbers (App.~Tab.~\ref{tab:zs_reported}).}
 Method & DiDeMo & ActivityNet & VATEX$^{\ast}$ & AudioCaps \\
  & T-VA & T-VA & T-VAS & T-VA \\
 \midrule
+GRAM$^{\ast}$ & \multicolumn{4}{c}{\emph{pending: released checkpoint on these benchmarks}} \\
 GRAM$^{\dagger}$ & 49.6\,/\,\textbf{48.5} & 52.0\,/\,46.2 & 88.9\,/\,\textbf{86.1} & 33.1\,/\,32.8 \\
 SCA (lr $2{\times}10^{-5}$) & 50.0\,/\,47.3 & \textbf{52.6}\,/\,\textbf{48.3} & \textbf{90.3}\,/\,\textbf{86.1} & \textbf{35.2}\,/\,\textbf{34.4} \\
 SCA (lr $1{\times}10^{-4}$) & \textbf{50.2}\,/\,45.4 & 51.8\,/\,43.6 & 89.3\,/\,84.2 & 32.8\,/\,30.1 \\

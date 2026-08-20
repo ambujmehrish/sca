@@ -186,7 +186,7 @@ config. Three corrections, two of them to our evaluation:
 | pretrain batch | **256**, lr 1e-4, 1 epoch, 4×A100 | T1: 256 @ 1e-4 | **already matched** |
 | DiDeMo inference frames | **40** (8 for training) | 8 | under-sampled 5× |
 | ActivityNet inference frames | **20** (8 for training) | 8 | under-sampled 2.5× |
-| VATEX evaluation set | **14,491 samples** | 431 | not the same task |
+| VATEX test split | **431** (Table 5); 14,491 = whole retained dataset | 431 | already correct |
 
 1. **Batch 256 is the published recipe.** Our earlier reading of "batch 128" came from a
    released config file, not the paper. SCA T1 (lr 1e-4, batch 256) therefore *already*
@@ -197,10 +197,15 @@ config. Three corrections, two of them to our evaluation:
    `max_caption_len` 40-vs-70 truncation found the same day, our two weakest benchmarks
    were being scored under two independent protocol deviations, both of which hurt every
    method we measure. 22 eval configs corrected; `tests/test_eval_protocol.py` guards both.
-3. **VATEX.** They evaluate on 14,491 samples; our annotation has 431. Retrieval over a
-   431-item gallery is a much easier problem, so our 90.3 is not comparable to their 83.5
-   in either direction. The column is now excluded from bolding and drawn no conclusion
-   from. Fixing it properly means obtaining a VATEX test set of comparable size.
+3. **VATEX — corrected, twice.** The Appendix B.1 sentence *"we use only a portion of the
+   original dataset composed of 14491 samples"* describes the portion of the WHOLE dataset
+   still downloadable, across all splits. It is not the retrieval gallery. Their Table 5
+   gives the VATEX test split as **431** — the same size as our
+   `descs_ret_test_431.json`, which came from their codebase. So our VATEX column is
+   evaluated on GRAM's own test split and IS directly comparable, contrary to both the
+   earlier wave-3 note ("never comparable") and my first reading of the 14,491 sentence.
+   Bolding restored; the standard-split caveat carried in the tables since wave 3 was
+   wrong and is removed.
 
 ## F7 — PMRL and HyperGRAM protocols (2026-08-20)
 

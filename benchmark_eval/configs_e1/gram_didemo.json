@@ -8,7 +8,8 @@
   "default": "./config/gram/default_model_cfg.json",
   "vision_encoder_type": "evaclip01_giant",
   "ret_bidirection_evaluation": true,
-  "itm_rerank_num": 50
+  "itm_rerank_num": 50,
+  "max_caption_len": 70
  },
  "data_cfg": {
   "train": [

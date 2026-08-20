@@ -16,7 +16,8 @@
   "ret_bidirection_evaluation": true,
   "itm_rerank_num": 50,
   "eval_mask_rate": 0.9,
-  "eval_mask_seed": 0
+  "eval_mask_seed": 0,
+  "max_caption_len": 70
  },
  "data_cfg": {
   "train": [

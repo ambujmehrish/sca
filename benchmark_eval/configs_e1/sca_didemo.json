@@ -14,7 +14,8 @@
   "lora_r_text": 8,
   "lora_alpha": 16,
   "ret_bidirection_evaluation": true,
-  "itm_rerank_num": 50
+  "itm_rerank_num": 50,
+  "max_caption_len": 70
  },
  "data_cfg": {
   "train": [

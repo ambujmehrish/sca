@@ -2,7 +2,11 @@
 # Wave 9 -- every baseline retrained at ITS OWN AUTHORS' published recipe, plus the SCA
 # ablation grid rebuilt on the reported configuration. Submits everything in parallel.
 #
-#   bash scripts/submit_recipe_runs.sh [--dry] [--baselines-only|--ablations-only]
+#   bash scripts/submit_recipe_runs.sh --headline    # 4 jobs: confirm Table 1 first
+#   bash scripts/submit_recipe_runs.sh --baselines   # + PMRL and HyperGRAM
+#   bash scripts/submit_recipe_runs.sh --ablations   # + the 26-arm SCA grid
+#   bash scripts/submit_recipe_runs.sh               # everything
+#   ... add --dry to print the sbatch lines instead of submitting.
 #
 # WHY: our first-pass reproductions all trained at lr 2e-5 with batch 256, inherited from
 # the HyperAlign lineage. GRAM's released config pretrains at lr 1e-4 / batch 128 and PMRL's
@@ -28,8 +32,9 @@ DRY=0; WHAT=all
 for a in "$@"; do
   case "$a" in
     --dry) DRY=1 ;;
-    --baselines-only) WHAT=baselines ;;
-    --ablations-only) WHAT=ablations ;;
+    --headline)  WHAT=headline ;;
+    --baselines|--baselines-only) WHAT=baselines ;;
+    --ablations|--ablations-only) WHAT=ablations ;;
     *) echo "unknown flag: $a" >&2; exit 2 ;;
   esac
 done
@@ -45,29 +50,36 @@ submit() {  # submit <config> <workdir> [extra args]
   if [ $DRY -eq 1 ]; then printf '%s\n' "${cmd[*]}"; else "${cmd[@]}"; fi
 }
 
-if [ "$WHAT" = all ] || [ "$WHAT" = baselines ]; then
-  echo "# --- baselines at their authors' recipes -------------------------------------"
+# PHASE 1 -- the four rows that decide whether the paper's claim survives a matched recipe.
+# The existing 1e-4 SCA arm (t1_lr1e4) trained at batch 256 against GRAM's 128, and batch
+# size sets the number of in-batch contrastive negatives, which a centroid objective is
+# directly sensitive to -- so no SCA row we have is matched. Run these before anything else:
+# if SCA does not clear GRAM here, the ablation grid is measuring the wrong model anyway.
+if [ "$WHAT" = all ] || [ "$WHAT" = headline ] || [ "$WHAT" = baselines ]; then
+  echo "# --- PHASE 1: headline, all four at lr 1e-4 / batch 128 ----------------------"
   submit config/baselines/pretrain_cfg/gram_paper.json      workdir_pretrain/gram_paper
-  submit config/baselines/pretrain_cfg/pmrl_paper.json      workdir_pretrain/pmrl_paper
+  submit config/sca/pretrain_cfg/sca_paper.json             workdir_pretrain/sca_paper
   submit config/baselines/pretrain_cfg/gram_lora_paper.json workdir_pretrain/gram_lora_paper
+  submit config/sca/pretrain_cfg/sca_paper_fullft.json      workdir_pretrain/sca_paper_fullft
+fi
+
+# PHASE 2 -- the remaining baselines, each at its own authors' recipe.
+if [ "$WHAT" = all ] || [ "$WHAT" = baselines ]; then
+  echo "# --- PHASE 2: other baselines ------------------------------------------------"
+  submit config/baselines/pretrain_cfg/pmrl_paper.json      workdir_pretrain/pmrl_paper
   submit config/baselines/pretrain_cfg/gram_hyp_paper.json  workdir_pretrain/gram_hyp_paper
-  echo "# --- SCA under the SAME recipe (lr 1e-4, batch 128) --------------------------"
-  # The existing 1e-4 SCA arm (t1_lr1e4) trained at batch 256, so it is NOT matched to
-  # gram_paper: batch size sets the number of contrastive negatives, which a centroid
-  # objective is directly sensitive to. These two rows are the real head-to-head.
-  submit config/sca/pretrain_cfg/sca_paper.json         workdir_pretrain/sca_paper
-  submit config/sca/pretrain_cfg/sca_paper_fullft.json  workdir_pretrain/sca_paper_fullft
 fi
 
 if [ "$WHAT" = all ] || [ "$WHAT" = ablations ]; then
-  echo "# --- SCA ablations on the reported configuration (lr 1e-4, batch 128) -------"
+  echo "# --- PHASE 3: SCA ablations on the reported config (lr 1e-4, batch 128) -----"
   # Loss-component arms first: they are the Table 6(a) rows and nothing else is blocked on
   # the rest of the grid.
   for arm in A3_sem_off A1_lmask_off A4_concept_off A8_lambda_0 \
              A1_lmask_term2_off A3_sstar_identity \
              A4_proto_batch A4_eta_0.9 A4_eps_floor_0 \
              A5_mask_freq A5_mask_2drop A5_pfull_const_0.5 A5_pfull_end_0.3 \
-             A6_lora_r4 A6_lora_r16 A6_lora_asym A6_full_ft \
+             A6_lora_r2 A6_lora_r4 A6_lora_r16 A6_lora_r32 A6_lora_r64 \
+             A6_lora_asym A6_full_ft \
              A7_centroid_gates A8_lambda_0.05 A8_lambda_0.3 A8_unif_weighted; do
     submit "config/sca/ablations_paper/${arm}.json" \
            "workdir_pretrain/abl_$(echo "$arm" | tr 'A-Z.' 'a-z_')"

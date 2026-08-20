@@ -17,8 +17,8 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 # The base MUST be the configuration the paper reports, or the grid ablates a model that is
 # not the one in Table 1. The default below is the lr-2e-5 config; when the reported model
 # is the lr-1e-4 one, regenerate with
-#   SCA_ABLATION_BASE=config/sca/ablations/T1_lr1e4.json \
-#   SCA_ABLATION_OUT=config/sca/ablations_lr1e4 python3 scripts/gen_ablation_configs.py
+#   SCA_ABLATION_BASE=config/sca/pretrain_cfg/sca_paper.json \
+#   SCA_ABLATION_OUT=config/sca/ablations_paper python3 scripts/gen_ablation_configs.py
 BASE = os.path.join(ROOT, os.environ.get('SCA_ABLATION_BASE',
                                          'config/sca/pretrain_cfg/sca_pretrain.json'))
 OUT = os.path.join(ROOT, os.environ.get('SCA_ABLATION_OUT', 'config/sca/ablations'))
@@ -49,12 +49,25 @@ GRID = {
                            'no schedule: p_full == 0.5 from step 0', 'E4'),
     'A5_pfull_end_0.3': ({'mask_p_full_end': 0.3}, 'deeper schedule 1.0 -> 0.3', 'E4'),
     # A6 -- adaptation regime (Stage-0 config already exists; listed for the table)
-    'A6_lora_r4': ({'lora_r_vision': 4, 'lora_r_audio': 4, 'lora_r_text': 4},
-                   'LoRA r=4 everywhere', 'E9'),
-    'A6_lora_r16': ({'lora_r_vision': 16, 'lora_r_audio': 16, 'lora_r_text': 16},
-                    'LoRA r=16 everywhere', 'E9'),
+    # LoRA rank sweep. alpha is set to 2r on EVERY arm so the adapter scaling alpha/r stays
+    # fixed at 2 (the default r8/alpha16 ratio) and the sweep varies rank ALONE. Holding
+    # alpha at 16 instead -- as the first-pass arms did -- changes the scaling by 8x across
+    # the sweep and confounds capacity with the effective adapter learning rate.
+    'A6_lora_r2': ({'lora_r_vision': 2, 'lora_r_audio': 2, 'lora_r_text': 2,
+                    'lora_alpha': 4}, 'LoRA r=2 (alpha 4)', 'E9'),
+    'A6_lora_r4': ({'lora_r_vision': 4, 'lora_r_audio': 4, 'lora_r_text': 4,
+                    'lora_alpha': 8}, 'LoRA r=4 (alpha 8)', 'E9'),
+    'A6_lora_r16': ({'lora_r_vision': 16, 'lora_r_audio': 16, 'lora_r_text': 16,
+                     'lora_alpha': 32}, 'LoRA r=16 (alpha 32)', 'E9'),
+    'A6_lora_r32': ({'lora_r_vision': 32, 'lora_r_audio': 32, 'lora_r_text': 32,
+                     'lora_alpha': 64}, 'LoRA r=32 (alpha 64)', 'E9'),
+    'A6_lora_r64': ({'lora_r_vision': 64, 'lora_r_audio': 64, 'lora_r_text': 64,
+                     'lora_alpha': 128}, 'LoRA r=64 (alpha 128)', 'E9'),
+    # asym cannot hold alpha/r constant -- lora_alpha is a single global knob -- so its
+    # per-modality scalings are 1/2/4. It answers "does vision deserve more rank than text",
+    # not "what is the best rank", and is read separately from the sweep above.
     'A6_lora_asym': ({'lora_r_vision': 16, 'lora_r_audio': 8, 'lora_r_text': 4},
-                     'asymmetric ranks V16/A8/T4', 'E9'),
+                     'asymmetric ranks V16/A8/T4 (alpha 16, scalings 1/2/4)', 'E9'),
     'A6_full_ft': ({'use_lora': False}, 'full finetune (no adapters, backbones free)', 'E9'),
     'A6_stage0': (('EXTERNAL', './config/sca/pretrain_cfg/sca_pretrain_stage0.json'),
                   'Stage-0: heads only, vision/audio frozen', 'E9'),
@@ -105,7 +118,7 @@ def main():
         path = os.path.join(OUT, f'{arm}.json')
         with open(path, 'w') as f:
             json.dump(cfg, f, indent=1)
-        rows.append((arm, f'./config/sca/ablations/{arm}.json', what, consumer))
+        rows.append((arm, f'./{os.path.relpath(path, ROOT)}', what, consumer))
 
     with open(os.path.join(OUT, 'MANIFEST.md'), 'w') as f:
         f.write('# SCA ablation grid (A1-A9) -- one config per table row\n\n'

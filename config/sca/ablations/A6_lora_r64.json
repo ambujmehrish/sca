@@ -1,7 +1,7 @@
 {
  "run_cfg": {
   "default": "./config/sca/default_run_cfg.json",
-  "learning_rate": 0.0001,
+  "learning_rate": 2e-05,
   "first_eval": false,
   "save_steps": 150,
   "checkpoint": "${WORK_ROOT}/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/model_step_204994.pt",
@@ -14,10 +14,10 @@
   "vision_encoder_type": "evaclip01_giant",
   "s_star_path": "${SCA_CACHE_ROOT}/s_star_150k.pt",
   "use_lora": true,
-  "lora_r_vision": 16,
-  "lora_r_audio": 16,
-  "lora_r_text": 16,
-  "lora_alpha": 32
+  "lora_r_vision": 64,
+  "lora_r_audio": 64,
+  "lora_r_text": 64,
+  "lora_alpha": 128
  },
  "data_cfg": {
   "train": [
@@ -35,7 +35,7 @@
     "task": "ret%tv%ta",
     "epoch": 5,
     "n_workers": 8,
-    "batch_size": 128
+    "batch_size": 256
    }
   ],
   "val": [

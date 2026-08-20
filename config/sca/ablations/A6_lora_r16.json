@@ -17,7 +17,7 @@
   "lora_r_vision": 16,
   "lora_r_audio": 16,
   "lora_r_text": 16,
-  "lora_alpha": 16
+  "lora_alpha": 32
  },
  "data_cfg": {
   "train": [

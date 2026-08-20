@@ -16,9 +16,12 @@ Base: `config/sca/pretrain_cfg/sca_pretrain.json` (the A10-decided E6 headline c
 | A5_mask_2drop | `./config/sca/ablations/A5_mask_2drop.json` | 2-drop masking | E4 |
 | A5_pfull_const_0.5 | `./config/sca/ablations/A5_pfull_const_0.5.json` | no schedule: p_full == 0.5 from step 0 | E4 |
 | A5_pfull_end_0.3 | `./config/sca/ablations/A5_pfull_end_0.3.json` | deeper schedule 1.0 -> 0.3 | E4 |
-| A6_lora_r4 | `./config/sca/ablations/A6_lora_r4.json` | LoRA r=4 everywhere | E9 |
-| A6_lora_r16 | `./config/sca/ablations/A6_lora_r16.json` | LoRA r=16 everywhere | E9 |
-| A6_lora_asym | `./config/sca/ablations/A6_lora_asym.json` | asymmetric ranks V16/A8/T4 | E9 |
+| A6_lora_r2 | `./config/sca/ablations/A6_lora_r2.json` | LoRA r=2 (alpha 4) | E9 |
+| A6_lora_r4 | `./config/sca/ablations/A6_lora_r4.json` | LoRA r=4 (alpha 8) | E9 |
+| A6_lora_r16 | `./config/sca/ablations/A6_lora_r16.json` | LoRA r=16 (alpha 32) | E9 |
+| A6_lora_r32 | `./config/sca/ablations/A6_lora_r32.json` | LoRA r=32 (alpha 64) | E9 |
+| A6_lora_r64 | `./config/sca/ablations/A6_lora_r64.json` | LoRA r=64 (alpha 128) | E9 |
+| A6_lora_asym | `./config/sca/ablations/A6_lora_asym.json` | asymmetric ranks V16/A8/T4 (alpha 16, scalings 1/2/4) | E9 |
 | A6_full_ft | `./config/sca/ablations/A6_full_ft.json` | full finetune (no adapters, backbones free) | E9 |
 | A6_stage0 | `./config/sca/pretrain_cfg/sca_pretrain_stage0.json` | Stage-0: heads only, vision/audio frozen | E9 |
 | A7_centroid_gates | `./config/sca/ablations/A7_centroid_gates.json` | learned per-modality centroid gates (zero-init == uniform) | E8 |

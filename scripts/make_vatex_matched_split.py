@@ -30,6 +30,7 @@ import sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 GRAM_TRAIN_CLIPS = 14060          # GRAM arXiv:2412.11959v2, Tab. 5, VATEX train column
 SRC = 'datasets/annotations/vatex/descs_ret_train_aug.json'
+GRAM_ROSTER = 'datasets/annotations/vatex/gram_repo_train_ids.txt'   # from their repo
 OUT = 'datasets/annotations/vatex/descs_ret_train_matched14060.json'
 VIDEO_EXTS = ('.mp4', '.mkv', '.webm', '.avi', '.mov')
 
@@ -91,7 +92,26 @@ def main():
     trainable = sorted(set(by_clip) & present)
     print('  videos on disk : %d' % len(present))
     print('  trainable clips: %d   (annotation and disk)' % len(trainable))
-    print('GRAM Tab. 5     : %d' % args.target)
+
+    # Step 1: restrict to GRAM's own training roster. Their repo publishes
+    # datasets/annotations/vatex/descs_ret_train.json (25,991 clips); our _aug file carries
+    # 26,681, so it reaches beyond their train split -- most likely into VATEX val. Those
+    # extra clips are training data GRAM's protocol never had, and unlike the download
+    # attrition below, this part IS exactly correctable.
+    roster_path = os.path.join(ROOT, GRAM_ROSTER)
+    if os.path.exists(roster_path):
+        roster = {line.strip() for line in open(roster_path) if line.strip()}
+        outside = sorted(set(trainable) - roster)
+        print('GRAM repo roster: %d clips (datasets/annotations/vatex/descs_ret_train.json)'
+              % len(roster))
+        print('  ours outside it: %d  <- not in their train split at all' % len(outside))
+        trainable = sorted(set(trainable) & roster)
+        print('  after intersect: %d' % len(trainable))
+    else:
+        print('GRAM repo roster: %s NOT FOUND -- cannot drop out-of-split clips'
+              % GRAM_ROSTER)
+
+    print('GRAM Tab. 5     : %d  (what they could download)' % args.target)
 
     if len(trainable) <= args.target:
         print('\nNo subsampling needed: we can train on %d clips, at or below GRAM\'s %d.'

@@ -349,3 +349,42 @@ than theirs did. The consequence is split cleanly by setting:
 This also retires the earlier hypothesis that our VATEX numbers were inflated by an easier
 gallery: the gallery is identical. The inflation, where it exists, is on the training side
 and only affects the finetuned row.
+
+## F12 — GRAM's VATEX annotations, fetched from their repo (2026-08-20)
+
+Their repo does ship annotations, at `datasets/annotations/vatex/`. Downloaded and counted:
+
+| file | entries | unique clips |
+|---|---|---|
+| `descs_ret_train.json` (theirs) | 259,910 | **25,991** — the full VATEX train split |
+| `descs_ret_test.json` (theirs) | 1,500 | **1,500** — the standard VATEX test split |
+| `descs_ret_train_aug.json` (ours) | — | **26,681** |
+| `descs_ret_test_431.json` (ours) | 431 | **431** |
+
+Train/test overlap in their files: zero.
+
+This separates two effects that F11 had conflated.
+
+1. **Our train annotation reaches outside their train split.** 26,681 against their 25,991
+   — roughly 690 clips that are not in GRAM's VATEX train file at all, most likely VATEX
+   val. This is exactly correctable: intersect with their published roster. The ids are now
+   committed as `gram_repo_train_ids.txt` and `gram_repo_test_ids.txt`, and
+   `scripts/make_vatex_matched_split.py` intersects before doing anything else.
+2. **Download attrition is not correctable.** Their Tab. 5 reports 14,060 train and 431
+   test — what they could actually fetch from 25,991 and 1,500. Which clips those were is
+   not published, so a size-matched split removes the volume advantage but not the sampling
+   difference.
+
+**The test split needs attention.** Their repo's VATEX test is the standard 1,500 clips;
+their Tab. 5 says they evaluated 431 of them; our file has exactly 431. The count agreeing
+is suggestive but not proof that it is the same 431 — ours came from the HyperAlign trunk,
+not from GRAM. Until that is established, the VATEX comparison in Table 2 rests on an
+assumption, and the honest options are to say so, or to evaluate on the full 1,500-clip
+standard split where no such assumption is needed.
+
+## F13 — which GRAM checkpoint the tables use (2026-08-20)
+
+`GRAM_pretrained_TVAS/ckpt/model_step_459.pt` (wave1/validation_official_gram.md), the
+4-modality T-VAS checkpoint — `GRAM_pretrained_4modalities` in their release. Correct for
+every T-VAS row in Tables 1 and 2. Their `GRAM_pretrained_5modalities` release would only
+be needed for a depth/k=5 baseline, which we do not report.

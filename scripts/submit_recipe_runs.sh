@@ -28,11 +28,12 @@
 # of silently continuing another arm's weights.
 set -uo pipefail
 cd "$(dirname "$0")/.."
-DRY=0; WHAT=all
+DRY=0; WHAT=all; ONLY=
 for a in "$@"; do
   case "$a" in
     --dry) DRY=1 ;;
     --headline)  WHAT=headline ;;
+    --only=*)    ONLY="${a#--only=}" ;;
     --baselines|--baselines-only) WHAT=baselines ;;
     --ablations|--ablations-only) WHAT=ablations ;;
     *) echo "unknown flag: $a" >&2; exit 2 ;;
@@ -44,6 +45,10 @@ mkdir -p slurm_scripts/logs
 submit() {  # submit <config> <workdir> [extra args]
   local cfg="$1" out="$2"; shift 2
   local name="${out##*/}"                     # arm name == workdir basename, one identity
+  # --only=a,b restricts the submission to named arms. Use it when the account's per-user
+  # CPU allowance cannot take the whole phase at once: submit what fits, resubmit the rest
+  # as jobs finish. Every arm is independent, so partial submission is always safe.
+  if [ -n "$ONLY" ] && ! printf '%s' ",$ONLY," | grep -q ",$name,"; then return 0; fi
   [ -f "$cfg" ] || { echo "FATAL: config $cfg missing" >&2; exit 1; }
   if [ -e "$out" ] && [ ! -f "$out/.provenance" ]; then
     echo "FATAL: $out already exists without a provenance stamp -- refusing to reuse it" >&2
@@ -54,9 +59,17 @@ submit() {  # submit <config> <workdir> [extra args]
   # logs/run_1234567.out. With 30 jobs in flight that is the difference between a readable
   # log directory and thirty anonymous files.
   # --dependency=singleton: at most one job with this name runs at a time, so resubmitting
-  # for continuation (the 6h wall clock needs several) queues behind the running job rather
+  # for continuation (a 24h wall clock may still need more than one) queues behind the running job rather
   # than starting a second process that writes the same checkpoints.
+  # SCA_CPUS overrides --cpus-per-task when the scheduler rejects the default 32 with
+  # "More processors requested than permitted". It is purely a scheduling knob: the
+  # dataloader still spawns n_workers per rank, so fewer CPUs means oversubscription and a
+  # slower epoch, never a different result. SCA_GPUS exists for symmetry but 4 is the
+  # per-node maximum here and the recipe assumes it -- the config's batch_size is GLOBAL
+  # (build_dataloader.py:114 divides by world size), so changing it would preserve the
+  # recipe but double per-GPU memory. Leave SCA_GPUS at 4.
   local cmd=(sbatch -J "$name" --dependency=singleton
+             -c "${SCA_CPUS:-32}" --gres="gpu:${SCA_GPUS:-4}"
              -o "slurm_scripts/logs/${name}_%j.out"
              -e "slurm_scripts/logs/${name}_%j.out"
              slurm_scripts/run_config.sh "$cfg" "$out" "$@")

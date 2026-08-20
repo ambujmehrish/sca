@@ -45,6 +45,10 @@
    "VATEX|T-VAS": [
     83.5,
     98.8
+   ],
+   "MSR-VTT|T-VASD": [
+    55.3,
+    null
    ]
   },
   "zeroshot_v2t": {

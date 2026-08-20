@@ -388,3 +388,30 @@ standard split where no such assumption is needed.
 4-modality T-VAS checkpoint — `GRAM_pretrained_4modalities` in their release. Correct for
 every T-VAS row in Tables 1 and 2. Their `GRAM_pretrained_5modalities` release would only
 be needed for a depth/k=5 baseline, which we do not report.
+
+## F14 — depth (k=5): GRAM published a baseline and released the checkpoint (2026-08-20)
+
+GRAM's Tab. 4, zero-shot MSR-VTT T2V R@1 by arity:
+
+| modalities | R@1 |
+|---|---|
+| T-V | 52.8 |
+| T-V-A | 54.1 |
+| T-V-A-S | 54.8 |
+| **T-V-A-S-D** | **55.3** |
+
+So **their depth gain is +0.5**, and `GRAM_pretrained_5modalities` in their release is the
+checkpoint that produced it. Two consequences.
+
+**The +1.6 depth claim can be replaced with a controlled one.** Tab. 3's depth row came
+from a finetuned run that continued the row-1 finetune for four more epochs at a different
+learning rate, so it confounded arity with extra training — and it had no GRAM baseline.
+`slurm_scripts/depth_zeroshot.sh` instead scores one checkpoint per method at 4 and at 5
+modalities, zero-shot, nothing trained, and the claim becomes a comparison of deltas
+against their published +0.5. The launcher refuses to run without `GRAM5_CKPT`: silently
+falling back to the 4-modality checkpoint would score a model that has never seen depth and
+report it as GRAM's depth result.
+
+**Their paper is internally inconsistent by 0.1 on one cell.** Tab. 1 gives GRAM T-VA on
+MSR-VTT as 54.2; Tab. 4 gives the same configuration as 54.1. We keep 54.2 (Tab. 1, the
+main results table) and note the discrepancy so nobody later "corrects" it.

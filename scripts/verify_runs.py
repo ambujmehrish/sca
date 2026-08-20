@@ -52,8 +52,10 @@ def resolve(path, seen=None):
         s = dict(d.get(sec, {}))
         dflt = s.pop('default', None)
         base = {}
-        if dflt and os.path.exists(dflt.lstrip('./')):
-            base = json.load(open(dflt.lstrip('./')))
+        # NOT lstrip('./'): it strips characters, not a prefix, and mangles absolute paths
+        dflt_path = dflt[2:] if dflt and dflt.startswith('./') else dflt
+        if dflt_path and os.path.exists(dflt_path):
+            base = json.load(open(dflt_path))
             base.pop('default', None)
         merged = dict(base)
         merged.update(s)

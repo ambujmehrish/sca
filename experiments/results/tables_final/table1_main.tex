@@ -1,21 +1,23 @@
-% Table 1 -- main zero-shot table, both retrieval directions, grouped by setting.
+% Table 1 -- main zero-shot table. BOLD = best per column among the rows measured in
+% our single evaluation environment (groups (c)-(e)); reported rows are left unbolded
+% because they are not comparable in absolute terms.
 \begin{table*}[t]
 \centering
 \caption{Zero-shot retrieval on MSR-VTT (T-VAS), R@1\,/\,R@10 in both directions.
-Every VAST-family row (groups (b)--(e), including ours) uses the same two-stage
-protocol: dual-encoder scoring followed by ITM cross-encoder reranking of the top 50,
-so the metric is common across these rows. Groups (c)--(e) are measured in a single
-evaluation environment, anchored by evaluating the officially released GRAM checkpoint
-(52.5 here vs 54.8 as published; the same weights score 53.4 in a third environment),
-so group (b) -- reported by its authors -- runs $\approx$2 R@1 hotter and is not
-comparable in absolute terms. All 150k rows continue-pretrain from the same VAST
-checkpoint on the same 150k-clip subset of VAST-27M for one epoch. $\pm$: std over
-3 seeds. Bold: best within group. $\ddagger$: HyperGRAM releases no code and its
-description is ambiguous between two readings of the hyperbolic branch; we report our
-best-effort reproduction for completeness only -- their published numbers in group (b)
-are the reference, and we make no claim about their method from this row. SCA's gain is in the text-to-video direction, which
-its gallery-side centroid objective optimises; video-to-text is at parity
-(49.2\,$\pm$0.53 vs 49.7\,$\pm$0.46 for GRAM).}
+All VAST-family rows, including ours, use the same two-stage protocol: dual-encoder
+scoring followed by ITM cross-encoder reranking of the top~50. Groups (c)--(e) are
+measured in a single evaluation environment, anchored by evaluating the officially
+released GRAM checkpoint (52.5 here vs 54.8 as published; the same weights score 53.4
+in a third environment); groups (a)--(b) are numbers reported by their authors and are
+therefore \emph{not} comparable in absolute terms, so \textbf{bold marks the best value
+per column among the measured rows only}. All 150k rows continue-pretrain from the same
+VAST checkpoint on the same 150k-clip subset of VAST-27M for one epoch. $\pm$: std over
+3 seeds. SCA's gain is in the text-to-video direction, which its gallery-side centroid
+objective optimises; video-to-text is at parity (49.2\,$\pm$0.53 vs 49.7\,$\pm$0.46 for
+GRAM). $\ddagger$: HyperGRAM releases no code and its description is ambiguous between
+two readings of the hyperbolic branch; this row is our best-effort reproduction, excluded
+from the bolding, and no claim about their method is drawn from it -- their published
+numbers in group (b) are the reference.}
 \label{tab:main}
 \small
 \setlength{\tabcolsep}{4.5pt}
@@ -25,36 +27,36 @@ its gallery-side centroid objective optimises; video-to-text is at parity
 \cmidrule(lr){5-6}\cmidrule(lr){7-8}
 Method & Adapter & Mask & Data & R@1 & R@10 & R@1 & R@10 \\
 \midrule
-\multicolumn{8}{l}{\emph{(a) External foundation models (reported)}} \\
+\multicolumn{8}{l}{\emph{(a) External foundation models (reported; different data and evaluation)}} \\
 ImageBind & -- & \xmark & -- & 36.8 & 70.0 & -- & -- \\
 UMT-L & -- & \xmark & 25M & 40.7 & 71.8 & 37.1 & -- \\
 LanguageBind & -- & \xmark & 10M & 44.8 & 78.7 & 40.9 & 75.7 \\
 mPLUG-2 & -- & \xmark & -- & 47.1 & 79.0 & -- & -- \\
-VideoPrism-b & -- & \xmark & 36M+582M & \textbf{51.4} & -- & \textbf{50.2} & -- \\
+VideoPrism-b & -- & \xmark & 36M+582M & 51.4 & -- & 50.2 & -- \\
 VAST & full-FT & \xmark & 27M & 50.7 & 74.4 & 49.0 & 76.2 \\
 \midrule
-\multicolumn{8}{l}{\emph{(b) VAST ckpt + 150k, reported in the authors' environments$^{\P}$}} \\
-GRAM & full-FT & \xmark & 150k & 54.8 & \textbf{82.9} & 52.9 & \textbf{82.9} \\
+\multicolumn{8}{l}{\emph{(b) VAST ckpt + 150k, as reported by their authors (hotter environment, see caption)}} \\
+GRAM & full-FT & \xmark & 150k & 54.8 & 82.9 & 52.9 & 82.9 \\
 PMRL & full-FT & \xmark & 150k & 54.5 & -- & 52.4 & -- \\
-HyperGRAM & full-FT & \xmark & 150k & \textbf{56.6} & -- & \textbf{53.6} & -- \\
+HyperGRAM & full-FT & \xmark & 150k & 56.6 & -- & 53.6 & -- \\
 \midrule
 \multicolumn{8}{l}{\emph{(c) Gramian-volume baselines, measured here}} \\
-GRAM (released ckpt) & full-FT & \xmark & 150k & 52.5 & 82.5 & 50.5 & \textbf{81.2} \\
+GRAM (released ckpt) & full-FT & \xmark & 150k & 52.5 & 82.5 & 50.5 & 81.2 \\
 GRAM (reproduced) & full-FT & \xmark & 150k & 52.4\,\tiny{$\pm$0.21} & 82.6 & 49.7\,\tiny{$\pm$0.46} & 80.9 \\
 \quad + masked training & full-FT & \cmark & 150k & 52.1 & 80.0 & 49.6 & 78.8 \\
-\quad + LoRA & LoRA & \xmark & 150k & \textbf{53.3} & \textbf{83.1} & \textbf{50.6} & 80.9 \\
-HyperGRAM (our best-effort repro)$^{\ddagger}$ & full-FT & \xmark & 150k & 51.0 & 76.7 & 50.7 & 79.6 \\
+\quad + LoRA & LoRA & \xmark & 150k & 53.3 & 83.1 & \textbf{50.6} & 80.9 \\
+HyperGRAM (our repro, v2)$^{\ddagger}$ & full-FT & \xmark & 150k & 51.0 & 76.7 & 50.7 & 79.6 \\
 \midrule
 \multicolumn{8}{l}{\emph{(d) Leading-eigenvalue baselines, measured here}} \\
-PMRL (reproduced) & full-FT & \xmark & 150k & 51.9 & 80.6 & 49.7 & \textbf{79.9} \\
-\quad + masked training & full-FT & \cmark & 150k & 52.6 & 80.9 & \textbf{49.9} & 79.5 \\
-\quad + LoRA & LoRA & \xmark & 150k & \textbf{53.9} & \textbf{82.0} & 49.8 & 79.8 \\
+PMRL (reproduced) & full-FT & \xmark & 150k & 51.9 & 80.6 & 49.7 & 79.9 \\
+\quad + masked training & full-FT & \cmark & 150k & 52.6 & 80.9 & 49.9 & 79.5 \\
+\quad + LoRA & LoRA & \xmark & 150k & 53.9 & 82.0 & 49.8 & 79.8 \\
 \midrule
 \multicolumn{8}{l}{\emph{(e) SCA (ours)}} \\
-SCA, no masked training & LoRA & \xmark & 150k & 53.4 & 80.1 & \textbf{50.1} & 78.5 \\
-SCA, full finetuning & full-FT & \cmark & 150k & 53.4 & \textbf{82.4} & 49.9 & \textbf{82.0} \\
+SCA, no masked training & LoRA & \xmark & 150k & 53.4 & 80.1 & 50.1 & 78.5 \\
+SCA, full finetuning & full-FT & \cmark & 150k & 53.4 & 82.4 & 49.9 & \textbf{82.0} \\
 SCA, base learning rate & LoRA & \cmark & 150k & 53.5 & 81.9 & 49.9 & 78.1 \\
-\textbf{SCA} & LoRA & \cmark & 150k & \textbf{54.9}\,\tiny{$\pm$0.15} & 83.5 & 49.2\,\tiny{$\pm$0.53} & 76.2 \\
+\textbf{SCA} & LoRA & \cmark & 150k & \textbf{54.9}\,\tiny{$\pm$0.15} & \textbf{83.5} & 49.2\,\tiny{$\pm$0.53} & 76.2 \\
 \bottomrule
 \end{tabular}
 \end{table*}

@@ -40,9 +40,12 @@ spatial norms") trained to 35.2 ITM. But their experiments section says the meth
 "only changes the inner product computation", which on GRAM's L2-normalised features is
 a bounded shift of the cosine Gram — a different computation, and the only one
 consistent with their Fig. 5's volume range [2.0, 2.5]. v2 implements that reading
-(`hyp_use_prenorm=false`, volumes verified bounded [1.4, 3.5]) and has not been run to
-completion. With no code released and the paper ambiguous between the two readings, we
-make NO reproducibility claim: their published numbers stand as cited.
+(`hyp_use_prenorm=false`, volumes verified bounded [1.4, 3.5]) and HAS now been run:
+**51.0 ITM best (raw 36.9, level with GRAM's 37.7), unstable to 37.4 by the final step**
+-- see wave7/ANALYSIS.md. So the ambiguity was the cause of v1's collapse, and v2 is the
+number our appendix reports. With no code released and two defensible readings, we still
+make NO reproducibility claim about their method: their published numbers stand as
+cited in Table 1.
 
 ## 3. Same-env finetuned head-to-head: GRAM-ft wins MSR-VTT — with a known lever
 

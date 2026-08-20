@@ -19,7 +19,16 @@ def build_optimizer(model, args, checkpoint_optim):
     # 0.1x the base lr) + the projection heads at the base lr. GRAM path (use_lora unset)
     # is byte-for-byte unchanged.
     use_lora = bool(getattr(args.model_cfg, 'use_lora', False))
-    backbone_prefixes = ('vision_encoder', 'audio_encoder', 'multimodal_encoder')
+    # multimodal_encoder is the ITM CROSS-ENCODER (model/sca.py: self.multimodal_encoder.bert
+    # feeds self.itm_head). Freezing it with a rank-8 adapter while GRAM full-finetunes it is
+    # where SCA's dual-encoder advantage is lost: measured against the released GRAM
+    # checkpoint, SCA leads by +4.5 (DiDeMo) and +2.3 (ActivityNet) on the aggregator's own
+    # score and then trails by 0.7 and 3.7 after reranking -- a 5-6 point swing at the one
+    # stage it under-trains. lora_freeze_multimodal=false keeps vision/audio adapted but lets
+    # the reranker train, which is the targeted version of that fix.
+    freeze_mm = bool(getattr(args.model_cfg, 'lora_freeze_multimodal', True))
+    backbone_prefixes = (('vision_encoder', 'audio_encoder', 'multimodal_encoder')
+                         if freeze_mm else ('vision_encoder', 'audio_encoder'))
     lora_params = []
     lora_params_name = []
     if use_lora:
@@ -82,7 +91,8 @@ def build_optimizer(model, args, checkpoint_optim):
         optimizer_grouped_parameters.append(
             {'params': lora_params, 'weight_decay': args.run_cfg.weight_decay, 'lr': lora_lr})
         LOGGER.info(f'[LoRA] {len(lora_params)} adapter tensors at lr {lora_lr}; '
-                    f'backbones {backbone_prefixes} frozen')
+                    f'backbones {backbone_prefixes} frozen'
+                    + ('' if freeze_mm else '; multimodal_encoder (ITM cross-encoder) TRAINABLE'))
 
     # print(basic_params_name)
     # print(clip_params_visual)

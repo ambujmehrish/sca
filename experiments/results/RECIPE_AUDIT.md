@@ -113,6 +113,25 @@ All of it is one parallel submission -- `bash scripts/submit_recipe_runs.sh` (25
    `config/sca/ablations_lr1e4/`; the five A9 arms wait on their S* caches.
 3. `sbatch slurm_scripts/depth_control.sh` -- cheap, eval-only (F6).
 
+### Preflight
+
+`python3 scripts/preflight_runs.py [--phase headline|baselines|ablations|all]` drives the
+submitter's `--dry` output and refuses to pass unless every config parses, every workdir /
+job name / log pattern is unique, no workdir pre-exists unstamped, and — the check that
+earns its keep — **no two arms resolve to the same config**. It caught `sca_paper_fullft`
+and `A6_full_ft` resolving byte-identically: the same full pretrain queued twice under two
+names. `A6_full_ft` is now dropped from Phase 3 and the ablation table reads its
+full-finetuning row off the Phase-1 result.
+
+### Naming and isolation
+
+Each job is submitted with `-J <arm> -o slurm_scripts/logs/<arm>_%j.out`, so logs are
+`gram_paper_1234567.out`, not thirty anonymous `run_*.out` files. Checkpoints stay in that
+arm's own `workdir_pretrain/<arm>/ckpt`. `--dependency=singleton` means a resubmission for
+continuation (the 6h wall clock needs several) queues behind the running job instead of
+starting a second process into the same checkpoints, and the rendezvous port is derived from
+`$SLURM_JOB_ID` rather than `$RANDOM`, which with 30 jobs in flight was a live collision.
+
 ### Keeping the two generations apart
 
 Every wave-9 run writes to a **new** workdir (`<method>_paper`, `abl1e4_<arm>`); no

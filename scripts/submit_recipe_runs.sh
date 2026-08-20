@@ -39,14 +39,27 @@ for a in "$@"; do
   esac
 done
 
+mkdir -p slurm_scripts/logs
+
 submit() {  # submit <config> <workdir> [extra args]
   local cfg="$1" out="$2"; shift 2
+  local name="${out##*/}"                     # arm name == workdir basename, one identity
   [ -f "$cfg" ] || { echo "FATAL: config $cfg missing" >&2; exit 1; }
   if [ -e "$out" ] && [ ! -f "$out/.provenance" ]; then
     echo "FATAL: $out already exists without a provenance stamp -- refusing to reuse it" >&2
     exit 1
   fi
-  local cmd=(sbatch slurm_scripts/run_config.sh "$cfg" "$out" "$@")
+  # -J/-o/-e override run_config.sh's generic #SBATCH lines, so every job and every log
+  # carries the arm name instead of a bare job id: logs/gram_paper_1234567.out, not
+  # logs/run_1234567.out. With 30 jobs in flight that is the difference between a readable
+  # log directory and thirty anonymous files.
+  # --dependency=singleton: at most one job with this name runs at a time, so resubmitting
+  # for continuation (the 6h wall clock needs several) queues behind the running job rather
+  # than starting a second process that writes the same checkpoints.
+  local cmd=(sbatch -J "$name" --dependency=singleton
+             -o "slurm_scripts/logs/${name}_%j.out"
+             -e "slurm_scripts/logs/${name}_%j.out"
+             slurm_scripts/run_config.sh "$cfg" "$out" "$@")
   if [ $DRY -eq 1 ]; then printf '%s\n' "${cmd[*]}"; else "${cmd[@]}"; fi
 }
 
@@ -79,10 +92,15 @@ if [ "$WHAT" = all ] || [ "$WHAT" = ablations ]; then
              A4_proto_batch A4_eta_0.9 A4_eps_floor_0 \
              A5_mask_freq A5_mask_2drop A5_pfull_const_0.5 A5_pfull_end_0.3 \
              A6_lora_r2 A6_lora_r4 A6_lora_r16 A6_lora_r32 A6_lora_r64 \
-             A6_lora_asym A6_full_ft \
+             A6_lora_asym \
              A7_centroid_gates A8_lambda_0.05 A8_lambda_0.3 A8_unif_weighted; do
     submit "config/sca/ablations_paper/${arm}.json" \
            "workdir_pretrain/abl_$(echo "$arm" | tr 'A-Z.' 'a-z_')"
   done
+  # A6_full_ft is deliberately NOT in this list: it resolves to exactly the same config as
+  # sca_paper_fullft in Phase 1 (SCA on the paper recipe with use_lora=false). Running both
+  # would burn a second full pretrain on an identical experiment -- the ablation table reads
+  # its full-finetuning row off the Phase-1 result. scripts/preflight_runs.py enforces this.
+  echo "# A6_full_ft: use the Phase-1 sca_paper_fullft result (identical config)"
   echo "# A9_* arms need their S* caches built first (see ablations_paper/MANIFEST.md)"
 fi

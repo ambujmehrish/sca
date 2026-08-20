@@ -15,6 +15,10 @@
 #
 #   sbatch slurm_scripts/run_config.sh <config.json> <output_dir> [extra run.py args...]
 #
+# Submit through scripts/submit_recipe_runs.sh rather than by hand: it passes -J/-o/-e so
+# the job and its log carry the arm's name, and --dependency=singleton so a resubmission
+# queues behind the running job instead of training a second process into the same workdir.
+#
 # Auto-resumes from the newest optimizer checkpoint in <output_dir>/ckpt (the 6h window
 # is shorter than a full 150k epoch-5 pretrain: RESUBMIT THE SAME COMMAND until the run
 # reaches its num_train_steps -- each resubmission continues where the last stopped).
@@ -88,7 +92,7 @@ echo "START $(date +%T)  config=$CONFIG  out=$OUTDIR"
 # cuts -- harmless, but hundreds of MB over a full pretrain). pipefail + `|| true` on the
 # grep keeps the pipeline's exit code = srun's.
 srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_node 4 \
-  --master_port $((9000 + RANDOM % 999)) \
+  --master_port $((9000 + ${SLURM_JOB_ID:-$$} % 900)) \
   ./run.py --config "$CONFIG" --output_dir "$OUTDIR" --checkpointing true $RESUME "$@" 2>&1 \
   | { grep -v --line-buffered -E "mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($" || true; }
 rc=$?

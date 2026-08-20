@@ -175,3 +175,29 @@ silently become one.
 When extracting, give wave-9 rows distinct method names (`GRAM (paper recipe)`, not `GRAM
 (repro)`): `wave1` and `wave2` already collide on method name with different metrics, and
 `scripts/extract_results.py` keys rows by name.
+
+## F6 — the published protocol, read from the paper (2026-08-20)
+
+Fetched GRAM (arXiv:2412.11959v2) directly rather than inferring from their released
+config. Three corrections, two of them to our evaluation:
+
+| item | paper says | we had | effect |
+|---|---|---|---|
+| pretrain batch | **256**, lr 1e-4, 1 epoch, 4×A100 | T1: 256 @ 1e-4 | **already matched** |
+| DiDeMo inference frames | **40** (8 for training) | 8 | under-sampled 5× |
+| ActivityNet inference frames | **20** (8 for training) | 8 | under-sampled 2.5× |
+| VATEX evaluation set | **14,491 samples** | 431 | not the same task |
+
+1. **Batch 256 is the published recipe.** Our earlier reading of "batch 128" came from a
+   released config file, not the paper. SCA T1 (lr 1e-4, batch 256) therefore *already*
+   matches GRAM's published pretraining recipe exactly. `sca_paper` at batch 128 is an
+   exploratory arm, not a correctness fix.
+2. **Frames.** Table 5 (Appendix B.1) gives per-dataset inference frame counts. We
+   evaluated DiDeMo and ActivityNet at 8 frames instead of 40 and 20. Combined with the
+   `max_caption_len` 40-vs-70 truncation found the same day, our two weakest benchmarks
+   were being scored under two independent protocol deviations, both of which hurt every
+   method we measure. 22 eval configs corrected; `tests/test_eval_protocol.py` guards both.
+3. **VATEX.** They evaluate on 14,491 samples; our annotation has 431. Retrieval over a
+   431-item gallery is a much easier problem, so our 90.3 is not comparable to their 83.5
+   in either direction. The column is now excluded from bolding and drawn no conclusion
+   from. Fixing it properly means obtaining a VATEX test set of comparable size.

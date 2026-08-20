@@ -10,8 +10,10 @@ measured by us, ``--'' not reported or not yet measured. GRAM released its weigh
 appears twice; PMRL and HyperGRAM released neither weights nor code, so only their published
 numbers are available. Published rows come from environments measured to run about 2.3 R@1
 hotter than ours (Tab.~\ref{tab:main}), so \textbf{bold} is the best per column among the
-$^{\ast}$ rows only. $^{\dagger}$ our VATEX evaluation uses the 431-clip audio-complete
-subset; the published VATEX column is the standard split, and the two are not comparable.
+$^{\ast}$ rows only. $^{\dagger}$ our VATEX annotation contains 431 clips, whereas GRAM
+evaluates VATEX on 14{,}491 samples (their Appendix~B.1); retrieval over a 431-item gallery
+is a substantially easier problem, so the VATEX column is reported for completeness and
+\emph{no comparison is drawn from it} in either direction -- it is excluded from bolding.
 Both SCA operating points are shown: the base learning rate transfers best, while the
 MSR-VTT-tuned one buys in-domain gain (Tab.~\ref{tab:main}) at the cost of transfer.}
 \label{tab:zs_all}
@@ -27,7 +29,7 @@ GRAM, released checkpoint$^{\ast}$ & --\,/\,-- & --\,/\,-- & --\,/\,-- & --\,/\,
 HyperGRAM$^{\S}$ & 51.3\,/\,49.5 & 58.2\,/\,51.8 & 79.9\,/\,75.7 & --\,/\,-- \\
 PMRL$^{\S}$ & 50.6\,/\,48.4 & 56.0\,/\,49.6 & 80.5\,/\,75.2 & 36.1\,/\,-- \\
 \midrule
-SCA (lr $2{\times}10^{-5}$)$^{\ast}$ & \textbf{50.0}\,/\,\textbf{47.3} & \textbf{52.6}\,/\,\textbf{48.3} & \textbf{90.3}$^{\dagger}$\,/\,\textbf{86.1}$^{\dagger}$ & \textbf{35.2}\,/\,\textbf{34.4} \\
+SCA (lr $2{\times}10^{-5}$)$^{\ast}$ & \textbf{50.0}\,/\,\textbf{47.3} & \textbf{52.6}\,/\,\textbf{48.3} & 90.3$^{\dagger}$\,/\,86.1$^{\dagger}$ & \textbf{35.2}\,/\,\textbf{34.4} \\
 SCA (lr $1{\times}10^{-4}$)$^{\ast}$ & \textbf{50.2}\,/\,45.4 & 51.8\,/\,43.6 & 89.3$^{\dagger}$\,/\,84.2$^{\dagger}$ & 32.8\,/\,30.1 \\
 \bottomrule
 \end{tabular}

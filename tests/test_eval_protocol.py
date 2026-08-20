@@ -16,6 +16,11 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 PARAGRAPH_BENCHMARKS = ('didemo', 'activitynet')
 REQUIRED = 70
 
+# GRAM (arXiv:2412.11959v2) Table 5, Appendix B.1: 8 frames for training everywhere, but
+# inference uses 40 frames on DiDeMo and 20 on ActivityNet. Evaluating those two at 8
+# frames is not the published protocol and costs several R@1.
+INFERENCE_FRAMES = {'didemo': 40, 'activitynet': 20}
+
 
 class TestParagraphCaptionLen(unittest.TestCase):
     def test_paragraph_benchmarks_are_not_truncated(self):
@@ -36,6 +41,30 @@ class TestParagraphCaptionLen(unittest.TestCase):
             offenders, [],
             'these DiDeMo/ActivityNet configs would truncate paragraph queries '
             '(need max_caption_len=%d): %s' % (REQUIRED, offenders))
+
+
+    def test_paragraph_benchmarks_use_published_inference_frames(self):
+        offenders = []
+        for path in sorted(glob.glob(os.path.join(ROOT, 'benchmark_eval/configs_e*/*.json'))):
+            try:
+                cfg = json.load(open(path))
+            except (ValueError, IOError):
+                continue
+            data = cfg.get('data_cfg', {})
+            blob = json.dumps(data).lower()
+            bench = next((b for b in INFERENCE_FRAMES if b in blob), None)
+            if bench is None:
+                continue
+            want = INFERENCE_FRAMES[bench]
+            for split in ('train', 'val'):
+                for entry in data.get(split, []):
+                    got = entry.get('vision_sample_num')
+                    if got != want:
+                        offenders.append(
+                            (os.path.relpath(path, ROOT), split, bench, got, want))
+        self.assertEqual(
+            offenders, [],
+            'these configs do not use the published inference frame count: %s' % offenders)
 
 
 if __name__ == '__main__':

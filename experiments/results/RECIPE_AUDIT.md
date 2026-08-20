@@ -234,3 +234,55 @@ That choice cannot be made yet, because DiDeMo and ActivityNet are currently mea
 under the caption truncation above. Sequence: fix (done) -> re-evaluate BOTH SCA arms on
 all five benchmarks -> pick the single lr with the best overall standing -> report only
 that arm everywhere. The losing arm moves to the ablation table as a learning-rate row.
+
+## F9 — read from source: zero-shot vs finetuned, and who trains what (2026-08-20)
+
+Downloaded both papers and read the tables directly.
+
+**Neither GRAM nor PMRL trains from scratch.** Both start from the released VAST
+checkpoint and continue-pretrain on a 150k subset of VAST-27M for one epoch, then report
+downstream results in two separate settings.
+
+- GRAM: *"Starting from VAST pretraining models, we further pretrain those on a small
+  subset of VAST27M comprising 150k samples using our defined loss functions … We set the
+  batch size to 256 and a single epoch pretraining on 4 NVIDIA A100 cards."*
+- PMRL: *"PMRL is built upon VAST and employs a continual pre-training strategy … we
+  utilize VAST-150K to re-boost its zero-shot capabilities, and split downstream datasets
+  for fine-tuning PMRL for specific tasks."*
+
+This is exactly our setup, so the comparison is structurally sound. The only "from
+scratch" training in either paper is GRAM's loss ablation (their Tab. 6) and PMRL's
+random-init analysis on the ABIDE task — neither is a retrieval headline number.
+
+**Zero-shot and finetuned are separate tables in both papers.** GRAM: Tab. 1 zero-shot,
+Tab. 2 finetuning (appendix Tabs. 8/9 and 10/11 add R@10). PMRL: Tab. 1 zero-shot, Tab. 2
+finetuning. Our transcriptions come from the ZERO-SHOT tables and are modality-matched:
+
+| our column | source | verbatim |
+|---|---|---|
+| GRAM MSR-VTT T-VAS | GRAM Tab. 1, T-VAS row | 54.8 / 52.9 |
+| GRAM DiDeMo, ActivityNet T-VA | GRAM Tab. 1, T-VA row | 54.2 / 52.2, 59.0 / 50.4 |
+| GRAM VATEX T-VAS | GRAM Tab. 1, T-VAS row | 83.5 / 82.7 |
+| PMRL all four | PMRL Tab. 1 | 54.5/52.4, 50.6/48.4, 56.0/49.6, 80.5/75.2 |
+
+For contrast, GRAM's FINETUNED numbers (their Tab. 2) are much higher -- MSR-VTT T-VAS
+64.0, DiDeMo T-VA 67.3, ActivityNet T-VA 69.9 -- so a zero-shot row must never be set
+against those.
+
+**GRAM measured by three independent parties.** PMRL's Tab. 1 includes its own
+re-evaluation of GRAM, and it lands far below GRAM's self-report -- much closer to ours:
+
+| GRAM, T2V R@1 | MSR-VTT | DiDeMo | ActivityNet | VATEX |
+|---|---|---|---|---|
+| GRAM's own paper | 54.8 | 54.2 | 59.0 | 83.5 |
+| PMRL's reproduction | 51.5 | 49.8 | 54.5 | 77.5 |
+| our reproduction | 52.4 | 49.6 | 52.0 | 88.9 |
+
+On DiDeMo our reproduction and PMRL's agree to 0.2, and on ActivityNet both sit well below
+GRAM's 59.0. So the "we are 7 points cold on ActivityNet" worry is substantially a property
+of GRAM's published numbers, not of our pipeline: an independent group also fails to
+reproduce them. This is worth a sentence in the paper, citing PMRL's table.
+
+VATEX is the exception -- ours is 11 points above PMRL's GRAM row, which suggests PMRL's
+VATEX split differs from the 431-clip one GRAM and we use. Their paper does not state a
+VATEX test size, so that column should not be cross-compared with PMRL.

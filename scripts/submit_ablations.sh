@@ -8,9 +8,15 @@ DRY=""; A9=""
 for a in "$@"; do [ "$a" = --dry ] && DRY=1; [ "$a" = --a9 ] && A9=1; done
 
 ARMS=(
+  # --- loss-component arms: one row per term of L = L_align + a.L_sem + b.L_mask
+  #     + d.L_concept + l.L_unif. These are the Table-6(a) rows; submit them first.
+  A3_sem_off:a3_sem_off                 # E6: L_sem off      (alpha = 0)
+  A1_lmask_off:a1_lmask_off             # E5: L_mask off     (beta  = 0)
+  A4_concept_off:a4_concept_off         # E7: L_concept off  (delta = 0)
+  A8_lambda_0:a8_lam0                   # E8: L_unif off     (lambda = 0)
+  # --- within-term / hyperparameter arms
   A1_lmask_term2_off:a1_term2off        # E5: cross-cardinality term ablated
   A3_sstar_identity:a3_sstar_eye        # E6: S* = I (one-hot targets)
-  A4_concept_off:a4_concept_off         # E7: L_concept off
   A4_proto_batch:a4_proto_batch         # E7: batch-only prototypes (no EMA)
   A4_eta_0.9:a4_eta09                   # E7: EMA eta 0.99 -> 0.9
   A4_eps_floor_0:a4_eps0                # E7: eps-floor off (collapse check)
@@ -18,7 +24,6 @@ ARMS=(
   A5_mask_2drop:a5_2drop                # E4: two modalities dropped
   A5_pfull_const_0.5:a5_pconst          # E4: no schedule
   A6_lora_r4:a6_r4                      # E9: LoRA rank 4
-  A8_lambda_0:a8_lam0                   # E8: uniformity term off
 )
 [ -n "$A9" ] && ARMS+=(
   A9_sstar_minilm:a9_minilm  A9_taustar_0.3:a9_tau03  A9_taustar_1.0:a9_tau10

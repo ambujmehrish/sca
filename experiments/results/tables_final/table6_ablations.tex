@@ -1,17 +1,32 @@
 % Table 6 -- training-recipe ablations on the SCA objective.
 \begin{table}[t]
 \centering
-\caption{Training-recipe ablations (MSR-VTT zero-shot, ITM R@1 best\,/\,final).
-Adapters at $0.1\times$ the base learning rate (the standard LoRA heuristic) beat
-adapters at $1\times$; full finetuning is worse at both learning rates and unstable at
-$1\!\times\!10^{-4}$, so the adapter regime is a quality choice rather than a compute
-compromise. Remaining knobs move the result by $\le$0.4.}
+\caption{Ablations (MSR-VTT zero-shot, ITM R@1 best\,/\,final). Block~(a) removes one term
+of the objective $\mathcal{L}=\mathcal{L}_{\text{align}}+\alpha\mathcal{L}_{\text{sem}}
++\beta\mathcal{L}_{\text{mask}}+\delta\mathcal{L}_{\text{concept}}
++\lambda\mathcal{L}_{\text{unif}}$ at a time, all at the base learning rate, so the
+reference row for that block is SCA at 2e-5 (53.5\,/\,53.4) rather than the default;
+$\mathcal{L}_{\text{align}}$ is the retrieval objective itself and is not ablatable.
+Block~(b) is the adaptation regime: adapters at $0.1\times$ the base learning rate (the
+standard LoRA heuristic) beat adapters at $1\times$, and full finetuning is worse at both
+learning rates and unstable at $1\!\times\!10^{-4}$, so the adapter regime is a quality
+choice rather than a compute compromise. Block~(c) sweeps the remaining knobs, none of
+which moves the result by more than 0.4.}
 \label{tab:ablate}
 \small
 \begin{tabular}{llcrr}
 \toprule
 Variant & Regime & lr & best & final \\
 \midrule
+\multicolumn{5}{l}{\emph{(a) Loss components (reference: SCA at 2e-5, 53.5\,/\,53.4)}} \\
+$\alpha=0$ ($\mathcal{L}_{\text{sem}}$ off) & LoRA & 2e-5 & \emph{running} & \emph{running} \\
+$\beta=0$ ($\mathcal{L}_{\text{mask}}$ off) & LoRA & 2e-5 & \emph{running} & \emph{running} \\
+$\delta=0$ ($\mathcal{L}_{\text{concept}}$ off) & LoRA & 2e-5 & \emph{running} & \emph{running} \\
+$\lambda=0$ ($\mathcal{L}_{\text{unif}}$ off) & LoRA & 2e-5 & \emph{running} & \emph{running} \\
+\quad cross-cardinality term of $\mathcal{L}_{\text{mask}}$ off & LoRA & 2e-5 & \emph{running} & \emph{running} \\
+\quad $S^{*}\!=\!I$ (one-hot $\mathcal{L}_{\text{sem}}$ targets) & LoRA & 2e-5 & \emph{running} & \emph{running} \\
+\midrule
+\multicolumn{5}{l}{\emph{(b) Adaptation regime}} \\
 \textbf{SCA}$_{\text{lr}}$ (default) & LoRA ($0.1\times$) & 1e-4 & \textbf{54.9} & \textbf{54.4} \\
 \quad adapters at $1\times$ base lr & LoRA ($1\times$) & 1e-4 & 54.0 & 53.9 \\
 \quad lr $5\!\times\!10^{-5}$ & LoRA ($0.1\times$) & 5e-5 & 54.2 & 54.1 \\
@@ -20,6 +35,7 @@ Variant & Regime & lr & best & final \\
 full finetuning & full-FT & 1e-4 & 53.0 & 48.3 \\
 full finetuning & full-FT & 2e-5 & 53.4 & 52.5 \\
 \midrule
+\multicolumn{5}{l}{\emph{(c) Remaining knobs}} \\
 learned centroid gates & LoRA & 2e-5 & 53.5 & 53.5 \\
 uniformity weight $\lambda\!=\!0.3$ & LoRA & 2e-5 & 53.2 & 53.0 \\
 uniformity weight $\lambda\!=\!0.05$ & LoRA & 2e-5 & 53.4 & 53.2 \\

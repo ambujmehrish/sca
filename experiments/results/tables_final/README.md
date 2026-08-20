@@ -6,14 +6,15 @@ reported by its authors. Regenerate measured rows from the raw logs with
 
 | file | content | status |
 |---|---|---|
-| `table1_main.tex` | Main zero-shot MSR-VTT T-VAS, both directions, grouped by adapter/mask setting; all baselines | final |
+| `table1_main.tex` | Main zero-shot MSR-VTT T-VAS, both directions. **Measured rows only** — no `Data` column, no author-reported numbers, no baseline LoRA/masked variants | final |
 | `table2_zeroshot_all.tex` | Zero-shot across 5 benchmarks, both directions | final |
 | `table3_finetune.tex` | Fine-tuned MSR-VTT + depth ($k{=}5$), both ft learning rates | final |
 | `table4_missingness.tex` | Missing modalities: (a) ITM metric, (b) raw space, 3 seeds | final |
 | `table5_missing_transfer.tex` | Missing modalities on the 3 non-selection benchmarks (raw, 3 seeds) | final |
 | `table5_calibration.tex` | Semantic calibration (E6) + cardinality fairness (E5) | final |
-| `table6_ablations.tex` | Training-recipe ablations | final |
+| `table6_ablations.tex` | Ablations: (a) loss components, (b) adaptation regime, (c) knobs | **(a) pending runs** |
 | `table7_env_audit.tex` | Evaluation-environment audit (appendix) | final |
+| `table8_reported_and_variants.tex` | Appendix: author-reported numbers + baselines equipped with LoRA/masked training (moved out of Table 1) | final |
 | `main_table_single.tex` | Alternative single-block Table 1 (superseded by table1) | alt |
 | `PAPER_TABLES.md` | Human-readable master with every number | reference |
 
@@ -47,6 +48,7 @@ Tables 2, 4 and 5.
 | claim | evidence | limit |
 |---|---|---|
 | +2.5 R@1 over GRAM at identical budget/env/recipe | Tab. 1, 3 seeds each | T2V direction; V2T is parity |
+| The gain is not the adapter regime | Tab. 8(c): GRAM+LoRA 53.3, PMRL+LoRA 53.9 vs SCA 54.9 | baselines' LoRA lr not separately tuned |
 | Leads at every missing rate on the reported metric | Tab. 4(a): 54.9/42.2/34.0 vs 52.6/40.5/32.1 | 2 rates only (each is a full reranked pass) |
 | 2$\times$ gentler raw-space degradation | Tab. 4(b): drop 7.1 vs 9.5--9.9 | GRAM-LoRA converges to a tie by 90\% |
 | Only calibrated score in the family | Tab. 5: slope 0.978 vs 1.8--2.8 and 0.5 | $R^2$ negative for all methods (under-dispersion) |

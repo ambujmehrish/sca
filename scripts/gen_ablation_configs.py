@@ -19,10 +19,15 @@ OUT = os.path.join(ROOT, 'config/sca/ablations')
 
 # arm id -> (model_cfg deltas | ('EXTERNAL', note), manifest row: what / consumed-by)
 GRID = {
-    # A1 -- L_mask term-2 off (miscalibration should appear in E5)
+    # A1 -- L_mask: whole term off, and the cross-cardinality term alone off. beta=0 still
+    # SAMPLES the masked view (mu_M drives L_align); it only drops the agreement term, which
+    # is what separates it from the "no masked training" arm (p_full == 1, no masked view).
+    'A1_lmask_off': ({'sca_beta': 0.0},
+                     'L_mask OFF (beta = 0; masked view still sampled)', 'E5'),
     'A1_lmask_term2_off': ({'l_mask_term2': False},
                            'L_mask cross-cardinality score term OFF', 'E5'),
-    # A3 -- S* targets: identity vs graded
+    # A3 -- L_sem: whole term off, and graded targets replaced by one-hot
+    'A3_sem_off': ({'sca_alpha': 0.0}, 'L_sem OFF (alpha = 0)', 'E6'),
     'A3_sstar_identity': ({'sca_s_star_identity': True, 's_star_path': ''},
                           'S* = I (one-hot targets)', 'E6'),
     # A4 -- Level-2 grouping arms

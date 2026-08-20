@@ -4,7 +4,9 @@ Base: `config/sca/pretrain_cfg/sca_pretrain.json` (the A10-decided E6 headline c
 
 | arm | config | change vs base | feeds |
 |---|---|---|---|
+| A1_lmask_off | `./config/sca/ablations/A1_lmask_off.json` | L_mask OFF (beta = 0; masked view still sampled) | E5 |
 | A1_lmask_term2_off | `./config/sca/ablations/A1_lmask_term2_off.json` | L_mask cross-cardinality score term OFF | E5 |
+| A3_sem_off | `./config/sca/ablations/A3_sem_off.json` | L_sem OFF (alpha = 0) | E6 |
 | A3_sstar_identity | `./config/sca/ablations/A3_sstar_identity.json` | S* = I (one-hot targets) | E6 |
 | A4_concept_off | `./config/sca/ablations/A4_concept_off.json` | L_concept OFF | E7 |
 | A4_proto_batch | `./config/sca/ablations/A4_proto_batch.json` | batch-only nu_c (no EMA memory) | E7 |

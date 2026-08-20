@@ -30,16 +30,18 @@ best_ckpt() {
   echo "$b"
 }
 SCA_T1=$(best_ckpt workdir_pretrain/t1_lr1e4)
+SCA_BASE=$(best_ckpt workdir_pretrain/sca)
 GRAM=$(best_ckpt workdir_pretrain/gram)
 GLORA=$(best_ckpt workdir_pretrain/gram_lora)
-for v in SCA_T1 GRAM GLORA; do [ -f "${!v}" ] || { echo "FATAL: $v ckpt missing" >&2; exit 1; }; done
-echo "sca_t1=$SCA_T1"; echo "gram=$GRAM"; echo "gram_lora=$GLORA"
+for v in SCA_T1 SCA_BASE GRAM GLORA; do [ -f "${!v}" ] || { echo "FATAL: $v ckpt missing" >&2; exit 1; }; done
+echo "sca_t1=$SCA_T1"; echo "sca=$SCA_BASE"; echo "gram=$GRAM"; echo "gram_lora=$GLORA"
 
 rc_all=0
 for bench in didemo activitynet audiocaps; do
-  for arm in sca_t1 gram gram_lora; do
+  for arm in sca_t1 sca gram gram_lora; do
     case $arm in
-      sca_t1)    ckpt="$SCA_T1"; cfg="benchmark_eval/configs_e1/sca_${bench}.json" ;;
+      sca_t1)    ckpt="$SCA_T1";   cfg="benchmark_eval/configs_e1/sca_${bench}.json" ;;
+      sca)       ckpt="$SCA_BASE"; cfg="benchmark_eval/configs_e1/sca_${bench}.json" ;;
       gram)      ckpt="$GRAM";   cfg="benchmark_eval/configs_e1/gram_${bench}.json" ;;
       gram_lora) ckpt="$GLORA";  cfg="benchmark_eval/configs_e1/gram_lora_${bench}.json" ;;
     esac

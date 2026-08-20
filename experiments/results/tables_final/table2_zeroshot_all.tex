@@ -6,10 +6,11 @@
 \centering
 \caption{Zero-shot retrieval away from the selection benchmark, R@1 (T2V\,/\,V2T).
 MSR-VTT is Table~\ref{tab:main}. $^{\dagger}$ trained by us; all rows share one environment
-and the 150k budget, so \textbf{bold} is the best per column (ties bolded jointly). Both
-SCA operating points are shown: the base learning rate transfers best, winning seven of the
-eight columns outright or jointly, while the MSR-VTT-tuned variant trades that breadth for
-in-domain gain. $^{\ast}$ our VATEX evaluation uses the 431-clip audio-complete subset, not
+and the 150k budget, so \textbf{bold} is the best per column (ties bolded jointly). Rows~1
+and~2 are the \emph{recipe-matched} pair -- same learning rate, batch, schedule and budget,
+differing only in the alignment objective -- and SCA wins six of the eight columns there,
+ties one, and loses one. Row~3 is the MSR-VTT-tuned operating point, which buys in-domain
+gain (Tab.~\ref{tab:main}) at the cost of transfer. $^{\ast}$ our VATEX evaluation uses the 431-clip audio-complete subset, not
 the standard split, so its column is internally comparable but not comparable to published
 VATEX numbers (App.~Tab.~\ref{tab:zs_reported}).}
 \label{tab:zs_all}

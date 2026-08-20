@@ -201,3 +201,29 @@ config. Three corrections, two of them to our evaluation:
    431-item gallery is a much easier problem, so our 90.3 is not comparable to their 83.5
    in either direction. The column is now excluded from bolding and drawn no conclusion
    from. Fixing it properly means obtaining a VATEX test set of comparable size.
+
+## F7 — PMRL and HyperGRAM protocols (2026-08-20)
+
+**PMRL (arXiv:2507.17343), read from the paper.**
+
+- Pretraining: *"we set the learning rate to 2×10⁻⁵, the batch size to 64, and train the
+  model for one epoch."* Our PMRL config (lr 2e-5, batch 64) therefore already matches the
+  published recipe exactly — no correction needed, and no PMRL retraining was ever
+  warranted on recipe grounds.
+- VATEX: *"We adopt the split following [73, 11] and exclude these examples for
+  evaluation"* — the same exclude-unavailable-videos convention GRAM uses, so PMRL's 80.5
+  is on a GRAM-scale reduced set, not on our 431 clips. The incomparability of our VATEX
+  column applies to the PMRL row as well.
+- The paper does not state per-dataset inference frame counts or test-set sizes.
+
+**HyperGRAM — UNVERIFIED.** The numbers this repo reports for HyperGRAM (MSR-VTT 56.6/53.6,
+DiDeMo 51.3/49.5, ActivityNet 58.2/51.8, VATEX 79.9/75.7) are recorded in
+`benchmark_eval/published_rows.json` as "CVPR 2026 (Na et al.)", but a web search could not
+locate the paper, its proceedings entry, or any preprint. Everything we assert about
+HyperGRAM — the numbers themselves, the same-budget claim, and the assumption that its
+VATEX protocol matches GRAM's — currently rests on that transcription alone.
+
+Before submission these must be checked against the actual paper: the four number pairs,
+the pretraining recipe, and the VATEX evaluation size. If the paper cannot be produced,
+the HyperGRAM rows should be dropped rather than cited, since an unverifiable comparison
+number is worse than an absent one.

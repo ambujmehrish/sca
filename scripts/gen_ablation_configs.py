@@ -14,8 +14,14 @@ import json
 import copy
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-BASE = os.path.join(ROOT, 'config/sca/pretrain_cfg/sca_pretrain.json')
-OUT = os.path.join(ROOT, 'config/sca/ablations')
+# The base MUST be the configuration the paper reports, or the grid ablates a model that is
+# not the one in Table 1. The default below is the lr-2e-5 config; when the reported model
+# is the lr-1e-4 one, regenerate with
+#   SCA_ABLATION_BASE=config/sca/ablations/T1_lr1e4.json \
+#   SCA_ABLATION_OUT=config/sca/ablations_lr1e4 python3 scripts/gen_ablation_configs.py
+BASE = os.path.join(ROOT, os.environ.get('SCA_ABLATION_BASE',
+                                         'config/sca/pretrain_cfg/sca_pretrain.json'))
+OUT = os.path.join(ROOT, os.environ.get('SCA_ABLATION_OUT', 'config/sca/ablations'))
 
 # arm id -> (model_cfg deltas | ('EXTERNAL', note), manifest row: what / consumed-by)
 GRID = {

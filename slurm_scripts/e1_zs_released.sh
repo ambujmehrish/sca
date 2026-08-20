@@ -48,7 +48,14 @@ CKPT="$GRAM_RELEASED_CKPT"
 echo "released GRAM ckpt: $CKPT"
 
 rc_all=0
-for bench in didemo activitynet vatex audiocaps; do
+# msrvtt first as a SELF-CHECK, not for the table: this checkpoint is recorded as scoring
+# 52.5 / 82.5 (T2V) and 50.5 / 81.2 (V2T) on MSR-VTT zero-shot T-VAS
+# (experiments/results/wave1/validation_official_gram.md), and those are the numbers in
+# Table 1. If this cell reproduces them, the file at GRAM_RELEASED_CKPT is the same
+# checkpoint the table already reports and the four transfer cells inherit that assurance.
+# If it does not, every GRAM row in the paper is in question -- so run it before trusting
+# the rest.
+for bench in msrvtt didemo activitynet vatex audiocaps; do
   cell="gram_${bench}"
   out="workdir/e1_zs/released_${bench}"
   cfg="benchmark_eval/configs_e1/${cell}.json"
@@ -64,5 +71,9 @@ for bench in didemo activitynet vatex audiocaps; do
   if [ $rc -eq 0 ]; then cell_mark_done "$out" "$cfg"; echo "== [released/$bench] OK $(date +%T)"
   else echo "== [released/$bench] FAILED rc=$rc" >&2; rc_all=$rc; fi
 done
+echo
+echo "SELF-CHECK: released_msrvtt should reproduce T2V 52.5/82.5 and V2T 50.5/81.2"
+echo "            (wave1/validation_official_gram.md). If it does not, stop and say so --"
+echo "            the checkpoint is not the one Table 1 reports."
 echo "EXIT=$rc_all DONE $(date +%T)"
 exit $rc_all

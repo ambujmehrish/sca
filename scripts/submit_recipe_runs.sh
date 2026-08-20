@@ -33,6 +33,7 @@ for a in "$@"; do
   case "$a" in
     --dry) DRY=1 ;;
     --headline)  WHAT=headline ;;
+    --baselines) echo "baselines are frozen: GRAM from its released checkpoint + paper, PMRL/HyperGRAM from paper. Nothing to submit." >&2; exit 0 ;;
     --only=*)    ONLY="${a#--only=}" ;;
     --baselines|--baselines-only) WHAT=baselines ;;
     --ablations|--ablations-only) WHAT=ablations ;;
@@ -83,24 +84,19 @@ submit() {  # submit <config> <workdir> [extra args]
   if [ $DRY -eq 1 ]; then printf '%s\n' "${cmd[*]}"; else "${cmd[@]}"; fi
 }
 
-# PHASE 1 -- the four rows that decide whether the paper's claim survives a matched recipe.
-# The existing 1e-4 SCA arm (t1_lr1e4) trained at batch 256 against GRAM's 128, and batch
-# size sets the number of in-batch contrastive negatives, which a centroid objective is
-# directly sensitive to -- so no SCA row we have is matched. Run these before anything else:
-# if SCA does not clear GRAM here, the ablation grid is measuring the wrong model anyway.
-if [ "$WHAT" = all ] || [ "$WHAT" = headline ] || [ "$WHAT" = baselines ]; then
-  echo "# --- PHASE 1: headline, all four at lr 1e-4 / batch 128 ----------------------"
-  submit config/baselines/pretrain_cfg/gram_paper.json      workdir_pretrain/gram_paper
+# PHASE 1 -- SCA at the reported recipe. NOTHING here trains a baseline.
+# Baselines are frozen as of this revision: GRAM is reported from its released checkpoint
+# (evaluated by us) plus its published numbers; PMRL and HyperGRAM from their published
+# numbers only, since neither released weights or code. Every GPU hour from here improves
+# SCA. The baseline _paper configs are kept for provenance but are no longer submitted.
+#
+# sca_paper is the one SCA arm never run: lr 1e-4 at batch 128 rather than 256. Batch size
+# sets the number of in-batch contrastive negatives, which a centroid objective is directly
+# sensitive to, so this can move the number in either direction and is worth knowing.
+if [ "$WHAT" = all ] || [ "$WHAT" = headline ]; then
+  echo "# --- PHASE 1: SCA at the reported recipe -------------------------------------"
   submit config/sca/pretrain_cfg/sca_paper.json             workdir_pretrain/sca_paper
-  submit config/baselines/pretrain_cfg/gram_lora_paper.json workdir_pretrain/gram_lora_paper
   submit config/sca/pretrain_cfg/sca_paper_fullft.json      workdir_pretrain/sca_paper_fullft
-fi
-
-# PHASE 2 -- the remaining baselines, each at its own authors' recipe.
-if [ "$WHAT" = all ] || [ "$WHAT" = baselines ]; then
-  echo "# --- PHASE 2: other baselines ------------------------------------------------"
-  submit config/baselines/pretrain_cfg/pmrl_paper.json      workdir_pretrain/pmrl_paper
-  submit config/baselines/pretrain_cfg/gram_hyp_paper.json  workdir_pretrain/gram_hyp_paper
 fi
 
 if [ "$WHAT" = all ] || [ "$WHAT" = ablations ]; then

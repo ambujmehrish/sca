@@ -5,26 +5,31 @@
 \begin{table*}[t]
 \centering
 \caption{Zero-shot retrieval away from the selection benchmark, R@1 (T2V\,/\,V2T).
-MSR-VTT is Table~\ref{tab:main}. $^{\ast}$ the authors' released weights, evaluated by us
--- GRAM at its own recipe, and the reference for whether the reproduction is on-recipe;
-$^{\dagger}$ trained by us at lr $2{\times}10^{-5}$; all rows share one environment
-and the 150k budget, so \textbf{bold} is the best per column (ties bolded jointly). Rows~1
-and~2 are the \emph{recipe-matched} pair -- same learning rate, batch, schedule and budget,
-differing only in the alignment objective -- and SCA wins six of the eight columns there,
-ties one, and loses one. Row~3 is the MSR-VTT-tuned operating point, which buys in-domain
-gain (Tab.~\ref{tab:main}) at the cost of transfer. $^{\ast}$ our VATEX evaluation uses the 431-clip audio-complete subset, not
-the standard split, so its column is internally comparable but not comparable to published
-VATEX numbers (App.~Tab.~\ref{tab:zs_reported}).}
+MSR-VTT is Table~\ref{tab:main}. GRAM appears three times because it is the only method in
+this family that released its weights, so its published numbers can be separated from the
+environment they were measured in: $^{\S}$ as reported by its authors; $^{\ast}$ those same
+released weights evaluated by us -- GRAM at its own recipe, in our environment; $^{\dagger}$
+our reproduction, trained at lr $2{\times}10^{-5}$ rather than GRAM's published
+$1{\times}10^{-4}$. The $\S$ versus $\ast$ difference \emph{is} the environment offset,
+measured per benchmark rather than assumed; the $\ast$ versus $\dagger$ difference is what
+the recipe costs. Only rows below the second rule and the $\ast$/$\dagger$ rows share one
+environment, so \textbf{bold} is the best per column among those; the $\S$ row is not
+comparable in absolute terms and its VATEX cell is additionally on a different split.
+$^{\ast\ast}$ our VATEX evaluation uses the 431-clip audio-complete subset, not the standard
+split. Both SCA operating points are shown: the base learning rate transfers best, the
+MSR-VTT-tuned one buys in-domain gain (Tab.~\ref{tab:main}) at the cost of transfer.}
 \label{tab:zs_all}
 \small
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{lcccc}
 \toprule
-Method & DiDeMo & ActivityNet & VATEX$^{\ast}$ & AudioCaps \\
+Method & DiDeMo & ActivityNet & VATEX$^{\ast\ast}$ & AudioCaps \\
  & T-VA & T-VA & T-VAS & T-VA \\
 \midrule
+GRAM (paper)$^{\S}$ & 54.2\,/\,52.2 & 59.0\,/\,50.4 & 83.5\,/\,82.7 & 33.2\,/\,-- \\
 GRAM$^{\ast}$ & \multicolumn{4}{c}{\emph{pending: released checkpoint on these benchmarks}} \\
 GRAM$^{\dagger}$ & 49.6\,/\,\textbf{48.5} & 52.0\,/\,46.2 & 88.9\,/\,\textbf{86.1} & 33.1\,/\,32.8 \\
+\midrule
 SCA (lr $2{\times}10^{-5}$) & 50.0\,/\,47.3 & \textbf{52.6}\,/\,\textbf{48.3} & \textbf{90.3}\,/\,\textbf{86.1} & \textbf{35.2}\,/\,\textbf{34.4} \\
 SCA (lr $1{\times}10^{-4}$) & \textbf{50.2}\,/\,45.4 & 51.8\,/\,43.6 & 89.3\,/\,84.2 & 32.8\,/\,30.1 \\
 \bottomrule

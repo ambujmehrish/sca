@@ -9,13 +9,16 @@
 \begin{table}[t]
 \centering
 \caption{Zero-shot retrieval on MSR-VTT (T-VAS), R@1\,/\,R@10.
-$^{\ast}$ the authors' released weights, evaluated by us; $^{\dagger}$ trained by us from
-the VAST checkpoint on the same 150k clips for one epoch; $^{\ddagger}$ our
-reimplementation (no code released); unmarked rows are quoted from their papers, with
-pretraining data in parentheses. Marked rows share one environment and one two-stage
-protocol, so \textbf{bold} is the best per column among them; the $^{\ast}$ row scores 52.5
-here against 54.8 as published, so absolute values do not transfer across papers
-(App.~Tab.~\ref{tab:reported}). Each SCA row is shown at its better pretraining learning
+$^{\S}$ as reported by its authors; $^{\ast}$ those same released weights evaluated by us;
+$^{\dagger}$ trained by us from the VAST checkpoint on the same 150k clips for one epoch;
+$^{\ddagger}$ our reimplementation (no code released); unmarked rows are quoted from their
+papers, with pretraining data in parentheses. GRAM is the only method here that released
+its weights, so for it the published number and the environment it was measured in can be
+separated: $\S$ minus $\ast$ is the environment offset (2.3 R@1), measured rather than
+assumed. Marked rows share one environment and one two-stage
+protocol, so \textbf{bold} is the best per column among them; the $\S$ row is excluded from
+bolding, and PMRL's and HyperGRAM's published numbers -- for which no such separation is
+possible -- are in App.~Tab.~\ref{tab:reported}. Each SCA row is shown at its better pretraining learning
 rate, in brackets; the full-finetuning row is the regime-matched comparison to the
 baselines. $\pm$: std over 3 seeds.}
 \label{tab:main}
@@ -36,6 +39,7 @@ VideoPrism-b (36M+582M) & -- & \xmark & 51.4 & -- & 50.2 & -- \\
 VAST (27M) & full-FT & \xmark & 50.7 & 74.4 & 49.0 & 76.2 \\
 \midrule
 \multicolumn{7}{l}{\emph{(b) Gramian-volume alignment}} \\
+GRAM (paper)$^{\S}$ & full-FT & \xmark & 54.8 & 82.9 & 52.9 & 82.9 \\
 GRAM$^{\ast}$ & full-FT & \xmark & 52.5 & 82.5 & 50.5 & 81.2 \\
 GRAM$^{\dagger}$ & full-FT & \xmark & 52.4\,\tiny{$\pm$0.21} & 82.6 & 49.7\,\tiny{$\pm$0.46} & 79.8 \\
 HyperGRAM$^{\dagger\ddagger}$ & full-FT & \xmark & 51.0 & 76.7 & \textbf{50.7} & 79.6 \\

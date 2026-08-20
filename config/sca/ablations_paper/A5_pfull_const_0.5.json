@@ -37,7 +37,7 @@
     "task": "ret%tv%ta",
     "epoch": 5,
     "n_workers": 8,
-    "batch_size": 128
+    "batch_size": 256
    }
   ],
   "val": [

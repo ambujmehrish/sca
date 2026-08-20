@@ -62,6 +62,34 @@ h.update(('\0'.join(sys.argv[2:])).encode())   # --seed and friends change the r
 print(h.hexdigest()[:16])
 PY
 )
+# --- exclusive lock ----------------------------------------------------------------------
+# --dependency=singleton only protects jobs submitted with the same -J. A hand-submitted
+# sbatch, or a job name typo, would put a second process into these checkpoints. mkdir is
+# atomic on POSIX and on Lustre, so it is a sound mutex here.
+LOCK="$OUTDIR/.lock"
+ME="${SLURM_JOB_ID:-$$}"
+if ! mkdir "$LOCK" 2>/dev/null; then
+  OWNER=$(cat "$LOCK/jobid" 2>/dev/null || echo '?')
+  ALIVE=no
+  if [ "$OWNER" != '?' ] && command -v squeue >/dev/null 2>&1; then
+    squeue -h -j "$OWNER" -o '%T' 2>/dev/null \
+      | grep -qE 'RUNNING|PENDING|CONFIGURING|COMPLETING' && ALIVE=yes
+  fi
+  if [ "$ALIVE" = yes ]; then
+    echo "FATAL: $OUTDIR is locked by job $OWNER, which is still active." >&2
+    echo "       Refusing to run a second process into the same checkpoints." >&2
+    exit 4
+  fi
+  echo "WARN: stale lock from job $OWNER (not in the queue) -- reclaiming"
+  rm -rf "$LOCK"
+  mkdir "$LOCK" || { echo "FATAL: cannot acquire $LOCK" >&2; exit 4; }
+fi
+echo "$ME" > "$LOCK/jobid"
+# EXIT covers normal and error exits; TERM/INT cover the signal slurm sends at the wall
+# clock, so a timed-out run releases its lock instead of blocking the next resubmission.
+trap 'rm -rf "$LOCK"' EXIT TERM INT
+# ------------------------------------------------------------------------------------------
+
 STAMP="$OUTDIR/.provenance"
 RESUME=""
 if ls "$OUTDIR"/ckpt/optimizer_step_*.pt >/dev/null 2>&1; then

@@ -123,6 +123,28 @@ and `A6_full_ft` resolving byte-identically: the same full pretrain queued twice
 names. `A6_full_ft` is now dropped from Phase 3 and the ablation table reads its
 full-finetuning row off the Phase-1 result.
 
+### No two runs overlap, and no run rewrites a config
+
+- **Configs are read-only at runtime.** The only config written during a run is
+  `<workdir>/log/hps.json` (`utils/args.py`), inside that run's own output directory. No
+  code path writes back to `config/`, so 30 parallel jobs reading the same
+  `default_run_cfg.json` cannot contaminate each other — verified by grep over every
+  `json.dump` / file write in `run.py` and `utils/`.
+- **Exclusive lock per workdir.** `run_config.sh` takes an atomic `mkdir` lock on
+  `<workdir>/.lock` before touching anything, recording the owning job id.
+  `--dependency=singleton` only protects jobs submitted with the same `-J`; the lock also
+  covers a hand-submitted `sbatch` or a job-name typo. A lock whose owner is no longer in
+  `squeue` is reclaimed with a warning, and the trap releases it on EXIT/TERM/INT so a
+  wall-clock timeout does not block the next resubmission. Tested both directions: blocks
+  while the owner is alive, reclaims when stale.
+- **Post-run verification.** `python3 scripts/verify_runs.py [--phase ...]` reads each
+  workdir's `log/hps.json` — the resolved options as the job actually used them — and
+  compares lr, batch size, model type, LoRA on/off, rank and alpha against the config that
+  workdir was supposed to use, plus the `.provenance` fingerprint. Statuses: OK / MISMATCH /
+  NOT STARTED / NO STAMP, exit 1 on any mismatch. Run it when the first checkpoints appear
+  and again before extracting into tables. Preflight proves the *plan*; this proves the
+  *outcome*.
+
 ### Naming and isolation
 
 Each job is submitted with `-J <arm> -o slurm_scripts/logs/<arm>_%j.out`, so logs are

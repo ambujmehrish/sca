@@ -35,7 +35,9 @@ def fingerprint(cfg, extra):
     h = hashlib.sha256()
 
     def feed(p, seen):
-        p = p.lstrip('./')
+        # NOT lstrip('./'): it strips CHARACTERS, so an absolute path loses its leading
+        # slash, resolves to nothing, and every config then looks identical.
+        p = p[2:] if p.startswith('./') else p
         if p in seen or not os.path.exists(p):
             return
         seen.add(p)

@@ -15,8 +15,9 @@ reimplementation (no code released); unmarked rows are quoted from their papers,
 pretraining data in parentheses. Marked rows share one environment and one two-stage
 protocol, so \textbf{bold} is the best per column among them; the $^{\ast}$ row scores 52.5
 here against 54.8 as published, so absolute values do not transfer across papers
-(App.~Tab.~\ref{tab:reported}). SCA under full finetuning is the regime-matched comparison
-to the baselines. $\pm$: std over 3 seeds.}
+(App.~Tab.~\ref{tab:reported}). Both SCA rows use a learning rate of
+$1\!\times\!10^{-4}$; the full-finetuning row is the regime-matched comparison to the
+baselines and is the unstable arm of Tab.~\ref{tab:ablate}. $\pm$: std over 3 seeds.}
 \label{tab:main}
 \small
 \setlength{\tabcolsep}{5pt}
@@ -35,7 +36,7 @@ VideoPrism-b (36M+582M) & -- & \xmark & 51.4 & -- & 50.2 & -- \\
 VAST (27M) & full-FT & \xmark & 50.7 & 74.4 & 49.0 & 76.2 \\
 \midrule
 \multicolumn{7}{l}{\emph{(b) Gramian-volume alignment}} \\
-GRAM$^{\ast}$ & full-FT & \xmark & 52.5 & 82.5 & 50.5 & 81.2 \\
+GRAM$^{\ast}$ & full-FT & \xmark & 52.5 & 82.5 & 50.5 & \textbf{81.2} \\
 GRAM$^{\dagger}$ & full-FT & \xmark & 52.4\,\tiny{$\pm$0.21} & 82.6 & 49.7\,\tiny{$\pm$0.46} & 80.9 \\
 HyperGRAM$^{\dagger\ddagger}$ & full-FT & \xmark & 51.0 & 76.7 & \textbf{50.7} & 79.6 \\
 \midrule
@@ -43,9 +44,8 @@ HyperGRAM$^{\dagger\ddagger}$ & full-FT & \xmark & 51.0 & 76.7 & \textbf{50.7} &
 PMRL$^{\dagger}$ & full-FT & \xmark & 51.9 & 80.6 & 49.7 & 79.9 \\
 \midrule
 \multicolumn{7}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
-SCA, full finetuning (lr $2{\times}10^{-5}$) & full-FT & \cmark & 53.4 & 82.4 & 49.9 & \textbf{82.0} \\
-SCA (lr $2{\times}10^{-5}$) & LoRA & \cmark & 53.5 & 81.9 & 49.9 & 78.1 \\
-\textbf{SCA} (lr $1{\times}10^{-4}$) & LoRA & \cmark & \textbf{54.9}\,\tiny{$\pm$0.15} & \textbf{83.5} & 49.2\,\tiny{$\pm$0.53} & 76.2 \\
+SCA, full finetuning & full-FT & \cmark & 53.0 & 81.5 & 49.6 & 78.7 \\
+\textbf{SCA} & LoRA & \cmark & \textbf{54.9}\,\tiny{$\pm$0.15} & \textbf{83.5} & 49.2\,\tiny{$\pm$0.53} & 76.2 \\
 \bottomrule
 \end{tabular}
 \end{table}

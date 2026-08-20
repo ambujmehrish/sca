@@ -7,8 +7,11 @@ given both finetuning learning rates, so the comparison is best-configuration ag
 best-configuration: $2\!\times\!10^{-5}$ is better for both, and GRAM's volume objective
 finetunes more effectively on this in-domain benchmark ($-$1.8 R@1). Adapter-only
 finetuning is the binding constraint for SCA ($+$2.8 from LoRA to full finetuning); the
-initialisation is not (v2a, a better zero-shot start, gains nothing). Last row adds depth
-as a fifth modality with no change to the centroid computation.}
+initialisation is not (v2a, a better zero-shot start, gains nothing). The last row adds
+depth as a fifth modality with no change to the centroid computation, but it is not a
+controlled comparison: it continues from the row-1 SCA finetune for a further four epochs
+at $1\!\times\!10^{-4}$, so the $+$1.6 over 57.1 confounds arity with the extra pass. The
+matched control -- the same checkpoint scored on T-VAS instead of T-VASD -- is pending.}
 \label{tab:finetune}
 \small
 \setlength{\tabcolsep}{5pt}
@@ -24,7 +27,7 @@ SCA & LoRA & 2e-5 & SCA$_{\text{lr}}$ & 56.6 & 57.9 \\
 \textbf{SCA} & full-FT & 2e-5 & SCA$_{\text{lr}}$ & \textbf{59.4} & \textbf{60.9} \\
 SCA & full-FT & 1e-4 & SCA$_{\text{lr}}$ & 56.2 & 56.9 \\
 \midrule
-SCA (T-VASD, $k{=}5$) & LoRA & 2e-5 & SCA & 58.7 & 56.2 \\
+SCA (T-VASD, $k{=}5$) & LoRA & 1e-4 & SCA ft & 58.7 & 56.2 \\
 \bottomrule
 \end{tabular}
 \end{table}

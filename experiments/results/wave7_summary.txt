@@ -1,0 +1,28 @@
+
+== HyperGRAM repro v2  (workdir_pretrain/gram_hyp2; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step    529: R@1   5.3  R@10 18.0
+      final step   2649: R@1   0.5  R@10 3.3
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step    529: R@1   5.7  R@10 20.6
+      final step   2649: R@1   1.8  R@10 8.1
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step    794: R@1  44.3  R@10 80.3
+      final step   2649: R@1  42.8  R@10 78.9
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step    264: R@1  34.9  R@10 74.1
+      final step   2649: R@1  29.1  R@10 65.8
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step    794: R@1  36.4  R@10 73.6
+      final step   2649: R@1  29.8  R@10 68.7
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step    794: R@1  36.9  R@10 70.4
+      final step   2649: R@1  19.0  R@10 43.0  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step    264: R@1  50.7  R@10 79.6
+      final step   2649: R@1  48.6  R@10 79.7
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step   1059: R@1  51.0  R@10 76.7
+      final step   2649: R@1  37.4  R@10 53.5  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave7/rows/HyperGRAM_repro_v2_zeroshot_t2v.json
+   rows -> experiments/results/wave7/rows/HyperGRAM_repro_v2_zeroshot_v2t.json

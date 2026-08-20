@@ -1,0 +1,10 @@
+{
+ "method": "GRAM-LoRA @50%",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   40.2,
+   67.0
+  ]
+ }
+}

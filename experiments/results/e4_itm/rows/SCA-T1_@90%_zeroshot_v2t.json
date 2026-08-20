@@ -1,0 +1,10 @@
+{
+ "method": "SCA-T1 @90%",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   31.3,
+   55.7
+  ]
+ }
+}

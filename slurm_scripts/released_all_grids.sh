@@ -36,6 +36,7 @@ source "${SCA_ENV_RC:-/leonardo_work/AIFAC_S07_041/sca_env.rc}"
 cd "$CODE_DIR"
 [ -f "$MODELS_DIR/env.sh" ] && source "$MODELS_DIR/env.sh" || { echo "FATAL: prefetch first" >&2; exit 1; }
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
+source "$(dirname "$0")/../scripts/cell_done.sh"
 mkdir -p slurm_scripts/logs results/e4_released/feats
 
 if [ -z "${GRAM_RELEASED_CKPT:-}" ]; then
@@ -59,7 +60,7 @@ for cell in gram_r50 gram_r90 \
   cfg="benchmark_eval/configs_e4itm/${cell}.json"
   [ -f "$cfg" ] || { echo "== [$cell] config missing, skip" >&2; continue; }
   out="workdir/e4_itm_released/${cell}"
-  [ -f "$out/.done" ] && { echo "== [$cell] already done, skip"; continue; }
+  cell_is_done "$out" "$cfg" && { echo "== [$cell] already done, skip"; continue; }
   mkdir -p "$out"
   echo "== [$cell] START $(date +%T)"
   EVAL_CKPT="$CKPT" srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 \
@@ -68,7 +69,7 @@ for cell in gram_r50 gram_r90 \
     ./benchmark_eval/run_eval.py --config "$cfg" --output_dir "$out" 2>&1 \
     | { grep -v --line-buffered -E "$NOISE" || true; }
   rc=$?
-  if [ $rc -eq 0 ]; then touch "$out/.done"; echo "== [$cell] OK $(date +%T)"
+  if [ $rc -eq 0 ]; then cell_mark_done "$out" "$cfg"; echo "== [$cell] OK $(date +%T)"
   else echo "== [$cell] FAILED rc=$rc" >&2; rc_all=$rc; fi
 done
 

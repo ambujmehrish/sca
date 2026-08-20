@@ -1,5 +1,9 @@
 #!/bin/bash
-#SBATCH -A IscrC_CASPER-A_0
+#SBATCH -A AIFAC_S07_041
+# LEGACY (imported HyperAlign launcher): the paths below still point at
+# /leonardo_work/IscrC_GMEG/anag0000/HyperAlign, another user's tree. The
+# account is corrected, but do NOT run this as-is -- the campaign uses
+# slurm_scripts/run_config.sh via scripts/submit_recipe_runs.sh.
 #SBATCH -p boost_usr_prod
 #SBATCH --qos=boost_qos_dbg
 #SBATCH --time=00:28:00

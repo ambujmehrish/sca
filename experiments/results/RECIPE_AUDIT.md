@@ -318,3 +318,34 @@ reintroduces an overlap between its train and val annotations.
 | ActivityNet | `activitynet/descs_ret_train.json` | `activitynet/descs_ret_test.json` | none |
 | VATEX | `vatex/descs_ret_train_aug.json` | `vatex/descs_ret_test_431.json` | none |
 | AudioCaps | — | — | **deleted** |
+
+## F11 — annotation audit on the cluster (2026-08-20)
+
+`scripts/audit_annotations.py` run where the data lives. Nine files checked against GRAM's
+Tab. 5 counts:
+
+| split | ours | GRAM Tab. 5 | verdict |
+|---|---|---|---|
+| DiDeMo train / test | 8394 / 1003 | 8394 / 1003 | exact |
+| ActivityNet train / test | 10009 / 4917 | 10009 / 4917 | exact |
+| MSR-VTT train / test | 9000 / 1000 | 9000 / 1000 | exact |
+| VATEX test | **431** | **431** | exact |
+| AudioCaps test | 704 | 700 | +4, within tolerance |
+| VATEX train (`descs_ret_train_aug.json`) | **26,681** | **14,060** | **1.9x larger** |
+
+No train/eval clip-id overlap anywhere.
+
+**The VATEX training split is the one defect.** 26,681 unique clips is more than the 14,491
+GRAM retained across *all* splits — our copy of VATEX lost far fewer videos to takedowns
+than theirs did. The consequence is split cleanly by setting:
+
+- **Zero-shot VATEX is comparable.** The test split is 431, matching exactly, and zero-shot
+  never touches the train split. Table 2's VATEX column stands as measured.
+- **Finetuned VATEX is not comparable.** Our 94.2 / 91.0 was finetuned on ~1.9x the videos
+  GRAM used for their 87.7 / 84.2. That advantage is data, not method, and the row must not
+  be reported as a win. Either drop it, or subsample the train split to 14,060 clips and
+  re-finetune.
+
+This also retires the earlier hypothesis that our VATEX numbers were inflated by an easier
+gallery: the gallery is identical. The inflation, where it exists, is on the training side
+and only affects the finetuned row.

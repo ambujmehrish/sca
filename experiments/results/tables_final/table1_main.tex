@@ -15,11 +15,13 @@ scores 52.5 here against 54.8 as published (the same weights score 53.4 in a thi
 environment), so absolute values are not comparable to published tables; the
 author-reported numbers are given in Appendix~Tab.~\ref{tab:reported}. $\pm$: std over 3
 seeds. SCA's gain is in the text-to-video direction, which its gallery-side centroid
-objective optimises; video-to-text is at parity. SCA is the only row that uses adapters
-and masked training; because neither is part of GRAM's or PMRL's published method we do
-not fold them into the baseline rows, but we do report baselines equipped with both in
-Appendix~Tab.~\ref{tab:reported} -- the strongest such variant, GRAM\,+\,LoRA, reaches
-53.3, still 1.6 below SCA. HyperGRAM releases no code and its description is ambiguous
+objective optimises; video-to-text is at parity. Adapters and masked training are not part
+of GRAM's or PMRL's published method, so rather than fold them into the baseline rows we
+give SCA under \emph{full finetuning} -- the baselines' own regime -- as the
+regime-matched comparison: 53.4 against the best full-finetuned baseline at 52.5, with the
+adapter configuration adding a further 1.5. The converse check, baselines equipped with
+LoRA and masked training, is Appendix~Tab.~\ref{tab:reported}: the strongest such variant
+reaches 53.9, still 1.0 below SCA. HyperGRAM releases no code and its description is ambiguous
 between two readings of the hyperbolic branch; the row is our best-effort reproduction of
 the reading its experiments section supports, and no claim about their method is drawn
 from it.}
@@ -33,12 +35,13 @@ from it.}
 Method & Adapter & Mask & R@1 & R@10 & R@1 & R@10 \\
 \midrule
 \multicolumn{7}{l}{\emph{Baselines, measured here}} \\
-GRAM (released checkpoint) & full-FT & \xmark & 52.5 & 82.5 & 50.5 & \textbf{81.2} \\
+GRAM (released checkpoint) & full-FT & \xmark & 52.5 & 82.5 & 50.5 & 81.2 \\
 GRAM (reproduced) & full-FT & \xmark & 52.4\,\tiny{$\pm$0.21} & 82.6 & 49.7\,\tiny{$\pm$0.46} & 80.9 \\
 PMRL (reproduced) & full-FT & \xmark & 51.9 & 80.6 & 49.7 & 79.9 \\
 HyperGRAM (reproduced) & full-FT & \xmark & 51.0 & 76.7 & \textbf{50.7} & 79.6 \\
 \midrule
 \multicolumn{7}{l}{\emph{Ours}} \\
+SCA, full finetuning & full-FT & \cmark & 53.4 & 82.4 & 49.9 & \textbf{82.0} \\
 SCA, base learning rate & LoRA & \cmark & 53.5 & 81.9 & 49.9 & 78.1 \\
 \textbf{SCA} & LoRA & \cmark & \textbf{54.9}\,\tiny{$\pm$0.15} & \textbf{83.5} & 49.2\,\tiny{$\pm$0.53} & 76.2 \\
 \bottomrule

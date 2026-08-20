@@ -48,7 +48,7 @@ Tables 2, 4 and 5.
 | claim | evidence | limit |
 |---|---|---|
 | +2.5 R@1 over GRAM at identical budget/env/recipe | Tab. 1, 3 seeds each | T2V direction; V2T is parity |
-| The gain is not the adapter regime | Tab. 8(c): GRAM+LoRA 53.3, PMRL+LoRA 53.9 vs SCA 54.9 | baselines' LoRA lr not separately tuned |
+| The gain is not the adapter regime | Tab. 1: SCA at full-FT 53.4 vs best full-FT baseline 52.5; Tab. 8(c): GRAM+LoRA 53.3, PMRL+LoRA 53.9 vs SCA 54.9 | baselines' LoRA lr not separately tuned; SCA's full-FT arm is at base lr |
 | Leads at every missing rate on the reported metric | Tab. 4(a): 54.9/42.2/34.0 vs 52.6/40.5/32.1 | 2 rates only (each is a full reranked pass) |
 | 2$\times$ gentler raw-space degradation | Tab. 4(b): drop 7.1 vs 9.5--9.9 | GRAM-LoRA converges to a tie by 90\% |
 | Only calibrated score in the family | Tab. 5: slope 0.978 vs 1.8--2.8 and 0.5 | $R^2$ negative for all methods (under-dispersion) |

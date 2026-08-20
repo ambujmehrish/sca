@@ -455,3 +455,36 @@ exactly the sub-task objective -- but `p_full` starts at 1.0, so early training 
 full views, and `L_align` is computed on the masked view only. Measuring how often a
 single-modality view is actually drawn, and how late, is the next diagnostic and needs no
 GPU.
+
+### F12b — quantified: SCA trains text-video on 20.8% of steps, GRAM on 100%
+
+`scripts/diag_mask_schedule.py` replays the sampler over the real run (2925 steps of batch
+256 = 150k clips x 5 epochs, 2-modality gallery):
+
+| modality set the centroid sees | clip-steps | share |
+|---|---|---|
+| full {v,a} | 437,844 | 58.5% |
+| **video only** | 155,421 | **20.8%** |
+| audio only | 155,535 | 20.8% |
+
+And it is back-loaded — the video-only share is 1.8% through the first 5% of the run, 9.1%
+by 25%, reaching 20.8% only at the end. GRAM's `ret%tv%ta` trains its text-video volume on
+every step from step 0.
+
+What the existing schedule arms would give: `A5_pfull_end_0.3` 29.0%, `A5_pfull_const_0.5`
+25.0%, `A5_mask_2drop` 20.8% (unchanged, since with a 2-modality gallery dropping 2 leaves
+nothing and the sampler clamps). A flat `p_full=0.5` from step 0 gives 25.0% and starts at
+step 0 instead of step 1.
+
+So no schedule reachable from the current knobs gets past ~29%. Closing the gap to GRAM's
+100% means adding the sub-task objectives explicitly -- computing `L_align` against the
+{v}-only and {a}-only centroids alongside the full one, which is what `ret%tv%ta` already
+asks for and what `_gallery_feats` currently discards. That is a training-loop change using
+machinery already present (the same masked centroid, different subsets), not new model
+capacity.
+
+Worth measuring before committing to it: this predicts the benchmark ordering but does not
+prove it. The cheap test is an arm at `A5_pfull_end_0.3` (29.0%, one pretrain) -- if
+ActivityNet moves in proportion, the mechanism is confirmed and the explicit sub-task
+version is worth the larger change; if it does not move, the hypothesis is wrong and the
+deficit is elsewhere.

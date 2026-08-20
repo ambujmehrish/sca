@@ -1,0 +1,10 @@
+{
+ "method": "gram_released_didemo",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "DiDeMo|T-VA": [
+   48.2,
+   75.4
+  ]
+ }
+}

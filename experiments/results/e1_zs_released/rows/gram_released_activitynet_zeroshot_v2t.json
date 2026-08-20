@@ -1,0 +1,10 @@
+{
+ "method": "gram_released_activitynet",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "ActivityNet|T-VA": [
+   47.8,
+   81.2
+  ]
+ }
+}

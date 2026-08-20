@@ -1,0 +1,10 @@
+{
+ "method": "gram_released_audiocaps",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "AudioCaps|T-VA": [
+   34.9,
+   76.6
+  ]
+ }
+}

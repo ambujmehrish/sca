@@ -44,7 +44,10 @@ FP=$(python3 - "$CONFIG" "$@" <<'PY'
 import hashlib, json, os, sys
 h = hashlib.sha256()
 def feed(p, seen):
-    p = p.lstrip('./')
+    # NOT lstrip('./'): that strips CHARACTERS, so an absolute path loses its leading
+    # slash, fails os.path.exists, and every config fingerprints identically.
+    if p.startswith('./'):
+        p = p[2:]
     if p in seen or not os.path.exists(p):
         return
     seen.add(p)

@@ -25,7 +25,11 @@ import hashlib, json, os, sys
 h = hashlib.sha256()
 
 def feed(path, seen):
-    path = path.lstrip('./')
+    # NOT lstrip('./'): that strips CHARACTERS, so '/tmp/c.json' becomes
+    # 'tmp/c.json', which does not exist -- the walk then hashes nothing and every
+    # config fingerprints identically. Strip only a leading './' prefix.
+    if path.startswith('./'):
+        path = path[2:]
     if path in seen or not os.path.exists(path):
         return
     seen.add(path)

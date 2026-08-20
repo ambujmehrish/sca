@@ -16,10 +16,14 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 PARAGRAPH_BENCHMARKS = ('didemo', 'activitynet')
 REQUIRED = 70
 
-# GRAM (arXiv:2412.11959v2) Table 5, Appendix B.1: 8 frames for training everywhere, but
-# inference uses 40 frames on DiDeMo and 20 on ActivityNet. Evaluating those two at 8
-# frames is not the published protocol and costs several R@1.
-INFERENCE_FRAMES = {'didemo': 40, 'activitynet': 20}
+# GRAM (arXiv:2412.11959v2) Table 5, Appendix B.1. The table's columns are
+# Train / Val / Test counts, then "# Frames", then "# Epochs", and its caption reads
+# "# Frames refers both to training and inference." Frames are 8 for EVERY benchmark; the
+# 40 and 20 that appear against DiDeMo and ActivityNet are finetuning epochs, matching the
+# body text: "For finetuning we reduce the batch size to 64 and change the number of epochs
+# according to the specific dataset". This constant exists so that misreading is not
+# repeated: any config evaluating at something other than 8 frames fails the test.
+INFERENCE_FRAMES = {'didemo': 8, 'activitynet': 8}
 
 
 class TestParagraphCaptionLen(unittest.TestCase):
@@ -64,7 +68,8 @@ class TestParagraphCaptionLen(unittest.TestCase):
                             (os.path.relpath(path, ROOT), split, bench, got, want))
         self.assertEqual(
             offenders, [],
-            'these configs do not use the published inference frame count: %s' % offenders)
+            'these configs do not use the published frame count of 8 '
+            '(GRAM Tab. 5; the 40/20 in that table are finetuning epochs): %s' % offenders)
 
 
 if __name__ == '__main__':

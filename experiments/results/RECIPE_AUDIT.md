@@ -176,59 +176,61 @@ When extracting, give wave-9 rows distinct method names (`GRAM (paper recipe)`, 
 (repro)`): `wave1` and `wave2` already collide on method name with different metrics, and
 `scripts/extract_results.py` keys rows by name.
 
-## F6 — the published protocol, read from the paper (2026-08-20)
+## F6 — the published protocol, read from the paper source (2026-08-20, corrected)
 
-Fetched GRAM (arXiv:2412.11959v2) directly rather than inferring from their released
-config. Three corrections, two of them to our evaluation:
+Downloaded arXiv:2412.11959v2 and read Table 5 and the body text directly. An earlier pass
+today relayed a summarizer's reading of the same table and got the frame counts wrong; the
+verbatim table is reproduced here so it does not happen again.
 
-| item | paper says | we had | effect |
+**Table 5 (Appendix B.1).** Columns are Train / Val / Test counts, then "# Frames", then
+"# Epochs". Caption: *"# Frames refers both to training and inference."*
+
+| Benchmark | Train | Val | Test | # Frames | # Epochs |
+|---|---|---|---|---|---|
+| AudioCaps | -- | -- | 700 | 8 | -- |
+| VGGSound | -- | -- | 5000 | 8 | -- |
+| DiDeMo | 8394 | 1065 | 1003 | 8 | 40 |
+| ActivityNet | 10009 | -- | 4917 | 8 | 20 |
+| MSR-VTT | 9000 | -- | 1000 | 8 | 4 |
+| VATEX | 14060 | -- | 431 | 8 | 3 |
+
+**Body text, verbatim:** *"We pretrain the GRAM-based model on a subset of the VAST27M
+dataset comprising 150k random samples with a learning rate of 1e-4 using the AdamW
+optimizer with weight decay and batch size of 256. For finetuning we reduce the batch size
+to 64 and change the number of epochs according to the specific dataset, the complete
+details are shown in Tab. 5."*
+
+| item | paper | ours | status |
 |---|---|---|---|
-| pretrain batch | **256**, lr 1e-4, 1 epoch, 4×A100 | T1: 256 @ 1e-4 | **already matched** |
-| DiDeMo inference frames | **40** (8 for training) | 8 | under-sampled 5× |
-| ActivityNet inference frames | **20** (8 for training) | 8 | under-sampled 2.5× |
-| VATEX test split | **431** (Table 5); 14,491 = whole retained dataset | 431 | already correct |
+| pretrain lr / batch | 1e-4 / 256, 1 epoch | T1: 1e-4 / 256 | matches |
+| finetune batch | 64 | 64 | matches |
+| frames, train and inference | 8, every benchmark | 8 | **correct as it was** |
+| VATEX test split | 431 (14060 train + 431 = the 14491 retained) | 431 | matches |
+| MSR-VTT / DiDeMo / ActivityNet test | 1000 / 1003 / 4917 | to verify on cluster | open |
 
-1. **Batch 256 is the published recipe.** Our earlier reading of "batch 128" came from a
-   released config file, not the paper. SCA T1 (lr 1e-4, batch 256) therefore *already*
-   matches GRAM's published pretraining recipe exactly. `sca_paper` at batch 128 is an
-   exploratory arm, not a correctness fix.
-2. **Frames.** Table 5 (Appendix B.1) gives per-dataset inference frame counts. We
-   evaluated DiDeMo and ActivityNet at 8 frames instead of 40 and 20. Combined with the
-   `max_caption_len` 40-vs-70 truncation found the same day, our two weakest benchmarks
-   were being scored under two independent protocol deviations, both of which hurt every
-   method we measure. 22 eval configs corrected; `tests/test_eval_protocol.py` guards both.
-3. **VATEX — corrected, twice.** The Appendix B.1 sentence *"we use only a portion of the
-   original dataset composed of 14491 samples"* describes the portion of the WHOLE dataset
-   still downloadable, across all splits. It is not the retrieval gallery. Their Table 5
-   gives the VATEX test split as **431** — the same size as our
-   `descs_ret_test_431.json`, which came from their codebase. So our VATEX column is
-   evaluated on GRAM's own test split and IS directly comparable, contrary to both the
-   earlier wave-3 note ("never comparable") and my first reading of the 14,491 sentence.
-   Bolding restored; the standard-split caveat carried in the tables since wave 3 was
-   wrong and is removed.
+**Corrections to earlier entries in this file.**
 
-## F7 — PMRL and HyperGRAM protocols (2026-08-20)
+1. The "40 inference frames on DiDeMo, 20 on ActivityNet" claim was wrong. Those are
+   *finetuning epochs*. 22 eval configs were changed on that basis and have been reverted
+   to 8 frames. `tests/test_eval_protocol.py` now asserts 8 and documents why.
+2. VATEX 431 is GRAM's own test split, not a reduced subset of ours: 14060 train + 431
+   test is exactly the 14491 samples the paper says it retained out of 41250. Our column
+   is comparable, and the "audio-complete subset, not comparable" caveat carried since
+   wave 3 was never correct.
+3. The surviving real defect is `max_caption_len`: every DiDeMo/ActivityNet config that
+   shipped with this repo sets 70, and the configs generated for this campaign inherited
+   the default 40. That is a codebase convention rather than a statement in the paper, but
+   it is GRAM's own convention for those two datasets and the truncation is real. Fix
+   stands; those two benchmarks need re-evaluation.
 
-**PMRL (arXiv:2507.17343), read from the paper.**
+## F8 — one configuration, not a per-benchmark best (2026-08-20)
 
-- Pretraining: *"we set the learning rate to 2×10⁻⁵, the batch size to 64, and train the
-  model for one epoch."* Our PMRL config (lr 2e-5, batch 64) therefore already matches the
-  published recipe exactly — no correction needed, and no PMRL retraining was ever
-  warranted on recipe grounds.
-- VATEX: *"We adopt the split following [73, 11] and exclude these examples for
-  evaluation"* — the same exclude-unavailable-videos convention GRAM uses, so PMRL's 80.5
-  is on a GRAM-scale reduced set, not on our 431 clips. The incomparability of our VATEX
-  column applies to the PMRL row as well.
-- The paper does not state per-dataset inference frame counts or test-set sizes.
+Requirement: SCA's reported numbers must all come from a SINGLE (learning rate, batch
+size), not from picking whichever arm wins each benchmark. Batch is already single at 256
+for both SCA arms, so the open choice is the learning rate: 2e-5 (better transfer) versus
+1e-4 (better MSR-VTT). Neither dominates on today's numbers.
 
-**HyperGRAM — UNVERIFIED.** The numbers this repo reports for HyperGRAM (MSR-VTT 56.6/53.6,
-DiDeMo 51.3/49.5, ActivityNet 58.2/51.8, VATEX 79.9/75.7) are recorded in
-`benchmark_eval/published_rows.json` as "CVPR 2026 (Na et al.)", but a web search could not
-locate the paper, its proceedings entry, or any preprint. Everything we assert about
-HyperGRAM — the numbers themselves, the same-budget claim, and the assumption that its
-VATEX protocol matches GRAM's — currently rests on that transcription alone.
-
-Before submission these must be checked against the actual paper: the four number pairs,
-the pretraining recipe, and the VATEX evaluation size. If the paper cannot be produced,
-the HyperGRAM rows should be dropped rather than cited, since an unverifiable comparison
-number is worse than an absent one.
+That choice cannot be made yet, because DiDeMo and ActivityNet are currently measured
+under the caption truncation above. Sequence: fix (done) -> re-evaluate BOTH SCA arms on
+all five benchmarks -> pick the single lr with the best overall standing -> report only
+that arm everywhere. The losing arm moves to the ablation table as a learning-rate row.

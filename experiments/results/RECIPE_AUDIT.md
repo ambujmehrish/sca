@@ -286,3 +286,35 @@ reproduce them. This is worth a sentence in the paper, citing PMRL's table.
 VATEX is the exception -- ours is 11 points above PMRL's GRAM row, which suggests PMRL's
 VATEX split differs from the 431-clip one GRAM and we use. Their paper does not state a
 VATEX test size, so that column should not be cross-compared with PMRL.
+
+## F10 — AudioCaps finetuning was train-on-test (2026-08-20)
+
+`config/{sca,gram}/finetune_cfg/retrieval-audiocaps.json` pointed **both** the training
+split and the validation split at `benchmark_eval/audiocaps_tva_annotation.json` — the
+704-clip AudioCaps test annotation — with `training: true`. Any number it produced was
+trained on the data it was scored on.
+
+The affected result is **SCA ft AudioCaps 51.6 / 50.6**, now moved to
+`experiments/results/quarantine/`. It was never in Tables 1–9, only in the auto-generated
+wide `finetune_t2v.tex` / `finetune_v2t.tex`, so nothing in the paper's table set depended
+on it.
+
+The config came from the imported trunk and GRAM never uses it: their Tab. 5 gives
+AudioCaps no finetuning epochs, and their AudioCaps numbers (Tab. 3) are zero-shot. So
+there is no baseline to compare a finetuned AudioCaps row against, and no protocol reason
+to have one. Both configs are deleted rather than repaired — repair would require a real
+AudioCaps train split that neither this repo nor the published protocol uses.
+`slurm_scripts/ft_audiocaps_sca.sh` now refuses to run and explains why, and
+`tests/test_eval_protocol.py::TestNoTrainTestOverlap` fails if any finetuning config
+reintroduces an overlap between its train and val annotations.
+
+### Finetuning data, verified per benchmark
+
+| config | train annotation | eval annotation | overlap |
+|---|---|---|---|
+| MSR-VTT | `msrvtt/descs_ret_train.json` | `msrvtt/descs_ret_test.json` | none |
+| MSR-VTT depth | `msrvtt/descs_ret_train.json` | `msrvtt/descs_ret_test.json` | none |
+| DiDeMo | `didemo/descs_ret_train.json` | `didemo/descs_ret_test.json` | none |
+| ActivityNet | `activitynet/descs_ret_train.json` | `activitynet/descs_ret_test.json` | none |
+| VATEX | `vatex/descs_ret_train_aug.json` | `vatex/descs_ret_test_431.json` | none |
+| AudioCaps | — | — | **deleted** |

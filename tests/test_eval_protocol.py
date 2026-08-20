@@ -74,3 +74,33 @@ class TestParagraphCaptionLen(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestNoTrainTestOverlap(unittest.TestCase):
+    """A finetuning config must not train on the file it evaluates.
+
+    config/{sca,gram}/finetune_cfg/retrieval-audiocaps.json pointed both its training split
+    and its validation split at benchmark_eval/audiocaps_tva_annotation.json -- the 704-clip
+    AudioCaps *test* annotation -- with training=True. Any result produced by it is trained
+    on the test set. The config was inherited from the imported trunk and GRAM never uses it
+    (their Tab. 5 lists AudioCaps with no finetuning epochs; their AudioCaps numbers are
+    zero-shot, in their Tab. 3). Both configs now carry an explicit refusal, and this test
+    fails if any finetuning config reintroduces the overlap.
+    """
+
+    def test_train_split_differs_from_val_split(self):
+        offenders = []
+        for path in sorted(glob.glob(os.path.join(ROOT, 'config/*/finetune_cfg/*.json'))):
+            try:
+                cfg = json.load(open(path))
+            except (ValueError, IOError):
+                continue
+            data = cfg.get('data_cfg', {})
+            train_files = {c.get('txt') for c in data.get('train', []) if c.get('training')}
+            val_files = {c.get('txt') for c in data.get('val', [])}
+            shared = train_files & val_files
+            if shared:
+                offenders.append((os.path.relpath(path, ROOT), sorted(shared)))
+        self.assertEqual(
+            offenders, [],
+            'these finetuning configs train on the annotation they evaluate: %s' % offenders)

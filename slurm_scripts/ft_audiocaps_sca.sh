@@ -11,22 +11,20 @@
 #SBATCH --job-name=ft_audiocaps_sca
 #SBATCH -o ./slurm_scripts/logs/ft_audiocaps_sca_%j.out
 #SBATCH -e ./slurm_scripts/logs/ft_audiocaps_sca_%j.out
-# SCA finetune on AudioCaps (P4 grid clone of ft_audiocaps.sh): GRAM recipe, model=sca + LoRA.
-# Set SCA_PRETRAIN_CKPT to the Stage-1 pretrain checkpoint (default: latest best in
-# ./workdir_pretrain/sca/ckpt). Requires DATA_ROOT/WORK_ROOT (+ prefetched MODELS_DIR).
-set -uo pipefail
-: "${DATA_ROOT:?export DATA_ROOT first}"; : "${WORK_ROOT:?export WORK_ROOT first}"
-MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
-[ -f "$MODELS_DIR/env.sh" ] && source "$MODELS_DIR/env.sh" || { echo "FATAL: run scripts/prefetch_models.py first" >&2; exit 1; }
-export WANDB_MODE=offline GRAM_MP_CTX=forkserver
-mkdir -p slurm_scripts/logs workdir/sca_ft_audiocaps
-INIT="${SCA_PRETRAIN_CKPT:-$(ls -t ./workdir_pretrain/sca/ckpt/best_*.pt 2>/dev/null | head -1)}"
-[ -z "$INIT" ] && { echo "ERROR: no SCA pretrain ckpt -- run run_pretrain_sca.sh first or set SCA_PRETRAIN_CKPT"; exit 1; }
-RESUME=""; ls workdir/sca_ft_audiocaps/ckpt/optimizer_step_*.pt >/dev/null 2>&1 && RESUME="--resume true"
-echo "START $(date +%T)  SCA finetune AudioCaps  (init=$INIT)"
-srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_node 4 --master_port 9905 \
-  ./run.py --config ./config/sca/finetune_cfg/retrieval-audiocaps.json \
-  --output_dir ./workdir/sca_ft_audiocaps --checkpoint "$INIT" --save_best true --checkpointing true $RESUME 2>&1
-rc=$?
-echo "EXIT=$rc DONE $(date +%T)"
-exit $rc
+
+# DISABLED -- this finetune was train-on-test.
+#
+# config/sca/finetune_cfg/retrieval-audiocaps.json pointed BOTH its training split and its
+# validation split at benchmark_eval/audiocaps_tva_annotation.json, the 704-clip AudioCaps
+# test annotation, with training=true. Anything it produced was trained on the data it was
+# scored on, so the "SCA ft AudioCaps 51.6/50.6" row is invalid and has been quarantined.
+#
+# There is also no baseline to compare against: GRAM does not finetune AudioCaps at all --
+# their Tab. 5 gives it no finetuning epochs and their AudioCaps numbers (Tab. 3) are
+# zero-shot. AudioCaps belongs in the zero-shot table only.
+#
+# The config has been deleted rather than repaired: repairing it would need a genuine
+# AudioCaps train split, which neither this repo nor the published protocol uses.
+echo "REFUSING TO RUN: AudioCaps finetuning was train-on-test; see the comment in this file." >&2
+echo "AudioCaps is a ZERO-SHOT benchmark in this family -- use the e1 zero-shot path." >&2
+exit 2

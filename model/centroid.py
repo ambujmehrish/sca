@@ -90,6 +90,17 @@ def reliability_weights(z, present, tau=0.1, eps=1e-6):
     determinant, so Proposition 1 is untouched. With |M| <= 1 there is no consensus to
     compare against and it falls back to the uniform weights exactly.
 
+    LIMITATION -- degenerate at L=2, which is where we need it. With two present
+    modalities mu_{-0} = z_1 and mu_{-1} = z_0, so a_0 = cos(z_0, z_1) = cos(z_1, z_0) = a_1
+    identically and the weights are forced to 0.5/0.5 whatever tau is. DiDeMo, ActivityNet
+    and AudioCaps are all T-VA, i.e. a two-modality gallery, so this mechanism is a no-op on
+    both benchmarks where SCA trails GRAM and acts only on MSR-VTT and VATEX where it
+    already leads. It is also undefined at k=1. A weighting that only engages at k>=3 is not
+    arity-invariant and contradicts the property that motivates the centroid, so this is
+    kept as a measured negative result, NOT as a proposed fix. A general scheme would have
+    to score a modality from itself alone -- pre-normalisation norm, or typicality against
+    that modality's own distribution -- so that it is defined at every arity.
+
     z       : (B, L, d) L2-normalised modality embeddings (absent ones may be zero).
     present : (B, L) 0/1 mask.
     tau     : softmax temperature. tau -> inf recovers the uniform centroid.

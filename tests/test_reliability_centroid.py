@@ -34,6 +34,22 @@ class TestReliabilityWeights(unittest.TestCase):
         self.assertLess(w[:, 3].mean().item(), 0.25,
                         'it should fall below the uniform share of 1/4')
 
+    def test_two_modalities_is_degenerate(self):
+        """Documents the limitation that rules this out as a fix.
+
+        With L=2 the leave-one-out consensus is symmetric: mu_{-0} = z_1 and mu_{-1} = z_0,
+        so both agreements are the same number and the weights are pinned at 0.5/0.5. Every
+        benchmark where SCA trails GRAM (DiDeMo, ActivityNet) has a two-modality gallery,
+        so the mechanism cannot help there. Asserted so nobody proposes it again without
+        meeting this.
+        """
+        torch.manual_seed(0)
+        z = _norm(torch.randn(32, 2, 24))
+        for tau in (0.01, 0.1, 1.0):
+            w = reliability_weights(z, torch.ones(32, 2), tau=tau)
+            self.assertTrue(torch.allclose(w, torch.full((32, 2), 0.5), atol=1e-5),
+                            'L=2 weights must be exactly uniform at tau=%s' % tau)
+
     def test_single_modality_falls_back_to_uniform(self):
         z = _norm(torch.randn(5, 4, 16))
         present = torch.tensor([[1., 0., 0., 0.]] * 5)

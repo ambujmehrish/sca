@@ -68,7 +68,14 @@ submit() {  # submit <config> <workdir> [extra args]
   # per-node maximum here and the recipe assumes it -- the config's batch_size is GLOBAL
   # (build_dataloader.py:114 divides by world size), so changing it would preserve the
   # recipe but double per-GPU memory. Leave SCA_GPUS at 4.
-  local cmd=(sbatch -J "$name" --dependency=singleton
+  # SCA_ACCOUNT / SCA_PARTITION / SCA_QOS override the #SBATCH directives when the default
+  # account or partition is unavailable. Scheduling only -- they cannot change what is
+  # trained, so a campaign split across accounts stays internally comparable.
+  local sched=()
+  [ -n "${SCA_ACCOUNT:-}" ]   && sched+=(-A "$SCA_ACCOUNT")
+  [ -n "${SCA_PARTITION:-}" ] && sched+=(-p "$SCA_PARTITION")
+  [ -n "${SCA_QOS:-}" ]       && sched+=(--qos "$SCA_QOS")
+  local cmd=(sbatch -J "$name" --dependency=singleton "${sched[@]}"
              -c "${SCA_CPUS:-32}" --gres="gpu:${SCA_GPUS:-4}"
              -o "slurm_scripts/logs/${name}_%j.out"
              -e "slurm_scripts/logs/${name}_%j.out"

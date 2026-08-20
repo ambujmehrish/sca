@@ -83,27 +83,22 @@ submit() {  # submit <config> <workdir> [extra args]
   if [ $DRY -eq 1 ]; then printf '%s\n' "${cmd[*]}"; else "${cmd[@]}"; fi
 }
 
-# PHASE 1 -- give the BASELINES the learning rate they never got.
-# Every baseline we trained (GRAM, GRAM-LoRA, PMRL, HyperGRAM) ran at lr 2e-5, inherited
-# from the HyperAlign lineage; only SCA has a 1e-4 arm. Reporting SCA at 1e-4 against a
-# baseline at 2e-5 compares a tuned method with an untuned one, and GRAM's own paper trains
-# at 1e-4, so our GRAM reproduction is under-tuned relative to its own publication. These
-# four runs close that gap.
-#
-# SCA is NOT rerun: sca_paper/sca_paper_fullft were byte-identical in every meaningful
-# field to T1_lr1e4 and T4_fullft_lr1e4, which already ran (54.9 and 53.0) and carry all the
-# downstream grids. Batch stays 256 for the same reason -- it is what every measured number
-# and every E4/E5/E6 grid was produced at, so changing it would confound the lr and force a
-# re-run of the entire evaluation campaign. One variable moves here: the learning rate.
+# PHASE 1 -- the four rows that decide whether the paper's claim survives a matched recipe.
+# The existing 1e-4 SCA arm (t1_lr1e4) trained at batch 256 against GRAM's 128, and batch
+# size sets the number of in-batch contrastive negatives, which a centroid objective is
+# directly sensitive to -- so no SCA row we have is matched. Run these before anything else:
+# if SCA does not clear GRAM here, the ablation grid is measuring the wrong model anyway.
 if [ "$WHAT" = all ] || [ "$WHAT" = headline ] || [ "$WHAT" = baselines ]; then
-  echo "# --- PHASE 1: baselines at lr 1e-4, batch 256 (SCA already measured) ---------"
+  echo "# --- PHASE 1: headline, all four at lr 1e-4 / batch 128 ----------------------"
   submit config/baselines/pretrain_cfg/gram_paper.json      workdir_pretrain/gram_paper
+  submit config/sca/pretrain_cfg/sca_paper.json             workdir_pretrain/sca_paper
   submit config/baselines/pretrain_cfg/gram_lora_paper.json workdir_pretrain/gram_lora_paper
+  submit config/sca/pretrain_cfg/sca_paper_fullft.json      workdir_pretrain/sca_paper_fullft
 fi
 
-# PHASE 2 -- the remaining two baselines at the same matched recipe.
+# PHASE 2 -- the remaining baselines, each at its own authors' recipe.
 if [ "$WHAT" = all ] || [ "$WHAT" = baselines ]; then
-  echo "# --- PHASE 2: other baselines at lr 1e-4 -------------------------------------"
+  echo "# --- PHASE 2: other baselines ------------------------------------------------"
   submit config/baselines/pretrain_cfg/pmrl_paper.json      workdir_pretrain/pmrl_paper
   submit config/baselines/pretrain_cfg/gram_hyp_paper.json  workdir_pretrain/gram_hyp_paper
 fi

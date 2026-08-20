@@ -1,0 +1,21 @@
+% Table 7 (appendix) -- evaluation-environment audit.
+\begin{table}[t]
+\centering
+\caption{Evaluation-environment audit. The first three rows evaluate \emph{the same
+released GRAM checkpoint} in three environments; the fourth is our own retraining
+evaluated in ours. Absolute numbers are therefore not comparable across papers in this
+family, while same-environment comparisons and each method's delta over its own baseline
+are. MSR-VTT T-VAS, ITM R@1.}
+\label{tab:envaudit}
+\small
+\begin{tabular}{llr}
+\toprule
+Weights & Evaluation environment & R@1 \\
+\midrule
+GRAM, released checkpoint & as published & 54.8 \\
+GRAM, released checkpoint & HyperAlign & 53.4 \\
+GRAM, released checkpoint & ours & 52.5 \\
+GRAM, our retraining & ours & 52.4\,\tiny{$\pm$0.21} \\
+\bottomrule
+\end{tabular}
+\end{table}

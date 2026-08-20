@@ -1,0 +1,31 @@
+% Table 5 -- semantic calibration (E6) and cardinality fairness (E5).
+\begin{table}[t]
+\centering
+\caption{Score quality beyond ranking. Left: regression of each method's similarity
+against an external semantic reference $2S^{*}\!-\!1$ over the pairs where the reference
+is defined (slope 1 = calibrated; $R^2$ closer to 0 = tighter fit). Right: rank
+displacement at 50\% missing -- how far intact gallery items are pushed from their
+full-modality rank. SCA is the only family with slope $\approx$ 1, and its $R^2$ is
+25--70$\times$ closer to zero than any volume or $\lambda_1$ baseline.}
+\label{tab:calib}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+ & \multicolumn{3}{c}{Calibration (E6)} & \multicolumn{2}{c}{Fairness (E5)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+Method & slope & $R^2$ & nDCG@10 & intact & hit \\
+\midrule
+\textbf{SCA} (ours) & \textbf{0.978} & \textbf{$-$0.67} & 0.543 & \textbf{$-$4.5} & 119 \\
+\textbf{SCA}$_{\text{lr}}$ (ours) & 0.974 & $-$4.35 & 0.543 & $-$9.5 & \textbf{94} \\
+\quad w/o masked training & 1.079 & $-$2.93 & 0.519 & $+$7.3 & 307 \\
+\midrule
+GRAM & 2.309 & $-$17.8 & 0.544 & $-$9.4 & 134 \\
+\quad + masked training & 1.831 & $-$16.9 & 0.534 & $-$11.3 & 131 \\
+\quad + LoRA & 2.794 & $-$17.8 & \textbf{0.557} & $-$8.6 & 217 \\
+\midrule
+PMRL & 0.505 & $-$49.5 & 0.489 & $-$13.8 & 152 \\
+\quad + masked training & 0.543 & $-$43.8 & 0.491 & $-$11.3 & 156 \\
+\quad + LoRA & 0.751 & $-$40.3 & 0.517 & $-$10.1 & 137 \\
+\bottomrule
+\end{tabular}
+\end{table}

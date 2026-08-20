@@ -1,0 +1,24 @@
+% Table 3 -- finetuned MSR-VTT, same environment / data / recipe.
+\begin{table}[t]
+\centering
+\caption{Fine-tuned retrieval on MSR-VTT, R@1 (ITM protocol). All rows start from a
+150k-budget pretrain and use the identical finetuning data, schedule and learning rate.
+The last row adds depth as a fifth modality (T-VASD) with no change to the centroid
+computation. GRAM's volume objective finetunes more effectively on this benchmark; the
+gap narrows from $-$4.1 to $-$1.8 when SCA is given the same full-parameter regime.}
+\label{tab:finetune}
+\small
+\begin{tabular}{llcrr}
+\toprule
+Method & FT regime & Init & T2V & V2T \\
+\midrule
+GRAM (reproduced) & full-FT & GRAM & \textbf{61.2} & 60.4 \\
+\midrule
+SCA & LoRA & SCA & 57.1 & 58.9 \\
+SCA & LoRA & SCA$_{\text{lr}}$ & 56.6 & 57.9 \\
+\textbf{SCA} & \textbf{full-FT} & SCA$_{\text{lr}}$ & \textbf{59.4} & \textbf{60.9} \\
+\midrule
+SCA (T-VASD, $k=5$) & LoRA & SCA & 58.7 & 56.2 \\
+\bottomrule
+\end{tabular}
+\end{table}

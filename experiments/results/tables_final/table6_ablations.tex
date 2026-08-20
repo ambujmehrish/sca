@@ -1,0 +1,33 @@
+% Table 6 -- training-recipe ablations on the SCA objective.
+\begin{table}[t]
+\centering
+\caption{Training-recipe ablations (MSR-VTT zero-shot, ITM R@1 best\,/\,final).
+Adapters at $0.1\times$ the base learning rate (the standard LoRA heuristic) beat
+adapters at $1\times$; full finetuning is worse at both learning rates and unstable at
+$1\!\times\!10^{-4}$, so the adapter regime is a quality choice rather than a compute
+compromise. Remaining knobs move the result by $\le$0.4.}
+\label{tab:ablate}
+\small
+\begin{tabular}{llcrr}
+\toprule
+Variant & Regime & lr & best & final \\
+\midrule
+\textbf{SCA}$_{\text{lr}}$ (default) & LoRA ($0.1\times$) & 1e-4 & \textbf{54.9} & \textbf{54.4} \\
+\quad adapters at $1\times$ base lr & LoRA ($1\times$) & 1e-4 & 54.0 & 53.9 \\
+\quad lr $5\!\times\!10^{-5}$ & LoRA ($0.1\times$) & 5e-5 & 54.2 & 54.1 \\
+\quad lr $2\!\times\!10^{-5}$ (SCA) & LoRA ($0.1\times$) & 2e-5 & 53.5 & 53.4 \\
+\midrule
+full finetuning & full-FT & 1e-4 & 53.0 & 48.3 \\
+full finetuning & full-FT & 2e-5 & 53.4 & 52.5 \\
+\midrule
+learned centroid gates & LoRA & 2e-5 & 53.5 & 53.5 \\
+uniformity weight $\lambda\!=\!0.3$ & LoRA & 2e-5 & 53.2 & 53.0 \\
+uniformity weight $\lambda\!=\!0.05$ & LoRA & 2e-5 & 53.4 & 53.2 \\
+$S^{*}$-weighted repulsion & LoRA & 2e-5 & 53.5 & 53.5 \\
+LoRA rank 16 & LoRA & 2e-5 & 53.6 & 53.6 \\
+asymmetric ranks (V16/A8/T4) & LoRA & 2e-5 & 53.8 & 53.7 \\
+deeper mask schedule ($p\!\to\!0.3$) & LoRA & 2e-5 & 53.7 & 53.7 \\
+ITM weight 0.2 & LoRA & 2e-5 & 53.5 & 53.4 \\
+\bottomrule
+\end{tabular}
+\end{table}

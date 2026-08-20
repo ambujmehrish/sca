@@ -8,7 +8,7 @@ reported by its authors. Regenerate measured rows from the raw logs with
 |---|---|---|
 | `table1_main.tex` | Main zero-shot MSR-VTT T-VAS, both directions, grouped by adapter/mask setting; all baselines | final |
 | `table2_zeroshot_all.tex` | Zero-shot across 5 benchmarks, both directions | final |
-| `table3_finetune.tex` | Fine-tuned MSR-VTT + depth ($k{=}5$) | **v2c / GRAM-lr1e-4 pending** |
+| `table3_finetune.tex` | Fine-tuned MSR-VTT + depth ($k{=}5$), both ft learning rates | final |
 | `table4_missingness.tex` | Missing modalities: (a) ITM metric, (b) raw space, 3 seeds | final |
 | `table5_calibration.tex` | Semantic calibration (E6) + cardinality fairness (E5) | final |
 | `table6_ablations.tex` | Training-recipe ablations | final |

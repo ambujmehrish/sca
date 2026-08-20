@@ -1,24 +1,30 @@
-% Table 3 -- finetuned MSR-VTT, same environment / data / recipe.
+% Table 3 -- finetuned MSR-VTT. Both methods given both finetuning learning rates.
 \begin{table}[t]
 \centering
-\caption{Fine-tuned retrieval on MSR-VTT, R@1 (ITM protocol). All rows start from a
-150k-budget pretrain and use the identical finetuning data, schedule and learning rate.
-The last row adds depth as a fifth modality (T-VASD) with no change to the centroid
-computation. GRAM's volume objective finetunes more effectively on this benchmark; the
-gap narrows from $-$4.1 to $-$1.8 when SCA is given the same full-parameter regime.}
+\caption{Fine-tuned retrieval on MSR-VTT, R@1 (ITM protocol). Every row starts from a
+150k-budget pretrain and uses identical finetuning data and schedule. Both methods were
+given both finetuning learning rates, so the comparison is best-configuration against
+best-configuration: $2\!\times\!10^{-5}$ is better for both, and GRAM's volume objective
+finetunes more effectively on this in-domain benchmark ($-$1.8 R@1). Adapter-only
+finetuning is the binding constraint for SCA ($+$2.8 from LoRA to full finetuning); the
+initialisation is not (v2a, a better zero-shot start, gains nothing). Last row adds depth
+as a fifth modality with no change to the centroid computation.}
 \label{tab:finetune}
 \small
-\begin{tabular}{llcrr}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llccrr}
 \toprule
-Method & FT regime & Init & T2V & V2T \\
+Method & FT regime & FT lr & Init & T2V & V2T \\
 \midrule
-GRAM (reproduced) & full-FT & GRAM & \textbf{61.2} & 60.4 \\
+GRAM (reproduced) & full-FT & 2e-5 & GRAM & \textbf{61.2} & \textbf{60.4} \\
+GRAM (reproduced) & full-FT & 1e-4 & GRAM & 58.8 & 58.2 \\
 \midrule
-SCA & LoRA & SCA & 57.1 & 58.9 \\
-SCA & LoRA & SCA$_{\text{lr}}$ & 56.6 & 57.9 \\
-\textbf{SCA} & \textbf{full-FT} & SCA$_{\text{lr}}$ & \textbf{59.4} & \textbf{60.9} \\
+SCA & LoRA & 2e-5 & SCA & 57.1 & 58.9 \\
+SCA & LoRA & 2e-5 & SCA$_{\text{lr}}$ & 56.6 & 57.9 \\
+\textbf{SCA} & full-FT & 2e-5 & SCA$_{\text{lr}}$ & \textbf{59.4} & \textbf{60.9} \\
+SCA & full-FT & 1e-4 & SCA$_{\text{lr}}$ & 56.2 & 56.9 \\
 \midrule
-SCA (T-VASD, $k=5$) & LoRA & SCA & 58.7 & 56.2 \\
+SCA (T-VASD, $k{=}5$) & LoRA & 2e-5 & SCA & 58.7 & 56.2 \\
 \bottomrule
 \end{tabular}
 \end{table}

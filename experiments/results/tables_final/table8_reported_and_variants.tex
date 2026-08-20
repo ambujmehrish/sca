@@ -1,58 +1,50 @@
-% Appendix table -- everything removed from Table 1: (a) numbers reported by their authors
-% in their own evaluation environments, and (b) baseline variants equipped with the two
-% ingredients that are ours and not theirs (LoRA adapters, masked training). Kept out of the
-% main table because (a) is not comparable in absolute terms and (b) is not part of the
-% published GRAM/PMRL methods.
+% Appendix table -- everything held out of Table 1: (a) the GRAM/PMRL/HyperGRAM numbers as
+% reported by their authors, and (b) baseline variants equipped with the two ingredients
+% that are ours and not theirs (LoRA adapters, masked training), with (c) the mirror-image
+% SCA arms. Provenance markers match Table 1 (dag = trained by us).
 \begin{table}[t]
 \centering
-\caption{Appendix to Table~\ref{tab:main}. \emph{(a)} numbers as reported by their authors,
-in their own evaluation environments -- included for context only; the same released GRAM
-weights score 54.8 there and 52.5 in ours (Tab.~\ref{tab:env}), so a $\sim$2-point
-environment offset separates blocks (a)--(b) from the measured blocks and absolute
-comparison across the gap is not meaningful. \emph{(c)} baselines equipped with the two
-ingredients SCA uses but their published methods do not: LoRA adapters and masked
-training. Both help the Gramian and eigenvalue baselines -- LoRA by $\sim$1 point, masked
-training by $\pm$0.5 -- and the strongest resulting variant (PMRL\,+\,LoRA, 53.9;
-GRAM\,+\,LoRA, 53.3) remains below SCA's 54.9, so the SCA gain is not attributable to the
-adaptation regime. \emph{(d)} SCA variants that isolate the same two ingredients on our
-side; the full ablation grid is Tab.~\ref{tab:ablate}. Rows in (c)--(d) are measured in our
-single environment on the same 150k budget; \textbf{bold} marks the best value per column
-within block~(c) (ties bolded jointly), and the last row of (d) repeats SCA from
-Tab.~\ref{tab:main} for reference.}
+\caption{Appendix to Table~\ref{tab:main}. \emph{(a)} the same-budget baselines as reported
+by their authors, in their own evaluation environments -- the released GRAM weights score
+54.8 there and 52.5 in ours (Tab.~\ref{tab:env}), so an environment offset of roughly two
+points separates this block from the measured ones and absolute comparison across the gap
+is not meaningful; this is why Table~\ref{tab:main} reports our own reproductions instead.
+\emph{(b)} baselines equipped with the two ingredients SCA uses but their published methods
+do not: LoRA adapters and masked training. Both help -- LoRA by about a point, masked
+training by $\pm$0.5 -- and the strongest resulting variant (PMRL$^{\dagger}$\,+\,LoRA,
+53.9) still sits 1.0 below SCA's 54.9, so the SCA gain is not attributable to the
+adaptation regime. \emph{(c)} the mirror image: SCA with each of those ingredients removed;
+the full ablation grid is Tab.~\ref{tab:ablate}. Rows in (b)--(c) are measured in our single
+environment on the same 150k budget, and $^{\dagger}$ marks models trained by us, as in
+Table~\ref{tab:main}. \textbf{Bold} is the best value per column within block~(b) (ties
+bolded jointly); rows marked (Tab.~\ref{tab:main}) are repeated from the main table for
+reference.}
 \label{tab:reported}
 \small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{llccrrrr}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llcrrrr}
 \toprule
- & & & & \multicolumn{2}{c}{Text $\rightarrow$ Video} & \multicolumn{2}{c}{Video $\rightarrow$ Text} \\
-\cmidrule(lr){5-6}\cmidrule(lr){7-8}
-Method & Adapter & Mask & Data & R@1 & R@10 & R@1 & R@10 \\
+ & & & \multicolumn{2}{c}{Text $\rightarrow$ Video} & \multicolumn{2}{c}{Video $\rightarrow$ Text} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Method & Adapter & Mask & R@1 & R@10 & R@1 & R@10 \\
 \midrule
-\multicolumn{8}{l}{\emph{(a) Reported by their authors -- external foundation models}} \\
-ImageBind & -- & \xmark & -- & 36.8 & 70.0 & -- & -- \\
-UMT-L & -- & \xmark & 25M & 40.7 & 71.8 & 37.1 & -- \\
-LanguageBind & -- & \xmark & 10M & 44.8 & 78.7 & 40.9 & 75.7 \\
-mPLUG-2 & -- & \xmark & -- & 47.1 & 79.0 & -- & -- \\
-VideoPrism-b & -- & \xmark & 36M+582M & 51.4 & -- & 50.2 & -- \\
-VAST & full-FT & \xmark & 27M & 50.7 & 74.4 & 49.0 & 76.2 \\
+\multicolumn{7}{l}{\emph{(a) Reported by their authors (same VAST ckpt + 150k budget, hotter environment)}} \\
+GRAM & full-FT & \xmark & 54.8 & 82.9 & 52.9 & 82.9 \\
+PMRL & full-FT & \xmark & 54.5 & -- & 52.4 & -- \\
+HyperGRAM & full-FT & \xmark & 56.6 & -- & 53.6 & -- \\
 \midrule
-\multicolumn{8}{l}{\emph{(b) Reported by their authors -- same VAST ckpt + 150k budget}} \\
-GRAM & full-FT & \xmark & 150k & 54.8 & 82.9 & 52.9 & 82.9 \\
-PMRL & full-FT & \xmark & 150k & 54.5 & -- & 52.4 & -- \\
-HyperGRAM & full-FT & \xmark & 150k & 56.6 & -- & 53.6 & -- \\
+\multicolumn{7}{l}{\emph{(b) Baselines with our ingredients, measured here}} \\
+GRAM$^{\dagger}$ & full-FT & \xmark & 52.4 & 82.6 & 49.7 & \textbf{80.9} \\
+\quad + masked training & full-FT & \cmark & 52.1 & 80.0 & 49.6 & 78.8 \\
+\quad + LoRA & LoRA & \xmark & 53.3 & \textbf{83.1} & \textbf{50.6} & \textbf{80.9} \\
+PMRL$^{\dagger}$ & full-FT & \xmark & 51.9 & 80.6 & 49.7 & 79.9 \\
+\quad + masked training & full-FT & \cmark & 52.6 & 80.9 & 49.9 & 79.5 \\
+\quad + LoRA & LoRA & \xmark & \textbf{53.9} & 82.0 & 49.8 & 79.8 \\
 \midrule
-\multicolumn{8}{l}{\emph{(c) Baselines with our ingredients, measured here}} \\
-GRAM (reproduced) & full-FT & \xmark & 150k & 52.4 & 82.6 & 49.7 & \textbf{80.9} \\
-\quad + masked training & full-FT & \cmark & 150k & 52.1 & 80.0 & 49.6 & 78.8 \\
-\quad + LoRA & LoRA & \xmark & 150k & 53.3 & \textbf{83.1} & \textbf{50.6} & \textbf{80.9} \\
-PMRL (reproduced) & full-FT & \xmark & 150k & 51.9 & 80.6 & 49.7 & 79.9 \\
-\quad + masked training & full-FT & \cmark & 150k & 52.6 & 80.9 & 49.9 & 79.5 \\
-\quad + LoRA & LoRA & \xmark & 150k & \textbf{53.9} & 82.0 & 49.8 & 79.8 \\
-\midrule
-\multicolumn{8}{l}{\emph{(d) SCA with the same ingredients removed, measured here}} \\
-SCA, no masked training & LoRA & \xmark & 150k & 53.4 & 80.1 & 50.1 & 78.5 \\
-SCA, full finetuning (Tab.~\ref{tab:main}) & full-FT & \cmark & 150k & 53.4 & 82.4 & 49.9 & 82.0 \\
-SCA (Tab.~\ref{tab:main}) & LoRA & \cmark & 150k & 54.9 & 83.5 & 49.2 & 76.2 \\
+\multicolumn{7}{l}{\emph{(c) SCA with the same ingredients removed, measured here}} \\
+SCA, no masked training & LoRA & \xmark & 53.4 & 80.1 & 50.1 & 78.5 \\
+SCA, full finetuning (Tab.~\ref{tab:main}) & full-FT & \cmark & 53.4 & 82.4 & 49.9 & 82.0 \\
+SCA (Tab.~\ref{tab:main}) & LoRA & \cmark & 54.9 & 83.5 & 49.2 & 76.2 \\
 \bottomrule
 \end{tabular}
 \end{table}

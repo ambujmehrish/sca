@@ -29,8 +29,60 @@ cd "$CODE_DIR"
 [ -f "$CONFIG" ] || { echo "FATAL: config $CONFIG not found" >&2; exit 1; }
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p "$OUTDIR" slurm_scripts/logs
+
+# --- provenance guard -------------------------------------------------------------------
+# This script auto-resumes from whatever checkpoints sit in $OUTDIR. Without a check that
+# those checkpoints came from THIS config, pointing a second config at an existing outdir
+# silently continues the first run's weights and the resulting numbers belong to neither
+# arm. Stamp the outdir on the first run; refuse to resume when the stamp disagrees.
+FP=$(python3 - "$CONFIG" "$@" <<'PY'
+import hashlib, json, os, sys
+h = hashlib.sha256()
+def feed(p, seen):
+    p = p.lstrip('./')
+    if p in seen or not os.path.exists(p):
+        return
+    seen.add(p)
+    raw = open(p, 'rb').read()
+    h.update(raw)
+    try:
+        d = json.loads(raw)
+    except Exception:
+        return
+    for sec in ('run_cfg', 'model_cfg'):
+        dflt = (d.get(sec) or {}).get('default')
+        if dflt:
+            feed(dflt, seen)          # the resolved chain matters, not just the leaf file
+feed(sys.argv[1], set())
+h.update(('\0'.join(sys.argv[2:])).encode())   # --seed and friends change the run too
+print(h.hexdigest()[:16])
+PY
+)
+STAMP="$OUTDIR/.provenance"
 RESUME=""
-ls "$OUTDIR"/ckpt/optimizer_step_*.pt >/dev/null 2>&1 && { RESUME="--resume true"; echo "RESUME from $OUTDIR/ckpt"; } || echo "FRESH"
+if ls "$OUTDIR"/ckpt/optimizer_step_*.pt >/dev/null 2>&1; then
+  if [ ! -f "$STAMP" ]; then
+    echo "FATAL: $OUTDIR holds checkpoints but no .provenance stamp -- refusing to resume" >&2
+    echo "       into weights of unknown origin. Point at a fresh outdir, or if you are" >&2
+    echo "       certain these are this config's, write the stamp by hand:" >&2
+    echo "         printf 'config=%s\\nfingerprint=%s\\nargs=%s\\n' '$CONFIG' '$FP' '$*' > '$STAMP'" >&2
+    exit 3
+  fi
+  HAVE=$(sed -n 's/^fingerprint=//p' "$STAMP")
+  if [ "$HAVE" != "$FP" ]; then
+    echo "FATAL: $OUTDIR was created by a DIFFERENT config -- refusing to mix runs." >&2
+    echo "       stamped: $(sed -n 's/^config=//p' "$STAMP") (fingerprint $HAVE)" >&2
+    echo "       asked:   $CONFIG (fingerprint $FP)" >&2
+    echo "       Use a different output_dir for this arm." >&2
+    exit 3
+  fi
+  RESUME="--resume true"; echo "RESUME from $OUTDIR/ckpt (provenance ok: $FP)"
+else
+  printf 'config=%s\nfingerprint=%s\nargs=%s\ncreated=%s\n' \
+    "$CONFIG" "$FP" "$*" "$(date -Is)" > "$STAMP"
+  echo "FRESH (provenance stamped: $FP)"
+fi
+# ----------------------------------------------------------------------------------------
 echo "START $(date +%T)  config=$CONFIG  out=$OUTDIR"
 # filter the benign h264 decoder noise (mmco/*ref* warnings from mid-GOP YouTube clip
 # cuts -- harmless, but hundreds of MB over a full pretrain). pipefail + `|| true` on the

@@ -7,15 +7,26 @@ and to the recipe published by the method's own authors.
 
 ## 1. What the baselines' own papers specify
 
-| method | source | lr | batch | epochs | data |
+| method | source | lr | batch | epoch field | data |
 |---|---|---|---|---|---|
-| GRAM | arXiv 2412.11959v2, implementation details | **1e-4** | 256 | 1 | 150k random VAST-27M |
-| PMRL | arXiv 2507.17343v1, appendix | **2e-5** | **64** | 1 | VAST-150K |
+| GRAM | **their released config** (`config/gram/default_run_cfg.json` + `finetune_cfg/pretrain-gram.json`) | **1e-4** | **128** | 5 | 150k VAST-27M |
+| GRAM | their paper (arXiv 2412.11959v2) | 1e-4 | 256 | "single epoch" | 150k random |
+| PMRL | their paper (arXiv 2507.17343v1, appendix) | **2e-5** | **64** | one epoch | VAST-150K |
 | HyperGRAM | Na et al., CVPR 2026 | not stated in any source we can reach | -- | -- | 150k |
 
-GRAM's repo README shows `--learning_rate 2e-5` in a *downstream finetuning* example; the
-1e-4 above is the *pretraining* (reshaping) stage, which is the stage we reproduce. The two
-are different stages and both numbers are correct in their own context.
+Three things worth recording:
+
+- GRAM's repo README shows `--learning_rate 2e-5`, but that is the *downstream finetuning*
+  example. The pretraining (reshaping) stage we reproduce is 1e-4. Both are correct in
+  their own context, and this is the likeliest origin of our 2e-5.
+- GRAM's paper and GRAM's config disagree with each other on batch size (256 vs 128) and on
+  epochs ("single epoch" vs `epoch: 5`). We reproduce **the config**, since that is what
+  they actually ran.
+- Our `config/sca/default_run_cfg.json` is byte-identical to GRAM's released
+  `default_run_cfg.json` apart from one added `save_steps` key -- same `clip_lr` 5e-7, same
+  betas, weight decay, grad-norm clip, warmup ratio, fp16, seed 50. **1e-4 was therefore
+  already the inherited default, and the 2e-5 in our per-arm configs is an explicit
+  override we added.** The deviation was one line, not a different pipeline.
 
 ## 2. What we actually ran
 
@@ -24,16 +35,21 @@ companion commands):
 
 | arm | lr | batch | epochs | task | matches its paper? |
 |---|---|---|---|---|---|
-| GRAM (reproduced) | 2e-5 | 256 | 5 | ret%tv%ta | **no — lr should be 1e-4** |
+| GRAM (reproduced) | 2e-5 | 256 | 5 | ret%tv%ta | **no — should be lr 1e-4, batch 128** |
 | GRAM + masked / + LoRA | 2e-5 | 256 | 5 | ret%tv%ta | n/a (our variants) |
 | PMRL (reproduced) | 2e-5 | 256 | 5 | ret%tv%ta | lr yes; **batch 256 vs their 64** |
+| GRAM `_paper` (wave 9) | 1e-4 | 128 | 5 | ret%tv%ta | yes |
+| PMRL `_paper` (wave 9) | 2e-5 | 64 | 5 | ret%tv%ta | yes |
+| HyperGRAM `_paper` (wave 9) | 1e-4 | 128 | 5 | ret%tv%ta | assumed = GRAM's |
 | HyperGRAM (reproduced) | 2e-5 | 256 | 5 | ret%tv%ta | unknown |
 | SCA (2e-5) | 2e-5 | 256 | 5 | ret%tv%ta | -- |
-| SCA (1e-4) | 1e-4 | 256 | 5 | ret%tv%ta | matches GRAM's recipe |
+| SCA (1e-4, "T1") | 1e-4 | 256 | 5 | ret%tv%ta | lr yes; **batch 256 vs GRAM's 128** |
+| SCA `_paper` (wave 9) | 1e-4 | 128 | 5 | ret%tv%ta | yes |
 
-Batch size, epoch setting, training task and initialisation checkpoint are **identical
-across every arm** — the learning rate is the only knob that differs, plus `use_lora`,
-which is the intended variable.
+Within the first-pass generation, batch size, epoch setting, training task and
+initialisation checkpoint are identical across every arm, so those comparisons differ only
+in learning rate and `use_lora`. Against the *published* recipes, however, both the batch
+size and the learning rate were off — see F1/F3.
 
 ## 3. Findings
 
@@ -45,11 +61,16 @@ the learning rate does not move GRAM much in this environment — but it is evid
 proof, and the matched-recipe run has not been done. Configs and launcher exist:
 `scripts/submit_baselines_lr1e4.sh`.
 
-**F2 — the headline comparison is matched, via the released checkpoint.** SCA at 1e-4
-(54.9) against GRAM's released checkpoint at 1e-4 (52.5) is +2.4 at a common learning rate.
-The comparison against our own retrain (52.4, +2.5) is the one that is off-recipe.
+**F2 — the headline comparison is matched on lr only, not on batch size.** SCA at 1e-4
+(54.9) against GRAM's released checkpoint (52.5) shares a learning rate, but SCA trained at
+batch 256 where GRAM's recipe is 128. Batch size sets the number of in-batch contrastive
+negatives, which a centroid objective is directly sensitive to, so this is not a free
+parameter. `sca_paper` (lr 1e-4, batch 128) is the first genuinely matched SCA row, and
+**the margin may not survive it** — GRAM at its own recipe may also score above the 52.4/52.5
+we have measured so far. That is the point of running it.
 
-**F3 — PMRL's batch size is off-recipe** (256 vs their 64). Not fixed; noted as a limitation.
+**F3 — PMRL's batch size is off-recipe** (256 vs their 64), and GRAM's is too (256 vs
+their 128). Both are fixed by the wave-9 `_paper` configs.
 
 **F4 — every ablation arm is at the wrong learning rate.** All 26 A1–A9 configs are deltas
 on the lr-2e-5 config, so they ablate components of a model that is not the one Table 1
@@ -82,8 +103,34 @@ its +1.6 confounds arity with the extra pass. Control: `slurm_scripts/depth_cont
 
 ## 5. Order of work
 
-1. `bash scripts/submit_baselines_lr1e4.sh` — GRAM, PMRL, GRAM-LoRA at 1e-4. Decides
-   whether the headline margin survives a fully matched retrain (F1, F2).
-2. Rerun the ablation grid from `config/sca/ablations_lr1e4/` (F4).
-3. `sbatch slurm_scripts/depth_control.sh` — cheap, eval-only (F6).
-4. State PMRL's batch-size mismatch as a limitation (F3).
+All of it is one parallel submission -- `bash scripts/submit_recipe_runs.sh` (25 jobs):
+
+1. **Baselines at their authors' recipes** (F1, F2, F3) -- `gram_paper`, `pmrl_paper`,
+   `gram_lora_paper`, `gram_hyp_paper` -- **and SCA under the same recipe**, `sca_paper` /
+   `sca_paper_fullft` (lr 1e-4, batch 128). Together these decide whether the headline
+   margin survives a fully matched comparison; no existing SCA arm is matched on batch size.
+2. **Ablation grid on the reported SCA configuration** (F4) -- 21 arms from
+   `config/sca/ablations_lr1e4/`; the five A9 arms wait on their S* caches.
+3. `sbatch slurm_scripts/depth_control.sh` -- cheap, eval-only (F6).
+
+### Keeping the two generations apart
+
+Every wave-9 run writes to a **new** workdir (`<method>_paper`, `abl1e4_<arm>`); no
+first-pass directory is reused, so both generations stay independently extractable. On top
+of that, `slurm_scripts/run_config.sh` now stamps each workdir with a SHA-256 fingerprint of
+its *resolved* config chain plus CLI args, and refuses to resume when the stamp disagrees:
+
+```
+FATAL: workdir_pretrain/gram_paper was created by a DIFFERENT config -- refusing to mix runs.
+       stamped: config/baselines/pretrain_cfg/gram_pretrain.json (fingerprint 22e25ef7af826ae1)
+       asked:   config/baselines/pretrain_cfg/gram_paper.json    (fingerprint cd7467ea12acd3a1)
+```
+
+Verified to distinguish lr overrides, `--seed` values, and edits to an *inherited* default
+file. Previously the script resumed from whatever checkpoints happened to be in the output
+directory, with no check of their origin -- that was the mechanism by which two arms could
+silently become one.
+
+When extracting, give wave-9 rows distinct method names (`GRAM (paper recipe)`, not `GRAM
+(repro)`): `wave1` and `wave2` already collide on method name with different metrics, and
+`scripts/extract_results.py` keys rows by name.

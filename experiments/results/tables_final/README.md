@@ -7,7 +7,7 @@ reported by its authors. Regenerate measured rows from the raw logs with
 | file | content | status |
 |---|---|---|
 | `table1_main.tex` | Main zero-shot MSR-VTT T-VAS, both directions. Groups (a) external models (reported) / (b)–(d) measured here. No `Data` column; provenance by marker (`*` released weights, `†` trained by us, `‡` reimplementation) | final |
-| `table2_zeroshot_all.tex` | Zero-shot across 5 benchmarks, both directions | final |
+| `table2_zeroshot_all.tex` | Zero-shot across the 4 transfer benchmarks (MSR-VTT is Table 1), both directions | final |
 | `table3_finetune.tex` | Fine-tuned MSR-VTT + depth ($k{=}5$), both ft learning rates | final |
 | `table4_missingness.tex` | Missing modalities: (a) ITM metric, (b) raw space, 3 seeds | final |
 | `table5_missing_transfer.tex` | Missing modalities on the 3 non-selection benchmarks (raw, 3 seeds) | final |
@@ -15,6 +15,7 @@ reported by its authors. Regenerate measured rows from the raw logs with
 | `table6_ablations.tex` | Ablations: (a) loss components, (b) adaptation regime, (c) knobs | **(a) pending runs** |
 | `table7_env_audit.tex` | Evaluation-environment audit (appendix) | final |
 | `table8_reported_and_variants.tex` | Appendix: author-reported GRAM/PMRL/HyperGRAM numbers + baselines equipped with LoRA/masked training (moved out of Table 1) | final |
+| `table9_zeroshot_reported.tex` | Appendix to Table 2: cross-benchmark numbers as published | final |
 | `main_table_single.tex` | Alternative single-block Table 1 (superseded by table1) | alt |
 | `PAPER_TABLES.md` | Human-readable master with every number | reference |
 

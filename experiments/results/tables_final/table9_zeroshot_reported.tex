@@ -1,0 +1,27 @@
+% Appendix to Table 2 -- the cross-benchmark numbers as they appear in their own papers,
+% held out of Table 2 for the same reason as in Table 1: a ~2 R@1 environment offset makes
+% them non-comparable to our measured rows, and the VATEX columns are different splits.
+\begin{table*}[t]
+\centering
+\caption{Appendix to Table~\ref{tab:zs_all}: zero-shot R@1 (T2V\,/\,V2T) as reported in the
+original papers, at the same VAST\,+\,150k budget. Not comparable in absolute terms to
+Table~\ref{tab:zs_all}: the same released GRAM checkpoint scores about two R@1 higher in
+those environments than in ours (Tab.~\ref{tab:env}), and the VATEX column here is the
+standard split whereas Table~\ref{tab:zs_all} uses the 431-clip audio-complete subset.
+Included so the cross-benchmark ordering of the family is on record; PMRL and HyperGRAM
+were reproduced by us on MSR-VTT only.}
+\label{tab:zs_reported}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lccccc}
+\toprule
+Method & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps \\
+ & T-VAS & T-VA & T-VA & T-VAS & T-VA \\
+\midrule
+VAST & 50.7\,/\,49.0 & 49.5\,/\,48.2 & 51.4\,/\,46.8 & 82.1\,/\,78.7 & 32.1\,/\,-- \\
+GRAM & 54.8\,/\,52.9 & 54.2\,/\,52.2 & 59.0\,/\,50.4 & 83.5\,/\,82.7 & 33.2\,/\,-- \\
+PMRL & 54.5\,/\,52.4 & 50.6\,/\,48.4 & 56.0\,/\,49.6 & 80.5\,/\,75.2 & 36.1\,/\,-- \\
+HyperGRAM & 56.6\,/\,53.6 & 51.3\,/\,49.5 & 58.2\,/\,51.8 & 79.9\,/\,75.7 & --\,/\,-- \\
+\bottomrule
+\end{tabular}
+\end{table*}

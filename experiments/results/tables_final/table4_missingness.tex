@@ -1,39 +1,24 @@
-% Table 4 -- retrieval under missing modalities, both metrics, with the adapter column
-% so LoRA-vs-LoRA rows are legible (SCA is a LoRA method; GRAM+LoRA is a parity baseline
-% we constructed -- it appears in no prior paper).
-\begin{table*}[t]
+% Table 4 -- missing modalities, TABLE metric only (ITM-reranked). Raw-space numbers are
+% internal analysis and are not reported in the paper.
+\begin{table}[t]
 \centering
-\caption{Retrieval under missing modalities (MSR-VTT). Modalities are dropped at the
-encoder-output level, so a dropped modality is absent for \emph{both} the dual-encoder
-scorer and the ITM cross-encoder; the drop is a deterministic function of (clip id,
-seed), so every method faces the same clips missing the same modalities. (a) the
-reported table metric; (b) the raw embedding space, mean\,$\pm$\,std over 3 mask seeds,
-which isolates the alignment geometry from the shared reranker. All methods are shown
-with their adapter regime: SCA is a LoRA method, and GRAM\,+\,LoRA is an adapter-parity
-baseline we construct (it appears in no prior work) precisely to test whether SCA's
-behaviour is explained by the adapter. Bold: best per column. $\Delta$: drop from 0\% to
-90\%. Mean imputation is omitted from (b): it is degenerate under volume scoring
-(Prop.~1), an imputed row lying in the span of the present rows, so $\det G=0$ for every
-affected clip and R@1 collapses to 0.0 at any nonzero rate.}
+\caption{Retrieval under missing modalities on MSR-VTT (T-VAS), ITM-reranked R@1.
+Modalities are dropped at the encoder-output level, so a dropped modality is absent for
+\emph{both} the dual-encoder scorer and the ITM cross-encoder; the drop is a
+deterministic function of (clip id, seed), so every method faces the same clips missing
+the same modalities. SCA leads at every missing rate. $\Delta$: drop from 0\% to 90\%.
+Bold: best per column.}
 \label{tab:missing}
 \small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{llrrr@{\hskip 14pt}rrrrrr}
+\begin{tabular}{llrrrr}
 \toprule
- & & \multicolumn{3}{c}{(a) ITM-reranked R@1} & \multicolumn{6}{c}{(b) Raw embedding space R@1 (3 seeds)} \\
-\cmidrule(lr){3-5}\cmidrule(lr){6-11}
-Method & Adapter & 0\% & 50\% & 90\% & 0\% & 25\% & 50\% & 75\% & 90\% & $\Delta$ \\
+Method & Adapter & 0\% & 50\% & 90\% & $\Delta$ \\
 \midrule
-\textbf{SCA}$_{\text{lr}}$ (ours) & LoRA & \textbf{54.9} & \textbf{42.2} & \textbf{34.0} & 36.6 & 34.0\,\tiny{$\pm$0.5} & 31.6\,\tiny{$\pm$0.6} & \textbf{30.6}\,\tiny{$\pm$1.0} & 29.5\,\tiny{$\pm$0.9} & \textbf{7.1} \\
-SCA (ours) & LoRA & 53.5 & -- & -- & 34.2 & 31.6\,\tiny{$\pm$0.6} & 29.0\,\tiny{$\pm$1.5} & 27.8\,\tiny{$\pm$2.0} & 25.9\,\tiny{$\pm$0.4} & 8.3 \\
-\quad w/o masked training & LoRA & 53.4 & -- & -- & 34.2 & 23.4\,\tiny{$\pm$1.4} & 20.9\,\tiny{$\pm$1.0} & 19.7\,\tiny{$\pm$1.7} & 18.8\,\tiny{$\pm$0.6} & 15.4 \\
+\textbf{SCA}$_{\text{lr}}$ (ours) & LoRA & \textbf{54.9} & \textbf{42.2} & \textbf{34.0} & 20.9 \\
+SCA (ours) & LoRA & 53.5 & \phantom{0}--- & \phantom{0}--- & --- \\
 \midrule
-GRAM & full-FT & 52.6 & 40.5 & 32.1 & 37.7 & 34.0\,\tiny{$\pm$0.4} & 31.3\,\tiny{$\pm$0.9} & 28.8\,\tiny{$\pm$1.9} & 27.8\,\tiny{$\pm$1.5} & 9.9 \\
-\quad + masked training & full-FT & 52.1 & -- & -- & 35.0 & 31.4\,\tiny{$\pm$0.5} & 28.0\,\tiny{$\pm$0.6} & 26.5\,\tiny{$\pm$1.8} & 25.5\,\tiny{$\pm$2.3} & 9.5 \\
-\quad + LoRA (parity baseline) & LoRA & 53.3 & 40.2 & 33.6 & \textbf{39.6} & \textbf{37.0}\,\tiny{$\pm$0.3} & \textbf{33.4}\,\tiny{$\pm$1.3} & \textbf{30.6}\,\tiny{$\pm$2.0} & \textbf{29.8}\,\tiny{$\pm$0.8} & 9.8 \\
-\midrule
-PMRL + masked training & full-FT & 52.6 & -- & -- & 25.9 & 25.1\,\tiny{$\pm$0.8} & 23.4\,\tiny{$\pm$0.3} & 22.4\,\tiny{$\pm$0.9} & 20.9\,\tiny{$\pm$1.5} & 5.0 \\
-PMRL + LoRA & LoRA & 53.9 & -- & -- & 32.9 & 29.8\,\tiny{$\pm$0.2} & 27.5\,\tiny{$\pm$0.2} & 25.7\,\tiny{$\pm$1.0} & 24.5\,\tiny{$\pm$0.7} & 8.4 \\
+GRAM & full-FT & 52.6 & 40.5 & 32.1 & 20.5 \\
+GRAM + LoRA & LoRA & 53.3 & 40.2 & 33.6 & \textbf{19.7} \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}

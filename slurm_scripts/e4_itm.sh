@@ -28,12 +28,13 @@ best_ckpt() {
   echo "$b"
 }
 declare -A CKPT=( [sca]="$(best_ckpt workdir_pretrain/t1_lr1e4)" \
+                  [sca_base]="$(best_ckpt workdir_pretrain/sca)" \
                   [gram]="$(best_ckpt workdir_pretrain/gram)" \
                   [gram_lora]="$(best_ckpt workdir_pretrain/gram_lora)" )
 for a in "${!CKPT[@]}"; do [ -f "${CKPT[$a]}" ] || { echo "FATAL: $a ckpt missing" >&2; exit 1; }; done
 
 rc_all=0
-for arm in sca gram gram_lora; do
+for arm in sca sca_base gram gram_lora; do
   for rate in 50 90; do
     cell="${arm}_r${rate}"; out="workdir/e4_itm/$cell"
     [ -f "$out/.done" ] && { echo "== [$cell] already done, skip"; continue; }

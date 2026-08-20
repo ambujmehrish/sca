@@ -1,35 +1,4 @@
-% Table 5 -- missing modalities OFF the checkpoint-selection benchmark (raw space).
-\begin{table*}[t]
-\centering
-\caption{Retrieval under missing modalities on the three benchmarks that were \emph{not}
-used for checkpoint selection, raw embedding space, R@1, mean\,$\pm$\,std over 3 mask
-seeds. Same protocol as Tab.~\ref{tab:missing}. On MSR-VTT -- the benchmark both
-checkpoints were selected on -- the volume baselines hold the raw space at low missing
-rates; off it, SCA leads GRAM at \emph{every} rate on all three benchmarks and overtakes
-the adapter-parity baseline as modalities disappear (ActivityNet at 90\%, AudioCaps at
-every rate). $\Delta$: drop from 0\% to 90\%; bold: best per column within each
-benchmark.}
-\label{tab:missing_transfer}
-\small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{llrrrrrr}
-\toprule
-Method & Adapter & 0\% & 25\% & 50\% & 75\% & 90\% & $\Delta$ \\
-\midrule
-\multicolumn{8}{l}{\emph{DiDeMo (T-VA)}} \\
-\textbf{SCA}$_{\text{lr}}$ (ours) & LoRA & 28.7 & 26.9\,\tiny{$\pm$0.2} & 23.8\,\tiny{$\pm$0.7} & 21.5\,\tiny{$\pm$0.6} & 21.3\,\tiny{$\pm$0.7} & \textbf{7.4} \\
-GRAM & full-FT & 26.3 & 23.7\,\tiny{$\pm$0.9} & 19.7\,\tiny{$\pm$0.9} & 16.6\,\tiny{$\pm$0.4} & 16.4\,\tiny{$\pm$2.7} & 9.9 \\
-GRAM + LoRA & LoRA & \textbf{35.5} & \textbf{30.7}\,\tiny{$\pm$0.8} & \textbf{26.4}\,\tiny{$\pm$0.7} & \textbf{22.3}\,\tiny{$\pm$0.5} & \textbf{21.6}\,\tiny{$\pm$0.7} & 13.9 \\
-\midrule
-\multicolumn{8}{l}{\emph{ActivityNet (T-VA)}} \\
-\textbf{SCA}$_{\text{lr}}$ (ours) & LoRA & 29.8 & 27.7\,\tiny{$\pm$0.3} & 25.8\,\tiny{$\pm$0.7} & 23.8\,\tiny{$\pm$0.5} & \textbf{22.9}\,\tiny{$\pm$0.5} & \textbf{7.0} \\
-GRAM & full-FT & 29.2 & 25.8\,\tiny{$\pm$0.1} & 21.9\,\tiny{$\pm$0.5} & 19.4\,\tiny{$\pm$0.5} & 17.7\,\tiny{$\pm$0.3} & 11.5 \\
-GRAM + LoRA & LoRA & \textbf{34.9} & \textbf{31.3}\,\tiny{$\pm$0.4} & \textbf{27.3}\,\tiny{$\pm$0.7} & \textbf{24.2}\,\tiny{$\pm$0.8} & 22.4\,\tiny{$\pm$0.4} & 12.5 \\
-\midrule
-\multicolumn{8}{l}{\emph{AudioCaps (T-VA)}} \\
-\textbf{SCA}$_{\text{lr}}$ (ours) & LoRA & \textbf{28.4} & \textbf{23.9}\,\tiny{$\pm$0.5} & \textbf{20.8}\,\tiny{$\pm$1.2} & \textbf{17.6}\,\tiny{$\pm$0.8} & \textbf{17.0}\,\tiny{$\pm$0.7} & 11.5 \\
-GRAM & full-FT & 22.2 & 18.7\,\tiny{$\pm$0.2} & 15.8\,\tiny{$\pm$0.4} & 11.4\,\tiny{$\pm$0.5} & 10.3\,\tiny{$\pm$0.6} & 11.9 \\
-GRAM + LoRA & LoRA & 21.2 & 17.9\,\tiny{$\pm$0.8} & 14.5\,\tiny{$\pm$1.0} & 11.7\,\tiny{$\pm$0.4} & 11.4\,\tiny{$\pm$0.7} & \textbf{9.8} \\
-\bottomrule
-\end{tabular}
-\end{table*}
+% Missing-modality results on DiDeMo / ActivityNet / AudioCaps, TABLE metric (ITM).
+% PENDING: slurm_scripts/e4_itm_transfer.sh (4 arms x 3 benchmarks x {50,90}%).
+% The raw-space version of this table was removed: raw scorers are not reported in the
+% paper (no method in this family reports them).

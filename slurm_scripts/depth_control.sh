@@ -22,6 +22,7 @@ source "${SCA_ENV_RC:-/leonardo_work/AIFAC_S07_041/sca_env.rc}"
 cd "$CODE_DIR"
 [ -f "$MODELS_DIR/env.sh" ] && source "$MODELS_DIR/env.sh" || { echo "FATAL: prefetch first" >&2; exit 1; }
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
+source "$(dirname "$0")/../scripts/cell_done.sh"
 mkdir -p slurm_scripts/logs
 
 CKPT="${SCA_DEPTH_CKPT:-$(ls -t ./workdir/sca_ft_msrvtt_depth/ckpt/best_*.pt 2>/dev/null | head -1)}"
@@ -31,7 +32,8 @@ echo "ckpt=$CKPT"
 rc_all=0
 for cell in depth_k5_tvasd depth_k4_tvas; do
   out="workdir/depth_control/$cell"
-  [ -f "$out/.done" ] && { echo "== [$cell] already done, skip"; continue; }
+  cfg="benchmark_eval/configs_depth/${cell}.json"
+  cell_is_done "$out" "$cfg" && { echo "== [$cell] already done, skip"; continue; }
   mkdir -p "$out"
   echo "== [$cell] START $(date +%T)"
   EVAL_CKPT="$CKPT" srun python3 -m torch.distributed.launch --nnodes 1 \
@@ -40,7 +42,7 @@ for cell in depth_k5_tvasd depth_k4_tvas; do
     --output_dir "$out" 2>&1 \
     | { grep -v --line-buffered -E "mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($" || true; }
   rc=$?
-  if [ $rc -eq 0 ]; then touch "$out/.done"; echo "== [$cell] OK $(date +%T)"
+  if [ $rc -eq 0 ]; then cell_mark_done "$out" "$cfg"; echo "== [$cell] OK $(date +%T)"
   else echo "== [$cell] FAILED rc=$rc" >&2; rc_all=$rc; fi
 done
 echo "EXIT=$rc_all DONE $(date +%T)"

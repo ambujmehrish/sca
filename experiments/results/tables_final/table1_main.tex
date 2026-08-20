@@ -1,6 +1,6 @@
-% Table 1 -- main zero-shot table. Group (a) is reported by its authors and is context
-% only; groups (b)-(d) are all measured by us in ONE evaluation environment on ONE budget,
-% so BOLD = best per column among those rows. Provenance markers are defined in the caption:
+% Table 1 -- main zero-shot table. Group (a) is quoted from its authors' papers (context
+% only); groups (b)-(d) are all run by us in ONE evaluation environment on ONE budget,
+% so BOLD = best per column among the MARKED rows. Provenance markers, per the caption:
 %   *   officially released weights, evaluated by us
 %   dag trained by us from the VAST checkpoint under our recipe
 %   ddag best-effort reimplementation (no code released)
@@ -8,27 +8,15 @@
 % the appendix table (table8_reported_and_variants.tex).
 \begin{table}[t]
 \centering
-\caption{Zero-shot retrieval on MSR-VTT (T-VAS), R@1\,/\,R@10 in both directions.
-\textbf{Provenance markers.} $^{\ast}$: the authors' officially released weights, evaluated
-by us. $^{\dagger}$: trained by us, continuing from the same VAST checkpoint on the same
-150k-clip subset of VAST-27M for one epoch. $^{\ddagger}$: best-effort reimplementation --
-HyperGRAM releases no code and its description is ambiguous between two readings of the
-hyperbolic branch; we implement the reading its experiments section supports and draw no
-claim about their method from the row. Group~(a) is quoted from its authors' papers, with
-pretraining data in parentheses, and is context only. Groups~(b)--(d) share one evaluation
-environment, one budget, and one two-stage protocol (dual-encoder scoring, then ITM
-cross-encoder reranking of the top~50), so \textbf{bold marks the best value per column
-among the measured rows}. The environment is anchored by the $^{\ast}$ row: those weights
-score 52.5 here against 54.8 as published, and 53.4 in a third environment, so absolute
-values do not transfer across papers -- the author-reported GRAM, PMRL and HyperGRAM
-numbers are in Appendix~Tab.~\ref{tab:reported}. $\pm$: std over 3 seeds. SCA's gain is in
-the text-to-video direction, which its gallery-side centroid objective optimises;
-video-to-text is at parity. Adapters and masked training are not part of GRAM's or PMRL's
-published method, so we give SCA under full finetuning -- the baselines' own regime -- as
-the regime-matched comparison: 53.4 against 52.5 for the best full-finetuned baseline, with
-the adapter configuration adding a further 1.5. The converse check, baselines equipped with
-LoRA and masked training, is Appendix~Tab.~\ref{tab:reported}: the strongest such variant
-reaches 53.9, still 1.0 below SCA.}
+\caption{Zero-shot retrieval on MSR-VTT (T-VAS), R@1\,/\,R@10.
+$^{\ast}$ the authors' released weights, evaluated by us; $^{\dagger}$ trained by us from
+the VAST checkpoint on the same 150k clips for one epoch; $^{\ddagger}$ our
+reimplementation (no code released); unmarked rows are quoted from their papers, with
+pretraining data in parentheses. Marked rows share one environment and one two-stage
+protocol, so \textbf{bold} is the best per column among them; the $^{\ast}$ row scores 52.5
+here against 54.8 as published, so absolute values do not transfer across papers
+(App.~Tab.~\ref{tab:reported}). SCA under full finetuning is the regime-matched comparison
+to the baselines. $\pm$: std over 3 seeds.}
 \label{tab:main}
 \small
 \setlength{\tabcolsep}{5pt}
@@ -38,7 +26,7 @@ reaches 53.9, still 1.0 below SCA.}
 \cmidrule(lr){4-5}\cmidrule(lr){6-7}
 Method & Adapter & Mask & R@1 & R@10 & R@1 & R@10 \\
 \midrule
-\multicolumn{7}{l}{\emph{(a) External foundation models (reported; different data and evaluation)}} \\
+\multicolumn{7}{l}{\emph{(a) Foundation models}} \\
 ImageBind & -- & \xmark & 36.8 & 70.0 & -- & -- \\
 UMT-L (25M) & -- & \xmark & 40.7 & 71.8 & 37.1 & -- \\
 LanguageBind (10M) & -- & \xmark & 44.8 & 78.7 & 40.9 & 75.7 \\
@@ -46,15 +34,15 @@ mPLUG-2 & -- & \xmark & 47.1 & 79.0 & -- & -- \\
 VideoPrism-b (36M+582M) & -- & \xmark & 51.4 & -- & 50.2 & -- \\
 VAST (27M) & full-FT & \xmark & 50.7 & 74.4 & 49.0 & 76.2 \\
 \midrule
-\multicolumn{7}{l}{\emph{(b) Gramian-volume baselines, measured here}} \\
+\multicolumn{7}{l}{\emph{(b) Gramian-volume alignment}} \\
 GRAM$^{\ast}$ & full-FT & \xmark & 52.5 & 82.5 & 50.5 & 81.2 \\
 GRAM$^{\dagger}$ & full-FT & \xmark & 52.4\,\tiny{$\pm$0.21} & 82.6 & 49.7\,\tiny{$\pm$0.46} & 80.9 \\
 HyperGRAM$^{\dagger\ddagger}$ & full-FT & \xmark & 51.0 & 76.7 & \textbf{50.7} & 79.6 \\
 \midrule
-\multicolumn{7}{l}{\emph{(c) Leading-eigenvalue baselines, measured here}} \\
+\multicolumn{7}{l}{\emph{(c) Leading-eigenvalue alignment}} \\
 PMRL$^{\dagger}$ & full-FT & \xmark & 51.9 & 80.6 & 49.7 & 79.9 \\
 \midrule
-\multicolumn{7}{l}{\emph{(d) SCA (ours), measured here}} \\
+\multicolumn{7}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
 SCA, full finetuning (lr $2{\times}10^{-5}$) & full-FT & \cmark & 53.4 & 82.4 & 49.9 & \textbf{82.0} \\
 SCA (lr $2{\times}10^{-5}$) & LoRA & \cmark & 53.5 & 81.9 & 49.9 & 78.1 \\
 \textbf{SCA} (lr $1{\times}10^{-4}$) & LoRA & \cmark & \textbf{54.9}\,\tiny{$\pm$0.15} & \textbf{83.5} & 49.2\,\tiny{$\pm$0.53} & 76.2 \\

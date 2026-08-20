@@ -37,7 +37,12 @@ mkdir -p slurm_scripts/logs
 # No default guess here: the released checkpoint is not in this repo and silently falling
 # back to workdir_pretrain/gram would relabel our 2e-5 reproduction as the released model --
 # exactly the kind of mix-up the provenance work is meant to prevent.
-CKPT="${GRAM_RELEASED_CKPT:?set GRAM_RELEASED_CKPT to GRAM's released checkpoint (the same file used for the MSR-VTT GRAM* row in Table 1)}"
+if [ -z "${GRAM_RELEASED_CKPT:-}" ]; then
+  echo "FATAL: set GRAM_RELEASED_CKPT to the released GRAM checkpoint -- the same file" >&2
+  echo "       used for the MSR-VTT GRAM* row in Table 1." >&2
+  exit 2
+fi
+CKPT="$GRAM_RELEASED_CKPT"
 [ -f "$CKPT" ] || { echo "FATAL: GRAM_RELEASED_CKPT=$CKPT does not exist" >&2; exit 1; }
 echo "released GRAM ckpt: $CKPT"
 

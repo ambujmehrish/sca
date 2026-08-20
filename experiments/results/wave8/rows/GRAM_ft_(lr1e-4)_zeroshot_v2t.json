@@ -1,0 +1,10 @@
+{
+ "method": "GRAM ft (lr1e-4)",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   58.2,
+   89.7
+  ]
+ }
+}

@@ -1,0 +1,56 @@
+
+== SCA ft v2c (fullft, lr1e-4)  (workdir/sca_ft_msrvtt_fullft_lr1e4; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step   7860: R@1   9.6  R@10 35.6
+      final step  11229: R@1   9.0  R@10 34.8
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step  11229: R@1  10.8  R@10 37.1
+      final step  11229: R@1  10.8  R@10 37.1
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step      0: R@1  40.8  R@10 78.9
+      final step  11229: R@1  35.9  R@10 76.4
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step  10106: R@1  40.2  R@10 79.9
+      final step  11229: R@1  39.8  R@10 80.5
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step   6737: R@1  39.3  R@10 79.8
+      final step  11229: R@1  37.7  R@10 81.0
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step   5614: R@1  38.3  R@10 81.0
+      final step  11229: R@1  35.9  R@10 78.9  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step  11229: R@1  56.9  R@10 88.8
+      final step  11229: R@1  56.9  R@10 88.8
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step   3368: R@1  56.2  R@10 87.2
+      final step  11229: R@1  55.6  R@10 87.5  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave8/rows/SCA_ft_v2c_(fullft,_lr1e-4)_zeroshot_t2v.json
+   rows -> experiments/results/wave8/rows/SCA_ft_v2c_(fullft,_lr1e-4)_zeroshot_v2t.json
+
+== GRAM ft (lr1e-4)  (workdir/gram_ft_msrvtt_lr1e4; 1 log file(s))
+   ret%tvas--msrvtt_ret_cosine_AT
+      best  step      0: R@1   4.5  R@10 21.1
+      final step  11229: R@1   0.6  R@10 5.7
+   ret%tvas--msrvtt_ret_cosine_TA
+      best  step      0: R@1   6.4  R@10 22.6
+      final step  11229: R@1   2.1  R@10 12.4
+   ret%tvas--msrvtt_ret_cosine_TV
+      best  step  10106: R@1  44.1  R@10 82.0
+      final step  11229: R@1  43.9  R@10 82.4
+   ret%tvas--msrvtt_ret_cosine_VT
+      best  step  11229: R@1  43.9  R@10 82.6
+      final step  11229: R@1  43.9  R@10 82.6
+   ret%tvas--msrvtt_ret_ret_area_backard
+      best  step   8983: R@1  46.5  R@10 86.5
+      final step  11229: R@1  45.4  R@10 87.0
+   ret%tvas--msrvtt_ret_ret_area_forward
+      best  step   3368: R@1  46.5  R@10 82.5
+      final step  11229: R@1  46.2  R@10 84.8  <-- raw scorer (E4/E5/E6 diagnostics)
+   ret%tvas--msrvtt_ret_ret_itm_area:D2T
+      best  step   8983: R@1  58.2  R@10 89.7
+      final step  11229: R@1  57.8  R@10 88.8
+   ret%tvas--msrvtt_ret_ret_itm_area:T2D
+      best  step  11229: R@1  58.8  R@10 87.7
+      final step  11229: R@1  58.8  R@10 87.7  <-- TABLE metric (ITM-reranked, reference protocol)
+   rows -> experiments/results/wave8/rows/GRAM_ft_(lr1e-4)_zeroshot_t2v.json
+   rows -> experiments/results/wave8/rows/GRAM_ft_(lr1e-4)_zeroshot_v2t.json

@@ -1,0 +1,10 @@
+{
+ "method": "SCA ft v2c (fullft, lr1e-4)",
+ "section": "zeroshot_v2t",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   56.9,
+   88.8
+  ]
+ }
+}

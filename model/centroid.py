@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 
 def masked_spherical_mean(z, present=None, eps=1e-6, gates=None,
-                          weighting='uniform', tau_w=0.1):
+                          weighting='uniform', tau_w=0.1, query=None):
     """Masked spherical mean mu(Z, present) and concentration A(M).
 
     z       : (B, L, d) stacked modality embeddings, each L2-normalised (a missing modality may
@@ -35,7 +35,14 @@ def masked_spherical_mean(z, present=None, eps=1e-6, gates=None,
         present = z.new_ones(B, L)
     present = present.to(z.dtype)
 
-    if weighting == 'reliability':
+    if weighting == 'query':
+        if query is None:
+            raise ValueError("weighting='query' needs the text embedding -- pass query=(B, d). "
+                             "Falling back to uniform here would silently report the old "
+                             "centroid under the new name.")
+        w = query_weights(z, query, present, tau=tau_w, eps=eps)
+        s = (z * w.unsqueeze(-1)).sum(dim=1)
+    elif weighting == 'reliability':
         # per-sample, content-dependent weights (see reliability_weights)
         w = reliability_weights(z, present, tau=tau_w, eps=eps)
         s = (z * w.unsqueeze(-1)).sum(dim=1)
@@ -50,13 +57,97 @@ def masked_spherical_mean(z, present=None, eps=1e-6, gates=None,
 
     # A(M) is always the UNWEIGHTED mean resultant length (set property, gate-independent)
     s_plain = ((z * present.unsqueeze(-1)).sum(dim=1)
-               if (gates is not None or weighting == 'reliability') else s)
+               if (gates is not None or weighting in ('reliability', 'query')) else s)
     A = s_plain.norm(dim=-1) / n_safe
     # |M|=1: A is identically 1 -- skip its gradient (guard from the k=2 analysis)
     A = torch.where(n <= 1.0, A.detach(), A)
 
     mu = s / s.norm(dim=-1).clamp(min=eps).unsqueeze(-1)          # eps: centroid-norm blowup guard
     return mu, A, n
+
+
+def query_weights(z, query, present, tau=0.1, eps=1e-6):
+    """Per-modality weights from the QUERY: w_m ∝ exp(<t, z_m> / tau) over the present set.
+
+    Why this and not reliability weighting. Every arm pays an "aggregation tax" -- the fused
+    score is worse than the best single modality it fused. Measured against its own best
+    modality, SCA loses 9.5 R@1 on VATEX where the released GRAM checkpoint loses 1.9, and
+    4-5 points on DiDeMo and ActivityNet. The cause is structural: a uniform mean gives a
+    subtitle stream retrieving at 15.1 the same share as video retrieving at 81.4. A Gramian
+    determinant discounts a near-uninformative axis by itself; a uniform mean cannot. That
+    implicit discounting is the only thing GRAM's extra machinery buys.
+
+    The text is the natural source of that weighting -- which modality matters is a property
+    of the QUERY, not of the clip. "a dog barking" should lean on audio; "a red car turns
+    left" on video. Reliability weighting tried to answer the same question from the clip
+    alone and was degenerate at k=2 by symmetry (cos(z_0,z_1) == cos(z_1,z_0) forces 0.5/0.5).
+    The query breaks that symmetry, so this is defined at EVERY arity, k=2 included -- and
+    k=2 is where DiDeMo, ActivityNet and AudioCaps live.
+
+    Still a centroid: a convex combination of unit vectors, renormalised. No determinant, so
+    Proposition 1 is untouched; arity-invariant; O(k). And no new parameters -- tau alone
+    interpolates between the two regimes, tau -> inf giving back the uniform centroid exactly
+    and tau -> 0 giving max_m cos(t, z_m). Being parameter-free is what makes it testable on
+    an already-trained checkpoint, before any GPU time is spent.
+
+    The cost is that the gallery representation becomes query-dependent, so a clip no longer
+    has one precomputable embedding. Scoring stays cheap -- see query_centroid_scores, which
+    evaluates it in closed form without ever forming a per-pair centroid.
+
+    z       : (B, L, d) L2-normalised modality embeddings (absent ones may be zero).
+    query   : (B, d) L2-normalised text embedding, aligned row-wise with z.
+    present : (B, L) 0/1 mask.
+    Returns : (B, L) weights, zero on absent modalities, rows summing to 1.
+    """
+    present = present.to(z.dtype)
+    agree = torch.einsum('bd,bld->bl', query.to(z.dtype), z)        # (B, L) cos(t, z_m)
+    neg_inf = torch.finfo(z.dtype).min
+    logits = torch.where(present > 0, agree / max(tau, eps),
+                         z.new_full(agree.shape, neg_inf))
+    w = torch.softmax(logits, dim=1) * present
+    w = w / w.sum(dim=1, keepdim=True).clamp(min=eps)
+    # an all-absent row would be 0/0; leave it at zero rather than NaN, matching the uniform
+    # path where such a row yields mu = 0
+    return torch.where(present.sum(dim=1, keepdim=True) > 0, w, torch.zeros_like(w))
+
+
+def query_centroid_scores(feat_t, z, present, tau=0.1, eps=1e-6, chunk=256):
+    """Full (Nt, Ng) score matrix for the query-weighted centroid, in closed form.
+
+    The naive route materialises a centroid per (text, clip) pair -- (Nt, Ng, d), which is
+    ~100 GB on ActivityNet. It is unnecessary. With w = softmax_m(<t, z_m>/tau) and
+    S = sum_m w_m z_m, the score is <t, S/||S||>, and both halves are computable from
+    quantities that never carry the embedding dimension:
+
+        <t, S>   = sum_m w_m <t, z_m>                        -- from the (Nt, Ng, L) sims
+        ||S||^2  = sum_{m,n} w_m w_n <z_m, z_n>              -- from the per-clip Gram (Ng, L, L)
+
+    so the peak allocation is (chunk, Ng, L), and the result is exact rather than an
+    approximation of the pairwise form.
+
+    feat_t  : (Nt, d) L2-normalised text embeddings.
+    z       : (Ng, L, d) L2-normalised gallery modality embeddings.
+    present : (Ng, L) 0/1 mask.
+    Returns : (Nt, Ng) similarity, higher = better (a cosine, so in [-1, 1]).
+    """
+    z = z.float()
+    present = present.to(z.dtype)
+    gram = torch.einsum('gld,gmd->glm', z, z)                       # (Ng, L, L) per-clip Gram
+    mask = present.unsqueeze(1) * present.unsqueeze(2)              # zero out absent pairs
+    gram = gram * mask
+    neg_inf = torch.finfo(z.dtype).min
+    out = []
+    for i in range(0, feat_t.shape[0], chunk):
+        t = feat_t[i:i + chunk].float()                             # (c, d)
+        sims = torch.einsum('cd,gld->cgl', t, z)                    # (c, Ng, L) = <t, z_m>
+        logits = torch.where(present.unsqueeze(0) > 0, sims / max(tau, eps),
+                             sims.new_full(sims.shape, neg_inf))
+        w = torch.softmax(logits, dim=-1) * present.unsqueeze(0)
+        w = w / w.sum(dim=-1, keepdim=True).clamp(min=eps)
+        num = (w * sims).sum(dim=-1)                                # (c, Ng) = <t, S>
+        den = torch.einsum('cgl,glm,cgm->cg', w, gram, w).clamp(min=eps).sqrt()
+        out.append(num / den)
+    return torch.cat(out, dim=0)
 
 
 def reliability_weights(z, present, tau=0.1, eps=1e-6):

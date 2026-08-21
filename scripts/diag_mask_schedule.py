@@ -4,17 +4,19 @@
     python3 scripts/diag_mask_schedule.py
     python3 scripts/diag_mask_schedule.py --config config/sca/ablations/A5_pfull_end_0.3.json
 
-Why. GRAM's `forward_ret` loops over the sub-tasks in `ret%tv%ta`, so it trains a
-text-video volume AND a text-audio volume every step. SCA's override ignores sub-tasks and
-trains one centroid over {v,a}, so video only ever meets the text blended with audio --
-unless the virtual mask happens to drop audio, which leaves a video-only centroid and is
-exactly the missing objective.
+CORRECTION (this file previously argued the opposite). It used to claim GRAM's `forward_ret`
+loops over the sub-tasks in `ret%tv%ta` and therefore trains a text-video volume every step,
+against SCA's 20%. That is wrong. In model/gram.py the body of `for task in subtasks:`
+(line 683) is a single statement, `loss_itc.append(torch.tensor(0))`; everything else in it
+is commented out. `loss_area` and `loss_itm` are each computed ONCE, before that loop, over
+whatever modalities the batch carries. GRAM trains one joint volume per step exactly as SCA
+trains one joint centroid per step, and it never trains a text-video-only objective at all.
+So there is no 100%-vs-20% asymmetry, and the ActivityNet deficit cannot be explained by it.
 
-This replays the p_full schedule over the real step count and reports what fraction of
-clip-steps see a video-only view. If that fraction is small or arrives late, SCA's
-text-video pathway is trained on a sliver of the run while GRAM's gets every step -- which
-would explain the ActivityNet deficit (audio retrieves at 3.0 R@1 there, so the blended
-centroid is mostly noise) without any change to the model.
+What the number below still means. The share of clip-steps whose centroid sees video alone
+is a property of SCA's mask schedule and is worth knowing -- it is how much of the run
+exercises a degenerate (single-modality) centroid. But it is a description of SCA's own
+curriculum, NOT a deficit relative to GRAM, and it must not be reported as one.
 
 No GPU, no data: it only replays the sampler.
 """
@@ -94,7 +96,7 @@ def main():
     total = steps * batch
     print('\nclip-steps by the modality set the centroid sees:')
     print('  full {v,a}    : %11d  %5.1f%%' % (kept_full, 100.0 * kept_full / total))
-    print('  video only    : %11d  %5.1f%%   <- the text-video objective GRAM trains every step'
+    print('  video only    : %11d  %5.1f%%   <- centroid over one modality (degenerate)'
           % (kept_v_only, 100.0 * kept_v_only / total))
     print('  audio only    : %11d  %5.1f%%' % (kept_a_only, 100.0 * kept_a_only / total))
     if kept_none:
@@ -107,11 +109,13 @@ def main():
 
     print('\nfirst video-only view at step %s of %d'
           % (first_v_only_step if first_v_only_step is not None else 'NEVER', steps))
-    share = 100.0 * kept_v_only / total
-    print('\nGRAM trains text-video on 100%% of steps; SCA on %.1f%%.' % share)
-    if share < 20:
-        print('That is a thin signal for the pathway ActivityNet depends on. Raising it is a')
-        print('schedule change (mask_p_full_end, mask_schedule_steps), not a model change.')
+    share = 100.0 * (kept_v_only + kept_a_only) / total
+    print('\n%.1f%% of clip-steps train a SINGLE-modality centroid, where the spherical mean is'
+          % share)
+    print('the identity and none of the fusion behaviour is exercised. GRAM has no comparable')
+    print('number -- it trains one joint volume per step and no single-modality objective --')
+    print('so this is SCA\'s own curriculum, not a gap against the baseline. Do not report it')
+    print('as one; the earlier "100% vs 20%" framing was based on a misreading of gram.py:683.')
     return 0
 
 

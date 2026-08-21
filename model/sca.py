@@ -115,6 +115,19 @@ class SCA(GRAM):
         self.frame_slots = bool(getattr(cfg, 'sca_frame_slots', False))
         self.query_weighting = bool(getattr(cfg, 'sca_query_weighting', False))
         self.sca_tau_w = float(getattr(cfg, 'sca_tau_w', 0.1))
+        if self.frame_slots and not self.query_weighting:
+            # Frames are slots, and a UNIFORM mean weights slots equally -- so 8 video frames
+            # beside one audio and one subtitle slot hand video 8/10 of the centroid where it
+            # previously had 1/3. That is a silent change to the modality balance masquerading
+            # as a change to the video representation, and the two effects could never be
+            # separated afterwards. Query weighting sets the shares from the text instead of
+            # from how many slots a modality happens to own, which is what makes the frame
+            # expansion well-posed.
+            raise RuntimeError(
+                '[SCA] sca_frame_slots without sca_query_weighting: a uniform mean would give '
+                'video one share PER FRAME, silently re-weighting the modalities. Enable '
+                'sca_query_weighting (weights come from the query, not the slot count), or '
+                'turn off sca_frame_slots.')
 
         # ---- S* semantic targets (built offline by data/semantic_targets.py) ----
         self.s_star_path = os.path.expandvars(getattr(cfg, 's_star_path', '') or '')

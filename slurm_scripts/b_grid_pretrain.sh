@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=240G
 #SBATCH --job-name=b_grid
-#SBATCH --array=0-3
+#SBATCH --array=0-5
 #SBATCH -o ./slurm_scripts/logs/b_grid_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/b_grid_%A_%a.out
 # Batch size x LoRA capacity, from the best configuration we have.
@@ -42,8 +42,15 @@
 # take the others down. The 512 arms run 128 clips/GPU at 2 training frames; if they OOM it
 # is the batch size, not a bug, and B1/B2 are unaffected.
 #
-#   sbatch slurm_scripts/b_grid_pretrain.sh          # all four
-#   sbatch --array=0-1 slurm_scripts/b_grid_pretrain.sh   # just the batch-128 pair
+# B5/B6 combine the two axes that independently worked. Measured against the released GRAM
+# checkpoint: b1 (batch 128) wins MSR-VTT (+1.2) and VATEX (+0.5), b3 (batch 512) wins
+# AudioCaps (+4.4), and x1_xenc_full_lr2e5 (cross-encoder trainable, batch 256) wins DiDeMo
+# (+0.8) and is closest on ActivityNet. Batch size and cross-encoder training improve
+# DIFFERENT benchmarks by different mechanisms and have never been combined, so B5 = batch
+# 128 + trainable cross-encoder and B6 = batch 512 + trainable cross-encoder.
+#
+#   sbatch slurm_scripts/b_grid_pretrain.sh                # all six
+#   sbatch --array=4-5 slurm_scripts/b_grid_pretrain.sh    # just the new combined pair
 #
 # Resubmit to resume: each arm restarts from its own optimizer checkpoint.
 set -uo pipefail
@@ -58,11 +65,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-3)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-5)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

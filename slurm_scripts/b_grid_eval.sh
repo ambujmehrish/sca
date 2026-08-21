@@ -36,7 +36,7 @@ best_ckpt() {
   echo "$b"
 }
 
-ARMS="${SCA_B_ARMS:-b1_bs128_r8 b2_bs128_r32 b3_bs512_r8 b4_bs512_r32}"
+ARMS="${SCA_B_ARMS:-b1_bs128_r8 b2_bs128_r32 b3_bs512_r8 b4_bs512_r32 b5_bs128_xenc b6_bs512_xenc}"
 for arm in $ARMS; do
   d="workdir_pretrain/$arm"
   [ -d "$d" ] || { echo "FATAL: $d not found -- did the pretrain run?" >&2; exit 2; }

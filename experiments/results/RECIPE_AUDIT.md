@@ -526,3 +526,30 @@ steps is five full epochs of 136.7k clips and not a truncated run of 150k.
 `semantic_targets.py` were force-added. A fresh clone cannot train, the data pipeline
 cannot be reviewed, and questions like "where are unavailable clips dropped" cannot be
 answered from the repository. Worth fixing before release.
+
+### F13b — the archive mirrors were measured, and rejected (2026-08-20)
+
+Two candidate sources for the 13,480 clips we lack:
+
+| source | holds | yield for us |
+|---|---|---|
+| `Tensorlong/VAST-150k-clips` | 1,408 files, 88 of them <1KB | under 10% of the gap at best |
+| `shinian97/VAST15000` part 009 | 2,967 clips | **137 (4.6%)**; 2,830 redundant, 0 outside our subset |
+
+Extrapolating part 009 over all 23 parts gives ~3,151 recoverable clips for a 48GB
+download -- corpus 136,674 -> 139,825, **+2.3%** -- and every one of the 47 arms would need
+retraining for the comparisons to hold. The download is not the cost; the retraining is.
+
+Two facts settle it. Zero clips in the part fall outside our subset, so the archive is the
+same 150k subset with a slightly luckier download. And 23 parts x 2,967 is ~68k clips, so
+even the complete 31-part export (001-008 are absent from the repo) would hold roughly 92k
+-- **less than the 136,674 we already have.** We hold a more complete copy than either
+mirror.
+
+VAST distributes YouTube URLs rather than media, so the only complete recovery path is
+re-downloading from source, which is slow, increasingly lossy as videos are removed, and
+subject to the same retraining cost.
+
+**Decision: do not pursue.** The setup section records 136,674 usable clips of a nominal
+150k, and notes that GRAM documents the same attrition for VATEX without reporting its own
+pretraining subset's effective size.

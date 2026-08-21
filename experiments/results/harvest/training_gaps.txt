@@ -30,6 +30,8 @@ b1_bs128_r8                  128    5    2e-05    5330~     5319     10      1  
 b2_bs128_r32                 128    5    2e-05    5330~     5319     10      1  annotations150k.json
 b3_bs512_r8                  512    5    2e-05    1330~     1319     10      1  annotations150k.json
 b4_bs512_r32                 512    5    2e-05    1330~     1319     10      1  annotations150k.json
+b5_bs128_xenc                128    5    2e-05    5330~     2127      4      1  annotations150k.json
+b6_bs512_xenc                512    5    2e-05  UNKNOWN        -      0      0  annotations150k.json
 gram                         256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_hyp                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_hyp2                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
@@ -49,14 +51,25 @@ t2_itm02                     256    5    2e-05    2660~     2649     10      1  
 t3_loralr                    256    5   0.0001    2660~     2649     10      1  annotations150k.json
 t4_fullft1e4                 256    5   0.0001    2660~     2649     10      1  annotations150k.json
 t5_lr5e5                     256    5    5e-05    2660~     2649     10      1  annotations150k.json
+t6_frameset                  128    5    2e-05  UNKNOWN        -      0      0  annotations150k.json
 x1_xenc_full                 256    5   0.0001    2660~     2649     10      1  annotations150k.json
 x1_xenc_full_lr2e5           256    5    2e-05    2660~     2649     10      1  annotations150k.json
 x2_xenc_r64                  256    5   0.0001    2660~     2649     10      1  annotations150k.json
 x2_xenc_r64_lr2e5            256    5    2e-05    2660~     2649     10      1  annotations150k.json
 
+SHORT OF THE TRAINING SCHEDULE -- these stopped early:
+  b5_bs128_xenc              2127/5330 steps (40%)
+
 BATCH_SIZE DIFFERS ACROSS ARMS -- these are not comparable as they stand:
   256            47 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+41 more)
-  128             2 arm(s): b1_bs128_r8, b2_bs128_r32
-  512             2 arm(s): b3_bs512_r8, b4_bs512_r32
+  128             4 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, t6_frameset
+  512             3 arm(s): b3_bs512_r8, b4_bs512_r32, b6_bs512_xenc
+
+COULD NOT BE VERIFIED -- these checks did not run, which is not the same as
+passing. Do not read the summary below as clearing them:
+  b6_bs512_xenc              no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
+  b6_bs512_xenc              only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
+  t6_frameset                no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
+  t6_frameset                only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
 
 Gaps above. Any table row drawn from an affected arm is not comparable until fixed.

@@ -51,39 +51,39 @@ Next (no GPU needed):
   python3 scripts/sweep_score_fusion.py workdir/e1_fusion/*/dumps/rerank_*.pt
 EXIT=0 DONE 14:28:29
 
-===== slurm_scripts/logs/b_grid_eval_53372778.out
-  error_file: <N/A>
-  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
-------------------------------------------------------------
-Root Cause (first observed failure):
-[0]:
-  time      : 2026-08-21_18:34:36
-  host      : lrdn3422.leonardo.local
-  rank      : 0 (local_rank: 0)
-  exitcode  : 1 (pid: 2511938)
-  error_file: <N/A>
-  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
-============================================================
-srun: error: lrdn3422: task 0: Exited with exit code 1
-== [b4_bs512_r32/audiocaps] FAILED rc=1
-EXIT=1 DONE 18:34:36
+===== slurm_scripts/logs/b_grid_53391964_4.out
+[h264 @ 0x56354a167780] mmco: unref short failure
+[h264 @ 0x56354a167780] mmco: unref short failure
+[h264 @ 0x56354a167780] mmco: unref short failure
+[h264 @ 0x56380f7a7280] mmco: unref short failure
+[h264 @ 0x5648b3d14ac0] mmco: unref short failure
+[h264 @ 0x5648b3d14ac0] mmco: unref short failure
+[h264 @ 0x55b879ba1bc0] mmco: unref short failure
+[h264 @ 0x55b879ba1bc0] mmco: unref short failure
+[h264 @ 0x55b879ba1bc0] mmco: unref short failure
+[h264 @ 0x55b879ba1bc0] mmco: unref short failure
+ 49%|████▉     | 2621/5335 [1:26:06<1:35:59,  2.12s/it] 49%|████▉     | 2622/5335 [1:26:07<1:19:19,  1.75s/it][h264 @ 0x56380fc04400] mmco: unref short failure
+[h264 @ 0x56380fc04400] mmco: unref short failure
+[h264 @ 0x56354df99800] mmco: unref short failure
+[h264 @ 0x56380f7a7280] mmco: unref short failure
+[h264 @ 0x56380f7a7280] mmco: unref short failure
 
-===== slurm_scripts/logs/b_grid_53345535_1.out
-[h264 @ 0x560af2aa3dc0] mmco: unref short failure
-[h264 @ 0x562208b32980] mmco: unref short failure
-[h264 @ 0x562208b32980] mmco: unref short failure
-[h264 @ 0x565297480980] mmco: unref short failure
-[h264 @ 0x5622058dc340] mmco: unref short failure
-[h264 @ 0x5622063c89c0] mmco: unref short failure
-[h264 @ 0x5622063c89c0] mmco: unref short failure
-[h264 @ 0x559271716580] mmco: unref short failure
-[h264 @ 0x56220650c7c0] mmco: unref short failure
-[h264 @ 0x56220650c7c0] mmco: unref short failure
-[1;34mwandb[0m: 
-[1;34mwandb[0m: You can sync this run to the cloud by running:
-[1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260821_134940-mmkjjbs7[0m
-[1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260821_134940-mmkjjbs7/logs[0m
-EXIT=0 DONE 16:54:36
+===== slurm_scripts/logs/b_grid_eval_53391957.out
+08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 13.4, 'forward_recall': '13.4/36.4/49.4', 'forward_ravg': 33.0}
+08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 12.5, 'forward_recall': '12.5/35.8/50.1', 'forward_ravg': 32.8}
+08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 26.1, 'forward_recall': '26.1/55.3/68.2', 'forward_ravg': 49.9}
+08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 22.0, 'forward_recall': '22.0/45.9/55.7', 'forward_ravg': 41.2}
+/var/spool/slurmd/job53391957/slurm_script: line 66: cell_mark_done: command not found
+== [b4_bs512_r32/audiocaps] OK 20:27:54
+EXIT=0 DONE 20:27:54
 
 ===== slurm_scripts/logs/e1_zs_53265198.out
 08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========

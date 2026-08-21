@@ -90,9 +90,11 @@ def report(path, taus):
     r_p = recall(feat_t @ pooled.T, gt_cols)
     print('   pooled (current) : %5.1f/%5.1f/%5.1f' % tuple(r_p))
 
-    sims_max = torch.stack([torch.einsum('cd,gfd->cgf', feat_t[i:i + 64], zf).max(-1).values
-                            for i in range(0, feat_t.shape[0], 64)])
-    r_m = recall(torch.cat(list(sims_max), dim=0)[:feat_t.shape[0]], gt_cols)
+    # cat, not stack: the final chunk is ragged (e.g. 53 of 64 on ActivityNet's 4917 texts)
+    # and stacking unequal chunks raises. Same chunking as softmax_over_frames.
+    sims_max = torch.cat([torch.einsum('cd,gfd->cgf', feat_t[i:i + 64], zf).max(-1).values
+                          for i in range(0, feat_t.shape[0], 64)], dim=0)
+    r_m = recall(sims_max, gt_cols)
     print('   max over frames  : %5.1f/%5.1f/%5.1f   %+.1f' % (*r_m, r_m[0] - r_p[0]))
 
     best = (None, -1.0)

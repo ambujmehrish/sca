@@ -52,38 +52,38 @@ Next (no GPU needed):
 EXIT=0 DONE 14:28:29
 
 ===== slurm_scripts/logs/b_grid_53391964_4.out
-[h264 @ 0x56354a167780] mmco: unref short failure
-[h264 @ 0x56354a167780] mmco: unref short failure
-[h264 @ 0x56354a167780] mmco: unref short failure
-[h264 @ 0x56380f7a7280] mmco: unref short failure
-[h264 @ 0x5648b3d14ac0] mmco: unref short failure
-[h264 @ 0x5648b3d14ac0] mmco: unref short failure
-[h264 @ 0x55b879ba1bc0] mmco: unref short failure
-[h264 @ 0x55b879ba1bc0] mmco: unref short failure
-[h264 @ 0x55b879ba1bc0] mmco: unref short failure
-[h264 @ 0x55b879ba1bc0] mmco: unref short failure
- 49%|████▉     | 2621/5335 [1:26:06<1:35:59,  2.12s/it] 49%|████▉     | 2622/5335 [1:26:07<1:19:19,  1.75s/it][h264 @ 0x56380fc04400] mmco: unref short failure
-[h264 @ 0x56380fc04400] mmco: unref short failure
-[h264 @ 0x56354df99800] mmco: unref short failure
-[h264 @ 0x56380f7a7280] mmco: unref short failure
-[h264 @ 0x56380f7a7280] mmco: unref short failure
+[h264 @ 0x5638141b67c0] mmco: unref short failure
+[h264 @ 0x55b87e65f8c0] mmco: unref short failure
+[h264 @ 0x55b87e65f8c0] mmco: unref short failure
+[h264 @ 0x5638141b67c0] mmco: unref short failure
+[h264 @ 0x5638141b67c0] mmco: unref short failure
+[h264 @ 0x56354f40d9c0] mmco: unref short failure
+[h264 @ 0x56354f40d9c0] mmco: unref short failure
+[h264 @ 0x56354b1b7780] mmco: unref short failure
+[h264 @ 0x56354b1b7780] mmco: unref short failure
+[h264 @ 0x5648bbec6200] mmco: unref short failure
+[h264 @ 0x5648bbec6200] mmco: unref short failure
+[h264 @ 0x5638100ec640] mmco: unref short failure
+[h264 @ 0x5638123ef880] mmco: unref short failure
+[h264 @ 0x56354e047a00] mmco: unref short failure
+[h264 @ 0x56354e047a00] mmco: unref short failure
 
-===== slurm_scripts/logs/b_grid_eval_53391957.out
-08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+===== slurm_scripts/logs/b_grid_53416202_7.out
+ 88%|████████▊ | 14/16 [01:35<00:07,  3.72s/it][A 94%|█████████▍| 15/16 [01:36<00:03,  3.67s/it] 94%|█████████▍| 15/16 [01:37<00:03,  3.67s/it] 94%|█████████▍| 15/16 [01:37<00:03,  3.67s/it]
+ 94%|█████████▍| 15/16 [01:38<00:03,  3.68s/it][A100%|██████████| 16/16 [01:38<00:00,  3.26s/it]100%|██████████| 16/16 [01:38<00:00,  6.19s/it]
+100%|██████████| 16/16 [01:39<00:00,  3.26s/it]100%|██████████| 16/16 [01:39<00:00,  6.22s/it]
+100%|██████████| 16/16 [01:39<00:00,  3.27s/it]100%|██████████| 16/16 [01:39<00:00,  6.23s/it]
 
-08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 13.4, 'forward_recall': '13.4/36.4/49.4', 'forward_ravg': 33.0}
-08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+100%|██████████| 16/16 [01:41<00:00,  3.27s/it][A100%|██████████| 16/16 [01:41<00:00,  6.32s/it]
+08/21/2026 21:58:07 - INFO - __main__ -   [SCORE] task=tvas mode=centroid over T+VAS = 4-modal
 
-08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 12.5, 'forward_recall': '12.5/35.8/50.1', 'forward_ravg': 32.8}
-08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
-
-08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 26.1, 'forward_recall': '26.1/55.3/68.2', 'forward_ravg': 49.9}
-08/21/2026 20:27:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
-
-08/21/2026 20:27:51 - INFO - __main__ -   {'forward_r1': 22.0, 'forward_recall': '22.0/45.9/55.7', 'forward_ravg': 41.2}
-/var/spool/slurmd/job53391957/slurm_script: line 66: cell_mark_done: command not found
-== [b4_bs512_r32/audiocaps] OK 20:27:54
-EXIT=0 DONE 20:27:54
+  0%|          | 0/250 [00:00<?, ?it/s][A
+  0%|          | 1/250 [00:00<00:40,  6.14it/s][A
+  1%|          | 2/250 [00:00<00:54,  4.55it/s][A
+  1%|          | 3/250 [00:00<00:50,  4.93it/s][A
+  2%|▏         | 4/250 [00:00<00:56,  4.36it/s][A
+  2%|▏         | 5/250 [00:01<01:04,  3.80it/s][A
+  2%|▏         | 6/250 [00:01<01:25,  2.87it/s][A
 
 ===== slurm_scripts/logs/e1_zs_53265198.out
 08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========

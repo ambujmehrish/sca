@@ -9,6 +9,7 @@ ran, any other value means the file records a failure rather than a result.
 | [score_fusion](score_fusion.txt) | 0 | Candidate recall@k (the ceiling) and the fusion-weight sweep |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |
+| [training_curve](training_curve.txt) | 0 | Where each arm peaks during training (overtraining check) |
 | [query_centroid](query_centroid.txt) | 0 | Query-weighted centroid vs uniform, tau sweep on cached features |
 | [job_logs](job_logs.txt) | - | Tails of the most recent slurm logs |
 

@@ -33,6 +33,7 @@ for a in "$@"; do
   case "$a" in
     --dry) DRY=1 ;;
     --headline)  WHAT=headline ;;
+    --xenc)      WHAT=xenc ;;
     --baselines) echo "baselines are frozen: GRAM from its released checkpoint + paper, PMRL/HyperGRAM from paper. Nothing to submit." >&2; exit 0 ;;
     --only=*)    ONLY="${a#--only=}" ;;
     --baselines|--baselines-only) WHAT=baselines ;;
@@ -97,6 +98,26 @@ if [ "$WHAT" = all ] || [ "$WHAT" = headline ]; then
   echo "# --- PHASE 1: SCA at the reported recipe -------------------------------------"
   submit config/sca/pretrain_cfg/sca_paper.json             workdir_pretrain/sca_paper
   submit config/sca/pretrain_cfg/sca_paper_fullft.json      workdir_pretrain/sca_paper_fullft
+fi
+
+# PHASE X -- the ITM cross-encoder arms.
+# build_optimizer.py freezes 'multimodal_encoder' under the LoRA regime, and that module is
+# the ITM cross-encoder (model/sca.py:319 feeds it into self.itm_head). GRAM trains it
+# fully -- their L_DAM is one of the two pretraining objectives -- so SCA reranks with a
+# rank-8 adapter where GRAM reranks with a finetuned cross-encoder. Measured against the
+# released checkpoint SCA leads on every dual-encoder metric (+4.5 DiDeMo, +2.3 ActivityNet
+# on the aggregator) and trails after reranking (-0.7, -3.7): a 5-6 point swing at the one
+# stage it under-trains, on every benchmark rather than one dataset.
+#
+# X1 trains the cross-encoder while keeping vision/audio adapted; X2 is the cheaper
+# rank-64 version. Both learning rates, because unfreezing this much capacity may prefer
+# 2e-5 the way full finetuning did.
+if [ "$WHAT" = all ] || [ "$WHAT" = xenc ]; then
+  echo "# --- PHASE X: ITM cross-encoder regime ---------------------------------------"
+  submit config/sca/ablations/X1_xenc_full.json       workdir_pretrain/x1_xenc_full
+  submit config/sca/ablations/X1_xenc_full_lr2e5.json workdir_pretrain/x1_xenc_full_lr2e5
+  submit config/sca/ablations/X2_xenc_r64.json        workdir_pretrain/x2_xenc_r64
+  submit config/sca/ablations/X2_xenc_r64_lr2e5.json  workdir_pretrain/x2_xenc_r64_lr2e5
 fi
 
 if [ "$WHAT" = all ] || [ "$WHAT" = ablations ]; then

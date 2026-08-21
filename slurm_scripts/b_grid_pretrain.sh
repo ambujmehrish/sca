@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=240G
 #SBATCH --job-name=b_grid
-#SBATCH --array=0-8
+#SBATCH --array=0-10
 #SBATCH -o ./slurm_scripts/logs/b_grid_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/b_grid_%A_%a.out
 # Batch size x LoRA capacity, from the best configuration we have.
@@ -53,6 +53,17 @@
 #   sbatch --array=4-5 slurm_scripts/b_grid_pretrain.sh    # just the new combined pair
 #   sbatch --array=6 slurm_scripts/b_grid_pretrain.sh      # T6: the frame set in the objective
 #   sbatch --array=7-8 slurm_scripts/b_grid_pretrain.sh    # E1/E2: 1 and 2 epochs
+#   sbatch --array=9-10 slurm_scripts/b_grid_pretrain.sh   # T7/T8: frame-set variants
+#
+# T7/T8 follow T6, which is the only arm with a positive signal: at matched steps it reads
+# 53.0 and 53.8 where b1 reads 51.3 and 52.8, and it reaches b1's whole-run best (53.9) at
+# step 1063 of 5295. T7 asks whether a RICHER set helps -- 4 frames at batch 64, the same
+# 256 frame-images T6 proved fits, so more frames rather than more memory. T8 asks whether
+# tau_w belongs at 0.05: 0.1 came from a post-hoc sweep over features trained under mean
+# pooling, and the right temperature under training need not be the same.
+#
+# Both sit at T6's exact vision footprint. The 4-frame-at-batch-128 version died with CUDA
+# OOM at 63.4 of 63.4 GiB, so frame count is traded against batch here, never added on top.
 #
 # E1/E2 test a regime nobody has: EVERY arm here has run 5 epochs, while GRAM's published
 # recipe is ONE. Both start from the same VAST foundation checkpoint
@@ -85,11 +96,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-8)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-10)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

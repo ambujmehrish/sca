@@ -55,7 +55,7 @@ mkdir -p slurm_scripts/logs
 # the FINAL checkpoint explicitly -- never best_*.pt, which is what this job exists to avoid
 final_ckpt() { ls "$1"/ckpt/model_step_*.pt 2>/dev/null | sort -V | tail -1; }
 
-ARMS="${SCA_FINAL_ARMS:-sca b1_bs128_r8 b3_bs512_r8 b5_bs128_xenc}"
+ARMS="${SCA_FINAL_ARMS:-sca b1_bs128_r8 b3_bs512_r8}"
 for arm in $ARMS; do
   d="workdir_pretrain/$arm"
   c=$(final_ckpt "$d")

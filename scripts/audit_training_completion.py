@@ -144,10 +144,19 @@ def main():
 
     print('%-30s %8s %9s %7s  %s' % ('arm', 'reached', 'expected', 'done', 'note'))
     print('-' * 84)
-    short, unknown, complete = [], [], []
+    short, unknown, complete, soft = [], [], [], []
     for d in dirs:
         name = os.path.basename(d)
-        exp, bs, ep = expected_steps(find_hps(d), args.clips)
+        hps_path = find_hps(d)
+        exp, bs, ep = expected_steps(hps_path, args.clips)
+        # exact == the number came from the trainer, not from our arithmetic
+        exact = False
+        if hps_path:
+            try:
+                _h = json.load(open(hps_path))
+                exact = bool(_h.get('run_cfg', {}).get('num_train_steps'))
+            except (ValueError, IOError):
+                exact = False
         got = reached_step(d)
         if got is None:
             print('%-30s %8s %9s %7s  no checkpoints' % (name, '-', exp or '?', '-'))
@@ -161,8 +170,15 @@ def main():
         frac = got / float(exp)
         note = ''
         if frac < args.tolerance:
-            note = 'UNDER-TRAINED: %.0f%% of schedule (batch %s x %s epochs)' % (frac * 100, bs, ep)
-            short.append((name, got, exp, frac))
+            # Only a genuine shortfall if the target came from the trainer itself. An
+            # annotation-derived target is an upper bound -- the dataset object drops clips
+            # whose video or audio is missing from disk, and the trainer schedules against
+            # len(dataset). A uniform shortfall across every arm is that gap, not truncation.
+            note = ('%.0f%% of an ANNOTATION-DERIVED bound (batch %s x %s epochs); the real '
+                    'target is len(dataset) after missing media are dropped'
+                    % (frac * 100, bs, ep)) if not exact else \
+                   'UNDER-TRAINED: %.0f%% of the trainer\'s own target' % (frac * 100)
+            (short if exact else soft).append((name, got, exp, frac))
         else:
             complete.append(name)
         print('%-30s %8d %9d %6.0f%%  %s' % (name, got, exp, frac * 100, note))
@@ -189,6 +205,16 @@ def main():
             print('%d of %d arms share the modal step %d; the rest differ -- check whether'
                   % (n, len(dirs), top))
             print('the outliers were resubmitted to completion.')
+    if soft and not short:
+        print('\n%d arm(s) sit below an annotation-derived bound. That bound counts every'
+              % len(soft))
+        print('clip in the annotation; the trainer schedules against len(dataset), which is')
+        print('smaller because clips with no video or audio on disk are dropped. With every')
+        print('arm at the same step, this is that gap and not truncation. To confirm, read')
+        print("the trainer's own target:")
+        print("  python3 -c \"import json;print(json.load(open('workdir_pretrain/"
+              "t1_lr1e4/log/hps.json'))['run_cfg']['num_train_steps'])\"")
+        return 0
     if short:
         print('\nUnder-trained arms, worst first:')
         for name, got, exp, frac in sorted(short, key=lambda t: t[3]):

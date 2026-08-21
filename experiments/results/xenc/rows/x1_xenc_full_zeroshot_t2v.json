@@ -1,0 +1,10 @@
+{
+ "method": "x1_xenc_full",
+ "section": "zeroshot_t2v",
+ "rows": {
+  "MSR-VTT|T-VAS": [
+   52.6,
+   80.5
+  ]
+ }
+}

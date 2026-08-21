@@ -1,3 +1,7 @@
+$ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
+             [ ${#f[@]} -gt 0 ] || { echo "no feature dumps under results/e4_transfer/feats"; exit 3; }
+             python3 scripts/try_query_centroid.py "${f[@]}"
+
 
 == gram_activitynet.pt
    texts 4917   clips 4917   modalities 2   mean present 2.00

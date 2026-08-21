@@ -5,10 +5,11 @@ ran, any other value means the file records a failure rather than a result.
 
 | output | rc | what it answers |
 |---|---|---|
-| [raw_vs_itm](raw_vs_itm.txt) | 1 | Aggregator vs ITM per cell, plus arm x benchmark pivots |
+| [raw_vs_itm](raw_vs_itm.txt) | 0 | Aggregator vs ITM per cell, plus arm x benchmark pivots |
 | [score_fusion](score_fusion.txt) | 0 | Candidate recall@k (the ceiling) and the fusion-weight sweep |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |
+| [query_centroid](query_centroid.txt) | 0 | Query-weighted centroid vs uniform, tau sweep on cached features |
 | [job_logs](job_logs.txt) | - | Tails of the most recent slurm logs |
 
 ## Reading order

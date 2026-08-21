@@ -339,16 +339,23 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         store_dict[f'condition_feats_{task}'] = torch.cat(store_dict[f'condition_feats_{task}'],dim=0)
         itm_rerank_num = model.config.itm_rerank_num
         #itm_rerank_num = 30
-        score_matrix = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area , model, itm_rerank_num, direction='forward')#-(area-video_similarity)
-        log = compute_metric_ret(score_matrix, ids, ids_txt, direction='forward')
+        itm_fwd = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area , model, itm_rerank_num, direction='forward')#-(area-video_similarity)
+        log = compute_metric_ret(itm_fwd, ids, ids_txt, direction='forward')
         log = {k.replace('forward','volume_ITM_T2D'): v for k,v in log.items()}
 
-        score_matrix = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area, model, itm_rerank_num, direction='backward') #-(area-video_similarity)
-        log2 = compute_metric_ret(score_matrix, ids, ids_txt, direction='backward')
+        itm_bwd = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area, model, itm_rerank_num, direction='backward') #-(area-video_similarity)
+        log2 = compute_metric_ret(itm_bwd, ids, ids_txt, direction='backward')
         log2 = {k.replace('backward','volume_ITM_D2T'): v for k,v in log2.items()}
         log.update(log2)
 
         val_log[f'ret_itm_area'] = log
+
+        # refine_score_matrix starts from zeros and writes the ITM probability into the top-k
+        # cells only, so the reported metric is the cross-encoder's ranking alone -- the
+        # aggregator score reaches it solely by choosing which k clips get scored. Dumping the
+        # two matrices side by side lets that be quantified (recall@k of the candidate set) and
+        # lets score fusion be evaluated post hoc, without re-running this ITM pass.
+        _dump_rerank(task, area, itm_fwd, itm_bwd, ids, ids_txt, itm_rerank_num, global_step)
     
     
         cosine_TV = torch.matmul(feat_t, feat_v.permute(1,0))
@@ -411,6 +418,34 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         wandb.log(val_log)
         
     return val_log
+
+def _dump_rerank(task, area, itm_fwd, itm_bwd, ids, ids_txt, itm_rerank_num, global_step):
+    """Save the dual-encoder and ITM score matrices so fusion can be studied post hoc.
+
+    Off unless SCA_DUMP_RERANK names a directory, and then rank 0 only. Nothing about the
+    reported metric changes -- this only records the two matrices that produced it.
+
+    Why it is worth the disk: the reported number is the ITM ranking, and the aggregator
+    influences it only by choosing the top-k candidate set. Whether a better aggregator can
+    show up at all therefore depends on whether recall@k is saturated, which is measurable
+    from exactly these two matrices and from nothing else in the log.
+    """
+    out_dir = os.environ.get('SCA_DUMP_RERANK', '')
+    if not out_dir or dist.get_rank() != 0:
+        return
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, f'rerank_{task}_step{global_step}.pt')
+    torch.save({'task': task,
+                # dual-encoder SCORE (higher = better), the same quantity refine_score_matrix
+                # took the top-k of. area is a distance, hence the sign.
+                'dual': (-area).float().cpu(),
+                'itm_fwd': itm_fwd.float().cpu(),
+                'itm_bwd': itm_bwd.float().cpu(),
+                'ids': list(ids), 'ids_txt': list(ids_txt),
+                'itm_rerank_num': int(itm_rerank_num),
+                'global_step': int(global_step)}, path)
+    LOGGER.info(f'[DUMP] rerank matrices -> {path}')
+
 
 def refine_score_matrix(condition_feats, input_ids, attention_mask, score_matrix_t_cond, model, itm_rerank_num, direction='forward'):
 

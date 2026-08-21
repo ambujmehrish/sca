@@ -1,0 +1,24 @@
+$ python3 scripts/audit_modality_arity.py
+
+config                 split  task             entries   w/ subs      k  annotation
+--------------------------------------------------------------------------------------------------------
+sca_pretrain           train  ret%tv%ta         150154 150154 (subtitle)      3  annotations150k.json
+sca_pretrain           val    ret%tvas            1000 762 (subtitle)      3  descs_ret_test.json
+sca_activitynet        train  ret%tva             4917         0      2  descs_ret_test.json
+sca_activitynet        val    ret%tva             4917         0      2  descs_ret_test.json
+sca_audiocaps          train  ret%tva              704         0      2  audiocaps_tva_annotation.json
+sca_audiocaps          val    ret%tva              704         0      2  audiocaps_tva_annotation.json
+sca_didemo             train  ret%tva             1003         0      2  descs_ret_test.json
+sca_didemo             val    ret%tva             1003         0      2  descs_ret_test.json
+sca_vatex              train  ret%tvas             431 431 (subtitle)      3  descs_ret_test_431.json
+sca_vatex              val    ret%tvas             431 431 (subtitle)      3  descs_ret_test_431.json
+
+training gallery arity: k=3
+  activitynet_ret    k=2  (task ret%tva)
+  audiocaps_ret      k=2  (task ret%tva)
+  didemo_ret         k=2  (task ret%tva)
+  msrvtt_ret         k=3  (task ret%tvas)
+  vatex_ret          k=3  (task ret%tvas)
+
+No arity gap: every benchmark is evaluated at an arity the model trained at.
+Whatever is wrong with VATEX, it is not that the centroid meets an unseen k.

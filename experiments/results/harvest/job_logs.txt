@@ -1,0 +1,120 @@
+Last lines of the most recent job logs
+
+===== slurm_scripts/logs/e1_xenc_53345467.out
+08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 14.1, 'forward_recall': '14.1/37.8/50.1', 'forward_ravg': 34.0}
+08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 13.1, 'forward_recall': '13.1/35.9/49.0', 'forward_ravg': 32.7}
+08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 25.1, 'forward_recall': '25.1/54.8/66.9', 'forward_ravg': 49.0}
+08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 17.8, 'forward_recall': '17.8/39.8/51.0', 'forward_ravg': 36.2}
+/var/spool/slurmd/job53345467/slurm_script: line 72: cell_mark_done: command not found
+== [x2_xenc_r64_lr2e5/audiocaps] OK 16:17:27
+EXIT=0 DONE 16:17:27
+
+===== slurm_scripts/logs/e1_xenc_53330280.out
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-08-21_13:38:22
+  host      : lrdn2551.leonardo.local
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 2731662)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+srun: error: lrdn2551: task 0: Exited with exit code 1
+== [x2_xenc_r64_lr2e5/audiocaps] FAILED rc=1
+EXIT=1 DONE 13:38:22
+
+===== slurm_scripts/logs/e1_fusion_53338192.out
+
+08/21/2026 14:28:24 - INFO - __main__ -   {'forward_r1': 25.1, 'forward_recall': '25.1/55.0/66.9', 'forward_ravg': 49.0}
+08/21/2026 14:28:24 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/21/2026 14:28:24 - INFO - __main__ -   {'forward_r1': 17.8, 'forward_recall': '17.8/39.8/50.9', 'forward_ravg': 36.1}
+/var/spool/slurmd/job53338192/slurm_script: line 101: cell_mark_done: command not found
+== [sca/audiocaps] OK 14:28:29
+
+SELF-CHECK: these cells must reproduce the e1_zs numbers -- same checkpoints, same
+            configs, only SCA_DUMP_RERANK added. Any drift means the dump changed the
+            eval, and the fusion analysis would be built on a different model.
+
+Next (no GPU needed):
+  python3 scripts/sweep_score_fusion.py workdir/e1_fusion/*/dumps/rerank_*.pt
+EXIT=0 DONE 14:28:29
+
+===== slurm_scripts/logs/b_grid_53345535_0.out
+
+08/21/2026 16:35:23 - INFO - __main__ -   {'forward_r1': 4.8, 'forward_recall': '4.8/14.6/20.6', 'forward_ravg': 13.3}
+ 90%|████████▉ | 4788/5335 [2:42:51<12:47:47, 84.22s/it][h264 @ 0x56358acf4b80] mmco: unref short failure
+[h264 @ 0x56358acf4b80] mmco: unref short failure
+[h264 @ 0x55612f1e3080] mmco: unref short failure
+[h264 @ 0x55612f1e3080] mmco: unref short failure
+ 90%|████████▉ | 4789/5335 [2:42:52<8:58:19, 59.16s/it] [h264 @ 0x55612aa34680] mmco: unref short failure
+[h264 @ 0x55612aa34680] mmco: unref short failure
+ 90%|████████▉ | 4790/5335 [2:42:53<6:18:00, 41.62s/it][h264 @ 0x563589e6d580] mmco: unref short failure
+[h264 @ 0x556129b8d940] mmco: unref short failure
+[h264 @ 0x556129b8d940] mmco: unref short failure
+[h264 @ 0x556127201b80] mmco: unref short failure
+[h264 @ 0x556127201b80] mmco: unref short failure
+[h264 @ 0x56358162f780] mmco: unref short failure
+[h264 @ 0x56358162f780] mmco: unref short failure
+
+===== slurm_scripts/logs/b_grid_53345535_3.out
+[h264 @ 0x55d6c10582c0] mmco: unref short failure
+[h264 @ 0x55d6c10582c0] mmco: unref short failure
+[h264 @ 0x55d6c10582c0] mmco: unref short failure
+[h264 @ 0x55d6c10582c0] mmco: unref short failure
+ 92%|█████████▏| 1229/1330 [2:42:50<12:17,  7.30s/it][h264 @ 0x558c8cf3e680] mmco: unref short failure
+[h264 @ 0x558c8cf3e680] mmco: unref short failure
+[h264 @ 0x558c8cf3e680] mmco: unref short failure
+[h264 @ 0x558c8cf3e680] mmco: unref short failure
+[h264 @ 0x55d6afa8cec0] mmco: unref short failure
+[h264 @ 0x5650bfe17d80] mmco: unref short failure
+[h264 @ 0x5650bfe17d80] mmco: unref short failure
+[h264 @ 0x55a5d32a9200] mmco: unref short failure
+[h264 @ 0x5650cc833740] mmco: unref short failure
+[h264 @ 0x5650cc833740] mmco: unref short failure
+[h264 @ 0x55d6aeccfc00] mmco: unref short failure
+
+===== slurm_scripts/logs/e1_zs_53265198.out
+08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 12.5, 'forward_recall': '12.5/34.7/50.6', 'forward_ravg': 32.6}
+08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 9.4, 'forward_recall': '9.4/32.1/44.9', 'forward_ravg': 28.8}
+08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 25.3, 'forward_recall': '25.3/56.7/71.2', 'forward_ravg': 51.0}
+08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 25.0, 'forward_recall': '25.0/56.8/70.0', 'forward_ravg': 50.6}
+/var/spool/slurmd/job53265198/slurm_script: line 55: cell_mark_done: command not found
+== [gram_audiocaps] OK 22:38:32
+EXIT=0 DONE 22:38:32
+
+===== slurm_scripts/logs/e1_zs_53264889.out
+08/20/2026 21:02:09 - INFO - __main__ -   {'volume_ITM_T2D_r1': 33.1, 'volume_ITM_T2D_recall': '33.1/62.9/73.0', 'volume_ITM_T2D_ravg': 56.3, 'volume_ITM_D2T_r1': 32.8, 'volume_ITM_D2T_recall': '32.8/61.1/74.9', 'volume_ITM_D2T_ravg': 56.2}
+08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 12.5, 'forward_recall': '12.5/34.7/50.6', 'forward_ravg': 32.6}
+08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 9.4, 'forward_recall': '9.4/32.1/44.9', 'forward_ravg': 28.8}
+08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 25.3, 'forward_recall': '25.3/56.7/71.2', 'forward_ravg': 51.0}
+08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 25.0, 'forward_recall': '25.0/56.8/70.0', 'forward_ravg': 50.6}
+== [gram_audiocaps] OK 21:02:11
+EXIT=0 DONE 21:02:11

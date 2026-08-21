@@ -1,0 +1,68 @@
+$ python3 scripts/audit_training_gaps.py --workdir_root workdir_pretrain
+
+arm                        batch   ep       lr   target  reached  evals  ckpts  annotation
+------------------------------------------------------------------------------------------------------------
+a1_term2off                  256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a3_sstar_eye                 256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a4_concept_off               256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a4_eps0                      256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a4_eta09                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a4_proto_batch               256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a5_2drop                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a5_maskfreq                  256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a5_p03                       256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a5_pconst                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a6_asym                      256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a6_fullft                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a6_r16                       256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a6_r4                        256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a7_gates                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a8_lam0                      256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a8_lam005                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a8_lam03                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a8_wrep                      256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a9_minilm                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a9_tau03                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a9_tau10                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a9_top128                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+a9_top32                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+b1_bs128_r8                  128    5    2e-05    5330~     4787      9      1  annotations150k.json
+b2_bs128_r32                 128    5    2e-05    5330~     4787      9      1  annotations150k.json
+b3_bs512_r8                  512    5    2e-05    1330~     1187      9      1  annotations150k.json
+b4_bs512_r32                 512    5    2e-05    1330~     1187      9      1  annotations150k.json
+gram                         256    5    2e-05    2660~     2649     10      1  annotations150k.json
+gram_hyp                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+gram_hyp2                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+gram_lora                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+gram_masked                  256    5    2e-05    2660~     2649     10      1  annotations150k.json
+gram_s51                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+gram_s52                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+pmrl                         256    5    2e-05    2660~     2649     10      1  annotations150k.json
+pmrl_lora                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
+pmrl_masked                  256    5    2e-05    2660~     2649     10      1  annotations150k.json
+sca                          256    5    2e-05    2660~     2649     10      1  annotations150k.json
+sca_nomask                   256    5    2e-05    2660~     2649     10      1  annotations150k.json
+t1_lr1e4                     256    5   0.0001    2660~     2649     10      1  annotations150k.json
+t1_s51                       256    5   0.0001    2660~     2649     10      1  annotations150k.json
+t1_s52                       256    5   0.0001    2660~     2649     10      1  annotations150k.json
+t2_itm02                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
+t3_loralr                    256    5   0.0001    2660~     2649     10      1  annotations150k.json
+t4_fullft1e4                 256    5   0.0001    2660~     2649     10      1  annotations150k.json
+t5_lr5e5                     256    5    5e-05    2660~     2649     10      1  annotations150k.json
+x1_xenc_full                 256    5   0.0001    2660~     2649     10      1  annotations150k.json
+x1_xenc_full_lr2e5           256    5    2e-05    2660~     2649     10      1  annotations150k.json
+x2_xenc_r64                  256    5   0.0001    2660~     2649     10      1  annotations150k.json
+x2_xenc_r64_lr2e5            256    5    2e-05    2660~     2649     10      1  annotations150k.json
+
+SHORT OF THE TRAINING SCHEDULE -- these stopped early:
+  b1_bs128_r8                4787/5330 steps (90%)
+  b2_bs128_r32               4787/5330 steps (90%)
+  b3_bs512_r8                1187/1330 steps (89%)
+  b4_bs512_r32               1187/1330 steps (89%)
+
+BATCH_SIZE DIFFERS ACROSS ARMS -- these are not comparable as they stand:
+  256            47 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+41 more)
+  128             2 arm(s): b1_bs128_r8, b2_bs128_r32
+  512             2 arm(s): b3_bs512_r8, b4_bs512_r32
+
+Gaps above. Any table row drawn from an affected arm is not comparable until fixed.

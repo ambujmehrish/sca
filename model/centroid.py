@@ -66,6 +66,30 @@ def masked_spherical_mean(z, present=None, eps=1e-6, gates=None,
     return mu, A, n
 
 
+def _masked_softmax(logits, mask, dim=-1, eps=1e-6):
+    """softmax over the entries mask marks present, without an -inf sentinel.
+
+    The original filled absent entries with torch.finfo(dtype).min. That is ~-3.4e38, a
+    FINITE fp32 value that overflows when autocast casts it to fp16 -- "RuntimeError: value
+    cannot be converted to type at::Half without overflow", which is what killed T6 on its
+    first training step. Negative infinity has no such problem: it is representable in every
+    float dtype, so it converts rather than overflowing.
+
+    The max must be taken over the PRESENT entries only. Shifting by a max that an absent
+    entry happened to set drives every present logit far negative, exp underflows them all to
+    zero, and the row normalises to zeros -- silently returning no weights at all rather than
+    a distribution over what is there.
+    """
+    mask = mask.to(logits.dtype)
+    masked = torch.where(mask > 0, logits,
+                         torch.tensor(float('-inf'), dtype=logits.dtype, device=logits.device))
+    m = masked.max(dim=dim, keepdim=True).values
+    # an all-absent row has max -inf; shifting by it would give -inf - -inf = nan
+    m = torch.where(torch.isfinite(m), m, torch.zeros_like(m))
+    w = torch.exp(masked - m)                       # exp(-inf) == 0, so absent entries vanish
+    return w / w.sum(dim=dim, keepdim=True).clamp(min=eps)
+
+
 def query_weights(z, query, present, tau=0.1, eps=1e-6):
     """Per-modality weights from the QUERY: w_m ∝ exp(<t, z_m> / tau) over the present set.
 
@@ -101,11 +125,7 @@ def query_weights(z, query, present, tau=0.1, eps=1e-6):
     """
     present = present.to(z.dtype)
     agree = torch.einsum('bd,bld->bl', query.to(z.dtype), z)        # (B, L) cos(t, z_m)
-    neg_inf = torch.finfo(z.dtype).min
-    logits = torch.where(present > 0, agree / max(tau, eps),
-                         z.new_full(agree.shape, neg_inf))
-    w = torch.softmax(logits, dim=1) * present
-    w = w / w.sum(dim=1, keepdim=True).clamp(min=eps)
+    w = _masked_softmax(agree / max(tau, eps), present, dim=1, eps=eps)
     # an all-absent row would be 0/0; leave it at zero rather than NaN, matching the uniform
     # path where such a row yields mu = 0
     return torch.where(present.sum(dim=1, keepdim=True) > 0, w, torch.zeros_like(w))
@@ -135,15 +155,11 @@ def query_centroid_scores(feat_t, z, present, tau=0.1, eps=1e-6, chunk=256):
     gram = torch.einsum('gld,gmd->glm', z, z)                       # (Ng, L, L) per-clip Gram
     mask = present.unsqueeze(1) * present.unsqueeze(2)              # zero out absent pairs
     gram = gram * mask
-    neg_inf = torch.finfo(z.dtype).min
     out = []
     for i in range(0, feat_t.shape[0], chunk):
         t = feat_t[i:i + chunk].float()                             # (c, d)
         sims = torch.einsum('cd,gld->cgl', t, z)                    # (c, Ng, L) = <t, z_m>
-        logits = torch.where(present.unsqueeze(0) > 0, sims / max(tau, eps),
-                             sims.new_full(sims.shape, neg_inf))
-        w = torch.softmax(logits, dim=-1) * present.unsqueeze(0)
-        w = w / w.sum(dim=-1, keepdim=True).clamp(min=eps)
+        w = _masked_softmax(sims / max(tau, eps), present.unsqueeze(0), dim=-1, eps=eps)
         num = (w * sims).sum(dim=-1)                                # (c, Ng) = <t, S>
         den = torch.einsum('cgl,glm,cgm->cg', w, gram, w).clamp(min=eps).sqrt()
         out.append(num / den)
@@ -203,11 +219,8 @@ def reliability_weights(z, present, tau=0.1, eps=1e-6):
     loo = loo / loo.norm(dim=-1, keepdim=True).clamp(min=eps)
     agree = (z * loo).sum(dim=-1)                                   # (B, L) cos(z_m, mu_-m)
 
-    # absent modalities must never win weight: push them to -inf before the softmax
-    neg_inf = torch.finfo(z.dtype).min
-    logits = torch.where(present > 0, agree / max(tau, eps), z.new_full(agree.shape, neg_inf))
-    w = torch.softmax(logits, dim=1) * present
-    w = w / w.sum(dim=1, keepdim=True).clamp(min=eps)
+    # absent modalities must never win weight; masked softmax, no -inf sentinel (fp16-safe)
+    w = _masked_softmax(agree / max(tau, eps), present, dim=1, eps=eps)
 
     # |M| <= 1: mu_{-m} is the zero vector and the agreement is meaningless -- use uniform.
     n = present.sum(dim=1, keepdim=True)

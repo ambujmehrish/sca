@@ -4,6 +4,7 @@ The property that matters for the paper is that this is still a centroid -- a co
 combination of unit vectors -- with tau interpolating between the uniform mean and
 max-over-modalities, and that it is defined at every arity including k=2, where the earlier
 reliability weighting was degenerate by symmetry."""
+import pytest
 import torch
 
 from model.centroid import (masked_spherical_mean, query_centroid_scores, query_weights)
@@ -101,3 +102,32 @@ def test_score_matrix_is_pairwise_not_self_conditioned():
     off = ~torch.eye(6, dtype=torch.bool)
     assert (S[off] - naive[off]).abs().max() > 1e-3, \
         'off-diagonal identical -- the weighting is not query-dependent, so this test is vacuous'
+
+
+def test_masked_softmax_survives_half_precision():
+    """T6 died on its first training step with 'value cannot be converted to type at::Half
+    without overflow'. The cause was torch.finfo(float32).min as the absent-slot sentinel:
+    a finite -3.4e38 that overflows when autocast casts it to fp16. Every test until now ran
+    in fp32, so nothing caught it. Training runs under autocast, so this runs in half."""
+    t, z, present = _fixture(Ng=9, Nt=9)
+    w = query_weights(z.half(), t.half(), present.half(), tau=0.1)
+    assert torch.isfinite(w).all()
+    assert (w[present <= 0] == 0).all()
+    assert torch.allclose(w.float().sum(1), torch.ones(w.shape[0]), atol=1e-2)
+
+
+def test_masked_softmax_ignores_absent_entries_when_shifting():
+    """The max must be taken over PRESENT entries. If an absent entry sets the shift, every
+    present logit goes far negative, exp underflows them all, and the row normalises to
+    zeros -- no weights at all rather than a distribution over what is there."""
+    z = torch.zeros(1, 3, 4)
+    z[0, 0] = torch.tensor([1.0, 0, 0, 0])
+    z[0, 1] = torch.tensor([0, 1.0, 0, 0])
+    present = torch.tensor([[1.0, 1.0, 0.0]])
+    q = torch.tensor([[1.0, 0, 0, 0]])
+    # slot 2 is absent; give it a logit that would dominate any unmasked max
+    z[0, 2] = torch.tensor([50.0, 0, 0, 0])
+    w = query_weights(z, q, present, tau=0.1)
+    assert w[0, 2] == 0
+    assert w[0, :2].sum().item() == pytest.approx(1.0, abs=1e-5)
+    assert w[0, 0] > w[0, 1], 'the present slot matching the query should dominate'

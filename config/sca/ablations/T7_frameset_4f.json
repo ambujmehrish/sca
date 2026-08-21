@@ -6,7 +6,7 @@
   "save_steps": 150,
   "checkpoint": "${WORK_ROOT}/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/model_step_204994.pt",
   "save_best": true,
-  "valid_freq": 10,
+  "valid_freq": 3,
   "new_params_name": []
  },
  "model_cfg": {

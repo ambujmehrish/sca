@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=240G
 #SBATCH --job-name=b_grid
-#SBATCH --array=0-10
+#SBATCH --array=0-13
 #SBATCH -o ./slurm_scripts/logs/b_grid_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/b_grid_%A_%a.out
 # Batch size x LoRA capacity, from the best configuration we have.
@@ -53,7 +53,16 @@
 #   sbatch --array=4-5 slurm_scripts/b_grid_pretrain.sh    # just the new combined pair
 #   sbatch --array=6 slurm_scripts/b_grid_pretrain.sh      # T6: the frame set in the objective
 #   sbatch --array=7-8 slurm_scripts/b_grid_pretrain.sh    # E1/E2: 1 and 2 epochs
-#   sbatch --array=9-10 slurm_scripts/b_grid_pretrain.sh   # T7/T8: frame-set variants
+#   sbatch --array=9-13 slurm_scripts/b_grid_pretrain.sh   # T7-T11: frame-set variants
+#
+# T9 is the ablation that matters most: T6 changes TWO things at once -- the frame axis and
+# query weighting -- so a gain could come from either. T9 runs query weighting over
+# modalities only, no frames. If T9 matches T6 the frames are irrelevant and the mechanism
+# is the weighting; if T9 sits at b1 the frames carry it.
+#
+# T7-T11 set valid_freq 3 rather than 10. Ten in-training validations cost roughly 40
+# minutes of wall clock each arm, and only the FINAL checkpoint is reported under the
+# e1_final protocol -- three still locates the curve while letting more arms run per night.
 #
 # T7/T8 follow T6, which is the only arm with a positive signal: at matched steps it reads
 # 53.0 and 53.8 where b1 reads 51.3 and 52.8, and it reaches b1's whole-run best (53.9) at
@@ -96,11 +105,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-10)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-13)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

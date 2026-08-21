@@ -34,7 +34,7 @@ mkdir -p slurm_scripts/logs
 
 final_ckpt() { ls "$1"/ckpt/model_step_*.pt 2>/dev/null | sort -V | tail -1; }
 
-ARMS="${SCA_FS_ARMS:-t6_frameset t7_frameset_4f t8_frameset_tau005}"
+ARMS="${SCA_FS_ARMS:-t6_frameset t7_frameset_4f t8_frameset_tau005 t9_qweight_only t10_frameset_bs256 t11_frameset_tau02}"
 FOUND=""
 for arm in $ARMS; do
   c=$(final_ckpt "workdir_pretrain/$arm")
@@ -48,7 +48,13 @@ rc_all=0
 for arm in $FOUND; do
   ckpt=$(final_ckpt "workdir_pretrain/$arm")
   for bench in msrvtt didemo activitynet vatex audiocaps; do
-    cfg="benchmark_eval/configs_frames/sca_${bench}.json"
+    # t9 trains query weighting WITHOUT frames, so it must be scored that way: through
+    # configs_frames it would hit the guard, and through configs_e1 it would be scored with
+    # uniform weights -- neither is the model that was trained.
+    case "$arm" in
+      *qweight*) cfg="benchmark_eval/configs_qweight/sca_${bench}.json" ;;
+      *)         cfg="benchmark_eval/configs_frames/sca_${bench}.json" ;;
+    esac
     [ -f "$cfg" ] || { echo "== [$arm/$bench] SKIP: no $cfg" >&2; rc_all=2; continue; }
     out="workdir/e1_frames/${arm}_${bench}"
     cell_is_done "$out" "$cfg" && { echo "== [$arm/$bench] already done, skip"; continue; }

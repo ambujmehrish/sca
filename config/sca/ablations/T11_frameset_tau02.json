@@ -20,7 +20,7 @@
   "lora_alpha": 16,
   "sca_frame_slots": true,
   "sca_query_weighting": true,
-  "sca_tau_w": 0.05,
+  "sca_tau_w": 0.2,
   "dump_frame_feats": true
  },
  "data_cfg": {

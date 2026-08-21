@@ -57,9 +57,51 @@ def scan(workdir):
     return out
 
 
+BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
+
+
+def split_cell(name):
+    """'sca_didemo_t1' -> ('sca_t1', 'didemo'); 'x1_xenc_full_vatex' -> ('x1_xenc_full', 'vatex').
+
+    The benchmark is a known token, and whatever surrounds it is the arm -- cell names put a
+    seed/variant suffix AFTER the benchmark, so it has to be rejoined rather than dropped.
+    """
+    for b in BENCHES:
+        for pat in ('_%s_' % b, '_%s' % b):
+            if name.endswith(pat.rstrip('_')) or pat in name:
+                head, _, tail = name.partition('_%s' % b)
+                arm = head + tail          # tail keeps a leading '_' when a suffix follows
+                return (arm or name), b
+    return name, None
+
+
+def pivot(rows, metric_idx, title, out=sys.stdout):
+    """arm x benchmark table for one metric, so arms can be compared down a column."""
+    cells, arms = {}, []
+    for name, vals in rows.items():
+        arm, bench = split_cell(name)
+        if bench is None:
+            continue
+        cells[(arm, bench)] = vals[metric_idx]
+        if arm not in arms:
+            arms.append(arm)
+    if not cells:
+        return
+    present = [b for b in BENCHES if any((a, b) in cells for a in arms)]
+    print('\n%s' % title, file=out)
+    print('%-24s %s' % ('arm', ' '.join('%12s' % b for b in present)), file=out)
+    print('-' * (24 + 13 * len(present)), file=out)
+    for arm in sorted(arms):
+        line = ' '.join('%12s' % ('--' if cells.get((arm, b)) is None else
+                                  '%.1f' % cells[(arm, b)]) for b in present)
+        print('%-24s %s' % (arm, line), file=out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--root', default='workdir/e1_zs')
+    ap.add_argument('--pivot', action='store_true',
+                    help='also print arm x benchmark tables for the aggregator and ITM metrics')
     args = ap.parse_args()
     root = args.root if os.path.isabs(args.root) else os.path.join(ROOT, args.root)
     dirs = sorted(d for d in glob.glob(os.path.join(root, '*')) if os.path.isdir(d))
@@ -92,6 +134,11 @@ def main():
         print('\nNO WORKDIR YIELDED METRICS. Expected logs at <workdir>/log/log*.txt --')
         print('check that the eval cells wrote there, and that this is the right --root.')
         return 3
+    if args.pivot:
+        pivot(rows, 2, 'AGGREGATOR R@1 (the method\'s own score -- centroid vs volume)')
+        pivot(rows, 3, 'ITM R@1 (the REPORTED metric, after cross-encoder reranking)')
+        pivot(rows, 0, 'cosine T-V R@1 (video alone)')
+
     print('\nTAX is the diagnostic: an aggregator that scores below the best modality it was')
     print('built from is destroying information. Compare an SCA cell against the released-GRAM')
     print('cell for the SAME benchmark -- a worse tax on equal or better single-modality')

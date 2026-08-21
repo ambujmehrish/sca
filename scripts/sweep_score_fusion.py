@@ -61,21 +61,33 @@ def recall_backward(score, gt_rows, ks=(1, 5, 10)):
 
 
 def gt_maps(ids, ids_txt):
-    """(gt_cols, gt_rows): the gallery column of each text, and the text rows of each clip."""
-    col_of = {cid: j for j, cid in enumerate(ids)}
-    missing = [t for t in ids_txt if t not in col_of]
-    if missing:
-        raise KeyError('%d caption ids are absent from the gallery id list (e.g. %r) -- the '
-                       'dump is inconsistent and no metric computed from it is meaningful'
-                       % (len(missing), missing[0]))
-    gt_cols = torch.tensor([col_of[t] for t in ids_txt], dtype=torch.long)
-    gt_rows = [[] for _ in ids]
+    """(gt_cols, gt_rows): the gallery column of each text, and the text rows of each clip.
+
+    Mirrors compute_metric_ret exactly, and the detail that matters is duplicate gallery ids
+    -- the benchmarks do contain them. Forward uses ids.index(ids_txt[i]), the FIRST matching
+    position, so a dict built by comprehension (which keeps the last) is wrong. Backward
+    scans for every text whose id equals ids[i], PER POSITION, so both copies of a duplicated
+    clip get the same caption list; indexing by unique id instead leaves the first copy with
+    an empty list and looks like missing data when nothing is missing.
+    """
+    rows_of, first_col = {}, {}
+    for j, cid in enumerate(ids):
+        first_col.setdefault(cid, j)          # setdefault == ids.index(), the first occurrence
+        rows_of.setdefault(cid, [])
     for i, t in enumerate(ids_txt):
-        gt_rows[col_of[t]].append(i)
-    empty = sum(1 for r in gt_rows if not r)
+        if t not in rows_of:
+            raise KeyError('caption id %r is absent from the gallery id list -- the dump is '
+                           'inconsistent and no metric computed from it is meaningful' % (t,))
+        rows_of[t].append(i)
+    gt_cols = torch.tensor([first_col[t] for t in ids_txt], dtype=torch.long)
+    gt_rows = [rows_of[cid] for cid in ids]   # per gallery POSITION, duplicates included
+    empty = [cid for cid, r in rows_of.items() if not r]
     if empty:
-        raise ValueError('%d gallery clips have no caption -- backward retrieval is undefined '
-                         'for them; refusing to report a number over a partial gallery' % empty)
+        # compute_metric_ret does min([]) on such a clip and raises, so this cannot be a
+        # gallery the trunk itself scored -- the dump is wrong, not merely awkward.
+        raise ValueError('%d gallery clip(s) have no caption at all (e.g. %r) -- backward '
+                         'retrieval is undefined for them and the trunk would raise on the '
+                         'same data; refusing to report a number' % (len(empty), empty[0]))
     return gt_cols, gt_rows
 
 

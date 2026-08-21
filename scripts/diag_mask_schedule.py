@@ -35,8 +35,12 @@ from data.mask_sampler import MaskSampler  # noqa: E402
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--config', default='config/sca/pretrain_cfg/sca_pretrain.json')
-    ap.add_argument('--modalities', type=int, default=2,
-                    help='gallery size during pretraining: {v,a} = 2 (no subtitles in the 150k)')
+    # MEASURED, not assumed: annotations150k.json carries a subtitle on all 150,154 entries
+    # (scripts/audit_modality_arity.py), so the pretraining gallery is {v,a,s} = 3. The old
+    # default of 2 here came from a comment claiming the 150k had no subtitles, and reporting
+    # a k=2 replay of a k=3 run overstated the single-modality share by 3x.
+    ap.add_argument('--modalities', type=int, default=3,
+                    help='gallery size during pretraining: {v,a,s} = 3 for the 150k')
     ap.add_argument('--batch', type=int, default=None, help='override the config batch size')
     ap.add_argument('--clips', type=int, default=150000)
     ap.add_argument('--seed', type=int, default=0)
@@ -69,53 +73,55 @@ def main():
 
     gen = torch.Generator().manual_seed(args.seed)
     present = torch.ones(batch, args.modalities)
-    # counts over the modality-set a clip's centroid actually sees
-    kept_full = kept_v_only = kept_a_only = kept_none = 0
-    first_v_only_step = None
+    # Counted by ARITY -- how many modalities the clip's centroid is taken over. The old
+    # code counted 'video only' and 'audio only' from columns 0 and 1, which silently
+    # ignores every modality beyond the second and mislabels a k=3 run as if it were k=2.
+    by_arity = [0] * (args.modalities + 1)
     milestones = [int(steps * f) for f in (0.05, 0.25, 0.5, 1.0)]
     rows = []
 
     for step in range(steps):
         vmask = sampler.sample(batch, step, torch.device('cpu'), present=present, generator=gen)
-        v_on = vmask[:, 0] > 0
-        a_on = vmask[:, 1] > 0 if args.modalities > 1 else torch.zeros_like(v_on)
-        n_full = int((v_on & a_on).sum())
-        n_v = int((v_on & ~a_on).sum())
-        n_a = int((~v_on & a_on).sum())
-        kept_full += n_full
-        kept_v_only += n_v
-        kept_a_only += n_a
-        kept_none += batch - n_full - n_v - n_a
-        if n_v and first_v_only_step is None:
-            first_v_only_step = step
+        counts = (vmask > 0).sum(dim=1)
+        for k in range(args.modalities + 1):
+            by_arity[k] += int((counts == k).sum())
         if step + 1 in milestones:
             seen = (step + 1) * batch
-            rows.append((step + 1, 100.0 * kept_v_only / seen, 100.0 * kept_a_only / seen,
-                         100.0 * kept_full / seen))
+            rows.append((step + 1, [100.0 * c / seen for c in by_arity]))
 
     total = steps * batch
-    print('\nclip-steps by the modality set the centroid sees:')
-    print('  full {v,a}    : %11d  %5.1f%%' % (kept_full, 100.0 * kept_full / total))
-    print('  video only    : %11d  %5.1f%%   <- centroid over one modality (degenerate)'
-          % (kept_v_only, 100.0 * kept_v_only / total))
-    print('  audio only    : %11d  %5.1f%%' % (kept_a_only, 100.0 * kept_a_only / total))
-    if kept_none:
-        print('  empty         : %11d  %5.1f%%' % (kept_none, 100.0 * kept_none / total))
+    print('\nclip-steps by the ARITY of the centroid (how many modalities it averages):')
+    for k in range(args.modalities, -1, -1):
+        if not by_arity[k]:
+            continue
+        note = ''
+        if k == args.modalities:
+            note = '   <- full gallery'
+        elif k == 1:
+            note = '   <- degenerate: the spherical mean of one vector is that vector'
+        elif k == 0:
+            note = '   <- EMPTY: no modality at all, this should never happen'
+        print('  |M| = %d       : %11d  %5.1f%%%s' % (k, by_arity[k], 100.0 * by_arity[k] / total, note))
 
     print('\ncumulative share by point in the run:')
-    print('  %-10s %10s %10s %10s' % ('step', 'video-only', 'audio-only', 'full'))
-    for step, v, a, f in rows:
-        print('  %-10d %9.1f%% %9.1f%% %9.1f%%' % (step, v, a, f))
+    print('  %-10s %s' % ('step', ' '.join('|M|=%d' % k for k in range(args.modalities + 1))))
+    for step, shares in rows:
+        print('  %-10d %s' % (step, ' '.join('%5.1f%%' % s for s in shares)))
 
-    print('\nfirst video-only view at step %s of %d'
-          % (first_v_only_step if first_v_only_step is not None else 'NEVER', steps))
-    share = 100.0 * (kept_v_only + kept_a_only) / total
-    print('\n%.1f%% of clip-steps train a SINGLE-modality centroid, where the spherical mean is'
-          % share)
-    print('the identity and none of the fusion behaviour is exercised. GRAM has no comparable')
-    print('number -- it trains one joint volume per step and no single-modality objective --')
-    print('so this is SCA\'s own curriculum, not a gap against the baseline. Do not report it')
-    print('as one; the earlier "100% vs 20%" framing was based on a misreading of gram.py:683.')
+    if by_arity[0]:
+        print('\n%d clip-steps had NO modality present. That is a bug in the sampler, not a'
+              % by_arity[0])
+        print('curriculum choice -- the centroid is undefined there.')
+        return 1
+    solo = 100.0 * by_arity[1] / total
+    fusion = 100.0 - solo
+    print('\n%.1f%% of clip-steps train a centroid over 2 or more modalities; %.1f%% train a'
+          % (fusion, solo))
+    print('single-modality centroid, where the spherical mean is the identity and no fusion')
+    print('behaviour is exercised at all. GRAM has no comparable number -- it trains one joint')
+    print('volume per step and no single-modality objective -- so this describes SCA\'s own')
+    print('curriculum and is not a gap against the baseline. The earlier "100% vs 20%" framing')
+    print('was a misreading of gram.py:683, whose subtask loop body is a single no-op line.')
     return 0
 
 

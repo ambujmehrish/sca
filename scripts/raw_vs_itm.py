@@ -111,6 +111,7 @@ def main():
     parsed = 0
 
     f = lambda v: '--' if v is None else '%.1f' % v
+    rows = {}                       # cell -> (cos T-V, cos T-A, aggregator, ITM), for the pivots
     print('%-34s %8s %8s %8s %8s %8s %8s' %
           ('cell', 'cos T-V', 'cos T-A', 'best 1mod', 'AGGREG', 'TAX', 'ITM'))
     print('-' * 88)
@@ -126,6 +127,7 @@ def main():
         # aggregation tax: what fusing costs relative to the best single modality it fused.
         # Negative means the aggregator scores WORSE than one of its own inputs.
         tax = '%+.1f' % (agg - solo) if (agg is not None and solo is not None) else '--'
+        rows[name] = (tv, ta, agg, itm)
         print('%-34s %8s %8s %8s %8s %8s %8s'
               % (name, f(tv), f(ta), f(solo), f(agg), tax, f(itm)))
 

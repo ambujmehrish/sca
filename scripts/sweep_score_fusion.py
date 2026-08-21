@@ -142,7 +142,11 @@ def report(path, weights):
     hit_f = 100.0 * m_f.gather(1, gt_cols.unsqueeze(1)).float().mean().item()
     hit_b = 100.0 * sum(bool(m_b[rows, j].any()) for j, rows in enumerate(gt_rows)) / len(gt_rows)
 
-    print('\n== %s' % os.path.basename(path))
+    # every dump is named rerank_<task>_step0.pt, so the basename alone collides across arms
+    # -- the parent workdir is what identifies which arm and benchmark this is
+    label = os.path.join(os.path.basename(os.path.dirname(os.path.dirname(path))),
+                         os.path.basename(path))
+    print('\n== %s' % label)
     print('   task %s   texts %d   clips %d   rerank k=%d'
           % (d['task'], dual.shape[0], dual.shape[1], k))
     print('   dual-encoder R@1      T2V %5.1f   V2T %5.1f'
@@ -166,7 +170,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('dumps', nargs='+', help='rerank_*.pt files from SCA_DUMP_RERANK')
     ap.add_argument('--weights', type=float, nargs='+',
-                    default=[0.0, 0.1, 0.25, 0.5, 1.0, 2.0])
+                    # the dual score is standardised to unit variance within the candidate
+                    # set while the ITM probability lives in (0,1) and is often near-saturated,
+                    # so w=0.1 is already a large perturbation. The informative region is
+                    # BELOW it -- the first sweep's only gain was at its smallest weight.
+                    default=[0.0, 0.01, 0.02, 0.05, 0.1, 0.25, 0.5, 1.0])
     args = ap.parse_args()
 
     paths = sorted(p for pat in args.dumps for p in glob.glob(pat))

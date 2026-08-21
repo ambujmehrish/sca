@@ -44,7 +44,17 @@ def ranks_from_checkpoint(path):
         return {}
     found = {}
     for key, tensor in state.items():
-        if not key.endswith('.lora_A') or not torch.is_tensor(tensor):
+        # Two parameter layouts, and missing the second is what let the rank-32 arms fail.
+        # LoRALinear wraps a plain nn.Linear and names its factors lora_A / lora_B.
+        # LoRAQKVLinear wraps a FUSED qkv projection and names them lora_A_q / lora_B_q /
+        # lora_A_v / lora_B_v (model/lora.py:95). EVA-CLIP's vision tower is fused qkv, so
+        # matching only '.lora_A' saw no vision adapters at all, left lora_r_vision at the
+        # config's 8 against a checkpoint trained at 32, and every b2/b4 cell died on
+        # visual.blocks.N.attn.qkv.lora_A_v -- a size mismatch this module exists to prevent.
+        if not torch.is_tensor(tensor):
+            continue
+        base = key.rsplit('.', 1)[-1]
+        if not (base == 'lora_A' or base.startswith('lora_A_')):
             continue
         name = key.replace('module.', '')
         for prefix, cfg_key in ENCODER_RANK_KEY:

@@ -80,3 +80,29 @@ def test_missing_checkpoint_is_a_noop(tmp_path):
     before = dict(args.model_cfg)
     sync_lora_geometry(args)
     assert dict(args.model_cfg) == before
+
+
+def test_fused_qkv_lora_ranks_are_detected(tmp_path):
+    """EVA-CLIP's vision tower has a FUSED qkv projection, so LoRAQKVLinear names its
+    factors lora_A_q / lora_A_v rather than lora_A (model/lora.py:95). Matching only
+    '.lora_A' saw no vision adapters, left lora_r_vision at the config default, and killed
+    every rank-32 eval cell on visual.blocks.N.attn.qkv.lora_A_v."""
+    d = tmp_path / 'b2'
+    (d / 'ckpt').mkdir(parents=True)
+    (d / 'log').mkdir(parents=True)
+    torch.save({
+        'module.vision_encoder.visual.blocks.34.attn.qkv.lora_A_q': torch.zeros(32, 1408),
+        'module.vision_encoder.visual.blocks.34.attn.qkv.lora_B_q': torch.zeros(1408, 32),
+        'module.vision_encoder.visual.blocks.34.attn.qkv.lora_A_v': torch.zeros(32, 1408),
+        'multimodal_encoder.bert.encoder.layer.11.attention.self.query.lora_A': torch.zeros(32, 768),
+    }, d / 'ckpt' / 'model_step_5319.pt')
+    json.dump({'model_cfg': {'use_lora': True, 'lora_r_vision': 32, 'lora_r_audio': 32,
+                             'lora_r_text': 32, 'lora_alpha': 64}},
+              open(d / 'log' / 'hps.json', 'w'))
+    ckpt = str(d / 'ckpt' / 'model_step_5319.pt')
+
+    assert ranks_from_checkpoint(ckpt) == {'lora_r_vision': 32, 'lora_r_text': 32}
+    args = _cfg(ckpt)
+    sync_lora_geometry(args)
+    assert args.model_cfg.lora_r_vision == 32
+    assert args.model_cfg.lora_alpha == 64

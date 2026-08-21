@@ -27,6 +27,18 @@
 # MSR-VTT would be, which is exactly what we should stop doing. Using the end-of-schedule
 # weights is the same protocol GRAM's released checkpoint gets.
 #
+# MEASURED, and it retires an arm: on the final checkpoint x1_xenc_full_lr2e5 scores 45.7 on
+# MSR-VTT against ~54.8 from its selected one, 49.0 on DiDeMo against 51.5, and its video
+# features fall to 37.9 against sca's 42.3. Training the whole cross-encoder at 2e-5
+# destabilises late, so every win credited to that arm was an early-stopping artifact on a
+# checkpoint chosen on MSR-VTT. It is out of the default set.
+#
+# Also measured: the +1.4 the final checkpoint recovers is MSR-VTT-SPECIFIC, not general --
+# transfer moves +0.1, -0.4, +0.2, +0.2. Expected in hindsight, since best_*.pt is selected
+# on the MSR-VTT aggregator score and that is the only benchmark where the two differ much.
+# The b-arms still need their final-checkpoint numbers: b1's 53.7 came from best_*.pt and is
+# not comparable to a table built on final weights.
+#
 # Separate output root so the existing e1_zs cells and their .done markers stay intact and
 # the two can be compared directly.
 #
@@ -43,7 +55,7 @@ mkdir -p slurm_scripts/logs
 # the FINAL checkpoint explicitly -- never best_*.pt, which is what this job exists to avoid
 final_ckpt() { ls "$1"/ckpt/model_step_*.pt 2>/dev/null | sort -V | tail -1; }
 
-ARMS="${SCA_FINAL_ARMS:-sca x1_xenc_full_lr2e5}"
+ARMS="${SCA_FINAL_ARMS:-sca b1_bs128_r8 b3_bs512_r8 b5_bs128_xenc}"
 for arm in $ARMS; do
   d="workdir_pretrain/$arm"
   c=$(final_ckpt "$d")

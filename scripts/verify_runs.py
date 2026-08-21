@@ -67,7 +67,7 @@ def resolve(path, seen=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--phase', default='all',
-                    choices=['headline', 'baselines', 'ablations', 'all'])
+                    choices=['headline', 'baselines', 'ablations', 'xenc', 'all'])
     args = ap.parse_args()
     os.chdir(ROOT)
 

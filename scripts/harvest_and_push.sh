@@ -46,6 +46,9 @@ run training_gaps "Completeness, step continuity, cross-arm uniformity, config d
 run modality_arity "Gallery arity at train vs at each benchmark" \
     python3 scripts/audit_modality_arity.py
 
+run training_curve "Where each arm peaks during training (overtraining check)" \
+    python3 scripts/training_curve.py --workdir_root workdir_pretrain
+
 run query_centroid "Query-weighted centroid vs uniform, tau sweep on cached features" \
     bash -c 'shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
              [ ${#f[@]} -gt 0 ] || { echo "no feature dumps under results/e4_transfer/feats"; exit 3; }

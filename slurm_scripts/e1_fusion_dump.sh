@@ -38,8 +38,9 @@
 # baseline too. A w tuned on SCA alone and withheld from GRAM is not a result.
 #
 #   GRAM_RELEASED_CKPT=/leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt \
-#   SCA_CKPT=workdir_pretrain/<arm>/ckpt/best_*.pt \
 #     sbatch slurm_scripts/e1_fusion_dump.sh
+#
+#   SCA_ARM=workdir_pretrain/t1_lr1e4 GRAM_RELEASED_CKPT=... sbatch ...   # the lr 1e-4 arm
 #
 # Separate output root from e1_zs so the existing .done markers do not skip these cells.
 set -uo pipefail
@@ -50,15 +51,25 @@ export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 source "$(dirname "$0")/../scripts/cell_done.sh"
 mkdir -p slurm_scripts/logs
 
-# No silent default for either checkpoint: guessing one would relabel a reproduction as the
-# released model, or one SCA arm as another, and the fusion comparison is only meaningful if
-# both sides are the exact checkpoints the table reports.
+best_ckpt() {
+  local b; b=$(ls -t "$1"/ckpt/best_*.pt 2>/dev/null | head -1)
+  [ -n "$b" ] || b=$(ls "$1"/ckpt/model_step_*.pt 2>/dev/null | sort -V | tail -1)
+  echo "$b"
+}
+
+# The released GRAM checkpoint lives outside this repo, so there is nothing here to read it
+# from and no default can be right; falling back to workdir_pretrain/gram would relabel our
+# reproduction as the released model. The SCA side is the opposite case -- e4_transfer.sh
+# records workdir_pretrain/sca as the arm behind the sca_* cells, so read it from there
+# rather than making the caller retype a path.
 [ -n "${GRAM_RELEASED_CKPT:-}" ] || { echo "FATAL: set GRAM_RELEASED_CKPT (the file behind the GRAM* rows)" >&2; exit 2; }
-[ -n "${SCA_CKPT:-}" ] || { echo "FATAL: set SCA_CKPT (the SCA checkpoint behind the SCA rows)" >&2; exit 2; }
 [ -f "$GRAM_RELEASED_CKPT" ] || { echo "FATAL: GRAM_RELEASED_CKPT=$GRAM_RELEASED_CKPT does not exist" >&2; exit 1; }
-[ -f "$SCA_CKPT" ] || { echo "FATAL: SCA_CKPT=$SCA_CKPT does not exist" >&2; exit 1; }
+SCA_ARM="${SCA_ARM:-workdir_pretrain/sca}"
+[ -d "$SCA_ARM" ] || { echo "FATAL: SCA_ARM=$SCA_ARM not found (ls workdir_pretrain to pick one)" >&2; exit 2; }
+SCA_CKPT="${SCA_CKPT:-$(best_ckpt "$SCA_ARM")}"
+[ -n "$SCA_CKPT" ] && [ -f "$SCA_CKPT" ] || { echo "FATAL: no checkpoint under $SCA_ARM/ckpt" >&2; exit 1; }
 echo "GRAM released : $GRAM_RELEASED_CKPT"
-echo "SCA           : $SCA_CKPT"
+echo "SCA ($SCA_ARM): $SCA_CKPT"
 
 # msrvtt uses the configs_depth T-VAS config; configs_e1 has no sca_msrvtt.
 cfg_for() {

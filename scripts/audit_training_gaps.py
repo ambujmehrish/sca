@@ -53,6 +53,50 @@ def ckpt_steps(workdir):
     return sorted(steps)
 
 
+EVAL_HEADER = re.compile(r'====[- ]evaluation--.+?=====step (\d+)--')
+
+
+def eval_steps(workdir):
+    """Steps at which the trainer ran validation, from its own log.
+
+    This is the load-bearing signal, because the two more obvious ones are unavailable:
+    hps.json is written in utils/args.py:206 but num_train_steps is only computed later in
+    utils/build_dataloader.py:67, so the recorded target is ALWAYS 0; and with save_best the
+    ckpt directory holds a single file, so a checkpoint sequence cannot show continuity.
+
+    Validation fires on (global_step+1) % valid_steps == 0 with
+    valid_steps = num_train_steps // valid_freq - 1 (utils/pipeline.py:121), so the spacing
+    of these steps recovers the trainer's own target, and their count recovers how much of
+    the run happened -- a full run evaluates valid_freq times.
+    """
+    steps = set()
+    for lg in sorted(glob.glob(os.path.join(workdir, 'log', 'log*.txt'))):
+        try:
+            for line in open(lg, errors='replace'):
+                m = EVAL_HEADER.search(line)
+                if m:
+                    steps.add(int(m.group(1)))
+        except IOError:
+            continue
+    return sorted(steps)
+
+
+def target_from_evals(steps, valid_freq):
+    """(target, spacing) implied by the validation cadence, or (None, None).
+
+    Inverts valid_steps = num_train_steps // valid_freq - 1. Integer division makes this
+    exact only up to a remainder of valid_freq, so the result is a target the run must have
+    REACHED, never an exact equality to assert.
+    """
+    if not valid_freq or len(steps) < 2:
+        return None, None
+    deltas = [b - a for a, b in zip(steps, steps[1:])]
+    spacing = max(set(deltas), key=deltas.count)
+    if spacing <= 0:
+        return None, None
+    return (spacing + 1) * int(valid_freq), spacing
+
+
 def cadence_gaps(steps):
     """Holes in an otherwise regular save cadence.
 
@@ -83,6 +127,7 @@ def train_cfg(hps):
             # the trainer's OWN target, computed from len(dataset) after unloadable media are
             # dropped. The only trustworthy denominator; an annotation count is an upper bound.
             'num_train_steps': rc.get('num_train_steps'),
+            'valid_freq': rc.get('valid_freq'),
             'config': rc.get('config') or hps.get('config')}
 
 
@@ -102,14 +147,15 @@ def main():
         print('no workdirs under %s' % root, file=sys.stderr)
         return 2
 
-    arms, no_hps, holes, restarts, incomplete = {}, [], [], [], []
-    print('%-26s %5s %4s %8s %8s %8s %7s  %s'
-          % ('arm', 'batch', 'ep', 'lr', 'target', 'reached', 'ckpts', 'annotation'))
-    print('-' * 100)
+    arms, no_hps, holes, restarts, incomplete, unverified = {}, [], [], [], [], []
+    print('%-26s %5s %4s %8s %8s %8s %6s %6s  %s'
+          % ('arm', 'batch', 'ep', 'lr', 'target', 'reached', 'evals', 'ckpts', 'annotation'))
+    print('-' * 108)
     for d in dirs:
         name = os.path.basename(d)
         hp = find_hps(d)
         steps = ckpt_steps(d)
+        evals = eval_steps(d)
         if hp is None:
             print('%-26s %s' % (name, 'NO hps.json -- nothing recorded, cannot verify'))
             no_hps.append(name)
@@ -121,44 +167,69 @@ def main():
             no_hps.append(name)
             continue
         arms[name] = cfg
-        reached = steps[-1] if steps else None
-        target = cfg['num_train_steps']
-        print('%-26s %5s %4s %8s %8s %8s %7d  %s'
+        reached = max(steps + evals) if (steps or evals) else None
+        # hps.json always records 0 (written before the value is computed), so the recorded
+        # figure is used only when it is a real number, and the validation cadence otherwise
+        recorded = cfg['num_train_steps']
+        target = int(recorded) if recorded else None
+        derived, spacing = target_from_evals(evals, cfg['valid_freq'])
+        if target is None:
+            target = derived
+        cfg['target'] = target
+        print('%-26s %5s %4s %8s %8s %8s %6d %6d  %s'
               % (name, cfg['batch_size'], cfg['epoch'], cfg['lr'],
-                 target if target is not None else '?',
-                 reached if reached is not None else '-', len(steps),
+                 ('%d%s' % (target, '' if recorded else '~')) if target else 'UNKNOWN',
+                 reached if reached is not None else '-', len(evals), len(steps),
                  cfg['annotation'] or '?'))
-        if args.verbose and steps:
-            print('%-26s   steps: %s' % ('', ', '.join(map(str, steps))))
-        if target and reached is not None and reached < int(target):
-            incomplete.append((name, reached, int(target)))
-        cadence, gaps = cadence_gaps(steps)
-        for a, b, delta, clean in gaps:
-            (holes if clean else restarts).append((name, a, b, delta, cadence))
+        if args.verbose:
+            print('%-26s   ckpt steps: %s' % ('', ', '.join(map(str, steps)) or 'none'))
+            print('%-26s   eval steps: %s' % ('', ', '.join(map(str, evals)) or 'none'))
+
+        # completeness
+        if target is None or reached is None:
+            unverified.append((name, 'no step target could be recovered -- hps.json records 0 '
+                                     'and the log has too few evaluation blocks'))
+        elif reached < target - (spacing or 0):
+            incomplete.append((name, reached, target))
+        # a full run evaluates valid_freq times; markedly fewer means it stopped early
+        if cfg['valid_freq'] and len(evals) and len(evals) < int(cfg['valid_freq']) - 1:
+            incomplete.append((name, reached or 0, target or 0))
+
+        # continuity: prefer the evaluation sequence. With save_best the ckpt dir holds one
+        # file, so a checkpoint sequence proves nothing and must not be treated as clean.
+        seq, seq_kind = (evals, 'evaluation') if len(evals) >= 3 else (steps, 'checkpoint')
+        if len(seq) < 3:
+            unverified.append((name, 'only %d evaluation and %d checkpoint step(s) -- too few '
+                                     'to see a hole in the sequence' % (len(evals), len(steps))))
+        else:
+            cadence, gaps = cadence_gaps(seq)
+            for a, b, delta, clean in gaps:
+                (holes if clean else restarts).append((name, a, b, delta, cadence, seq_kind))
 
     print()
     ok = True
 
     if incomplete:
         ok = False
-        print('SHORT OF THE TRAINER\'S OWN TARGET -- these stopped early:')
-        for name, got, want in sorted(incomplete, key=lambda t: t[1] / t[2]):
-            print('  %-26s %d/%d steps (%.0f%%)' % (name, got, want, 100.0 * got / want))
+        print('SHORT OF THE TRAINING SCHEDULE -- these stopped early:')
+        for name, got, want in sorted(set(incomplete)):
+            pct = ' (%.0f%%)' % (100.0 * got / want) if want else ''
+            print('  %-26s %d/%s steps%s' % (name, got, want or '?', pct))
         print()
 
     if holes:
         ok = False
-        print('HOLES in the checkpoint sequence (a resume that skipped, or deleted files):')
-        for name, a, b, delta, cadence in holes:
-            print('  %-26s step %d -> %d (%d, cadence %d)' % (name, a, b, delta, cadence))
+        print('HOLES in the step sequence (a resume that skipped, or deleted files):')
+        for name, a, b, delta, cadence, kind in holes:
+            print('  %-26s %s step %d -> %d (%d, cadence %d)' % (name, kind, a, b, delta, cadence))
         print()
 
     if restarts:
         ok = False
-        print('IRREGULAR intervals -- not a multiple of the save cadence, so likely a restart')
-        print('under the same workdir rather than a resume. The final step can still look right:')
-        for name, a, b, delta, cadence in restarts:
-            print('  %-26s step %d -> %d (%d, cadence %d)' % (name, a, b, delta, cadence))
+        print('IRREGULAR intervals -- not a multiple of the cadence, so likely a restart under')
+        print('the same workdir rather than a resume. The final step can still look right:')
+        for name, a, b, delta, cadence, kind in restarts:
+            print('  %-26s %s step %d -> %d (%d, cadence %d)' % (name, kind, a, b, delta, cadence))
         print()
 
     # cross-arm uniformity: everything an ablation is NOT about must be identical
@@ -207,11 +278,27 @@ def main():
             print('  %-26s %s -- %s' % (name, p, what))
         print()
 
-    if ok:
-        print('No gaps found: every arm reached its recorded target, checkpoint sequences are')
-        print('continuous, all arms share batch size / epochs / annotation / step target, and')
-        print('no config drifted since its run.')
+    # An unverifiable check is not a passing one. The first version of this script treated a
+    # missing target and a single checkpoint as "nothing to report" and printed a clean bill
+    # of health for 44 arms while both of its main checks had silently skipped.
+    if unverified:
+        print('COULD NOT BE VERIFIED -- these checks did not run, which is not the same as')
+        print('passing. Do not read the summary below as clearing them:')
+        for name, why in sorted(set(unverified)):
+            print('  %-26s %s' % (name, why))
+        print()
+
+    if ok and not unverified:
+        print('No gaps found: every arm reached the step target implied by its own validation')
+        print('cadence, evaluated the expected number of times, has a continuous step sequence,')
+        print('shares batch size / epochs / annotation with every other arm, and ran the config')
+        print('its file still holds.')
         return 0
+    if ok:
+        print('No gaps found among the checks that COULD run, but %d arm(s) above were not'
+              % len(set(n for n, _ in unverified)))
+        print('verifiable. Treat this as partial, not clean.')
+        return 2
     print('Gaps above. Any table row drawn from an affected arm is not comparable until fixed.')
     return 1
 

@@ -20,35 +20,35 @@ build or a DiDeMo/ActivityNet curiosity, so this covers every benchmark rather t
 import argparse
 import glob
 import os
-import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# extract_results.py already knows where the logs live (workdir/log/log*.txt) and how the
+# metric dicts are formatted. Re-deriving that here produced a parser that silently matched
+# nothing, so use its functions instead of a second, weaker copy.
+from extract_results import parse_log, r1_r10  # noqa: E402
+
 WANT = ('ret_area_forward', 'ret_itm_area:T2D', 'cosine_TV', 'cosine_TA')
 
 
 def scan(workdir):
-    """metric -> best R@1, from whatever eval log the workdir holds."""
-    logs = (glob.glob(os.path.join(workdir, '*.txt')) + glob.glob(os.path.join(workdir, 'log/*.txt'))
-            + glob.glob(os.path.join(workdir, '*.out')) + glob.glob(os.path.join(workdir, 'log/*')))
-    out, cur = {}, None
-    for lg in logs:
-        if os.path.isdir(lg):
-            continue
-        try:
-            lines = open(lg, errors='replace').read().splitlines()
-        except IOError:
-            continue
-        for ln in lines:
-            m = re.search(r'evaluation--[^-]*--\S*?_(ret_area_forward|ret_itm_area:T2D|cosine_TV|cosine_TA)', ln)
-            if m:
-                cur = m.group(1)
+    """metric suffix -> best R@1 over steps, using the extractor's own log parser."""
+    out = {}
+    for lg in sorted(glob.glob(os.path.join(workdir, 'log', 'log*.txt'))):
+        for family, entries in parse_log(lg).items():
+            suffix = next((w for w in WANT if family.endswith(w)), None)
+            if suffix is None:
                 continue
-            if cur:
-                r = re.search(r'R@1[:\s]+([0-9.]+)', ln)
-                if r:
-                    out.setdefault(cur, float(r.group(1)))
-                    cur = None
+            # ret_itm_area carries both directions in one dict; T2D is the reported one
+            prefix = 'volume_ITM_T2D' if suffix.endswith('T2D') else None
+            best = None
+            for _step, metrics in entries:
+                r1, _r10 = r1_r10(metrics, prefix)
+                if r1 is not None and (best is None or r1 > best):
+                    best = r1
+            if best is not None:
+                out[suffix] = best
     return out
 
 
@@ -61,6 +61,7 @@ def main():
     if not dirs:
         print('no eval workdirs under %s -- run on the cluster' % args.root, file=sys.stderr)
         return 2
+    parsed = 0
 
     print('%-34s %10s %10s %10s %10s   %s' %
           ('cell', 'cos T-V', 'cos T-A', 'AGGREGATOR', 'ITM', 'ITM - aggregator'))
@@ -70,6 +71,7 @@ def main():
         got = scan(d)
         if not got:
             continue
+        parsed += 1
         name = os.path.basename(d)
         agg = got.get('ret_area_forward')
         itm = got.get('ret_itm_area:T2D')
@@ -79,6 +81,11 @@ def main():
         print('%-34s %10s %10s %10s %10s   %s' %
               (name, f(rows[name][0]), f(rows[name][1]), f(agg), f(itm), delta))
 
+    if not parsed:
+        # never report an empty comparison as if it were a negative result
+        print('\nNO WORKDIR YIELDED METRICS. Expected logs at <workdir>/log/log*.txt --')
+        print('check that the eval cells wrote there, and that this is the right --root.')
+        return 3
     print('\nPair an SCA cell with the released-GRAM cell for the same benchmark: if SCA leads')
     print('on AGGREGATOR and trails on ITM, the reranking stage is destroying the advantage')
     print('there too, and the pattern is not specific to DiDeMo/ActivityNet.')

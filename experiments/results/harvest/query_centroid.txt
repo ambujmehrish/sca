@@ -1,0 +1,140 @@
+
+== gram_activitynet.pt
+   texts 4917   clips 4917   modalities 2   mean present 2.00
+   per-modality R@1 : m0   3.2  m1  33.2   -> best single modality 33.2
+   uniform centroid :  23.4/ 48.6/ 61.2      tax vs best single modality -9.8
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     33.1/ 62.6/ 75.1              +9.6       -0.1
+   0.020     33.0/ 62.5/ 75.0              +9.6       -0.2
+   0.050     33.2/ 62.4/ 74.9              +9.8       +0.0
+   0.100     33.4/ 62.0/ 74.8             +10.0       +0.2
+   0.200     33.4/ 61.5/ 74.6             +10.0       +0.2
+   0.500     32.2/ 60.4/ 73.1              +8.8       -1.0
+   1.000     29.6/ 56.7/ 70.0              +6.2       -3.6
+   best tau 0.100 at R@1 33.4  (uniform 23.4, best single modality 33.2)
+
+== gram_audiocaps.pt
+   texts 704   clips 704   modalities 2   mean present 2.00
+   per-modality R@1 : m0  25.3  m1  12.8   -> best single modality 25.3
+   uniform centroid :  27.3/ 59.5/ 74.4      tax vs best single modality +2.0
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     19.0/ 49.4/ 64.5              -8.2       -6.2
+   0.020     20.6/ 51.7/ 66.8              -6.7       -4.7
+   0.050     25.0/ 56.1/ 71.3              -2.3       -0.3
+   0.100     26.3/ 57.4/ 71.4              -1.0       +1.0
+   0.200     26.4/ 57.2/ 72.0              -0.9       +1.1
+   0.500     26.3/ 58.1/ 72.6              -1.0       +1.0
+   1.000     26.4/ 58.5/ 73.2              -0.9       +1.1
+   best tau 0.200 at R@1 26.4  (uniform 27.3, best single modality 25.3)
+
+== gram_didemo.pt
+   texts 1003   clips 1003   modalities 2   mean present 2.00
+   per-modality R@1 : m0   4.6  m1  30.5   -> best single modality 30.5
+   uniform centroid :  26.3/ 48.8/ 60.1      tax vs best single modality -4.2
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     30.3/ 55.4/ 65.3              +4.0       -0.2
+   0.020     30.4/ 55.3/ 65.3              +4.1       -0.1
+   0.050     29.6/ 55.4/ 65.6              +3.3       -0.9
+   0.100     31.1/ 55.4/ 65.1              +4.8       +0.6
+   0.200     31.1/ 55.4/ 65.5              +4.8       +0.6
+   0.500     30.3/ 54.7/ 64.1              +4.0       -0.2
+   1.000     28.6/ 52.5/ 63.6              +2.3       -1.9
+   best tau 0.100 at R@1 31.1  (uniform 26.3, best single modality 30.5)
+
+== gram_lora_activitynet.pt
+   texts 4917   clips 4917   modalities 2   mean present 2.00
+   per-modality R@1 : m0   3.4  m1  37.9   -> best single modality 37.9
+   uniform centroid :  26.9/ 53.0/ 65.9      tax vs best single modality -11.0
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     37.8/ 65.8/ 78.0             +11.0       -0.1
+   0.020     37.8/ 65.8/ 78.0             +10.9       -0.1
+   0.050     37.8/ 66.0/ 78.0             +10.9       -0.2
+   0.100     38.0/ 66.3/ 78.0             +11.1       +0.1
+   0.200     37.6/ 66.1/ 77.6             +10.7       -0.3
+   0.500     36.5/ 64.4/ 76.7              +9.6       -1.4
+   1.000     34.1/ 62.1/ 74.2              +7.3       -3.8
+   best tau 0.100 at R@1 38.0  (uniform 26.9, best single modality 37.9)
+
+== gram_lora_audiocaps.pt
+   texts 704   clips 704   modalities 2   mean present 2.00
+   per-modality R@1 : m0  27.1  m1  13.2   -> best single modality 27.1
+   uniform centroid :  29.8/ 58.5/ 72.3      tax vs best single modality +2.7
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     15.5/ 42.9/ 57.5             -14.3      -11.6
+   0.020     16.8/ 45.6/ 60.7             -13.1      -10.4
+   0.050     22.9/ 51.8/ 65.5              -7.0       -4.3
+   0.100     25.1/ 53.0/ 67.2              -4.7       -2.0
+   0.200     24.9/ 54.3/ 67.6              -5.0       -2.3
+   0.500     27.1/ 56.2/ 69.7              -2.7       +0.0
+   1.000     28.7/ 57.5/ 71.2              -1.1       +1.6
+   best tau 1.000 at R@1 28.7  (uniform 29.8, best single modality 27.1)
+
+== gram_lora_didemo.pt
+   texts 1003   clips 1003   modalities 2   mean present 2.00
+   per-modality R@1 : m0   5.5  m1  35.5   -> best single modality 35.5
+   uniform centroid :  27.9/ 55.0/ 65.0      tax vs best single modality -7.6
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     35.7/ 62.2/ 70.4              +7.8       +0.2
+   0.020     35.5/ 62.2/ 70.5              +7.6       +0.0
+   0.050     35.3/ 62.1/ 70.5              +7.4       -0.2
+   0.100     35.8/ 62.7/ 70.1              +7.9       +0.3
+   0.200     36.1/ 61.8/ 70.1              +8.2       +0.6
+   0.500     35.0/ 59.8/ 69.5              +7.1       -0.5
+   1.000     32.3/ 58.6/ 68.8              +4.4       -3.2
+   best tau 0.200 at R@1 36.1  (uniform 27.9, best single modality 35.5)
+
+== sca_t1_activitynet.pt
+   texts 4917   clips 4917   modalities 2   mean present 2.00
+   per-modality R@1 : m0   3.0  m1  35.9   -> best single modality 35.9
+   uniform centroid :  29.8/ 57.6/ 69.0      tax vs best single modality -6.1
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     34.7/ 63.6/ 75.7              +4.9       -1.2
+   0.020     34.4/ 63.0/ 75.1              +4.5       -1.5
+   0.050     35.1/ 63.2/ 75.4              +5.3       -0.8
+   0.100     36.4/ 64.5/ 76.2              +6.5       +0.5
+   0.200     37.2/ 65.5/ 77.3              +7.4       +1.3
+   0.500     35.7/ 64.0/ 76.1              +5.9       -0.2
+   1.000     33.1/ 61.9/ 73.6              +3.3       -2.8
+   best tau 0.200 at R@1 37.2  (uniform 29.8, best single modality 35.9)
+
+== sca_t1_audiocaps.pt
+   texts 704   clips 704   modalities 2   mean present 2.00
+   per-modality R@1 : m0  28.4  m1  13.1   -> best single modality 28.4
+   uniform centroid :  28.4/ 58.1/ 70.5      tax vs best single modality +0.0
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     22.2/ 53.4/ 67.5              -6.2       -6.2
+   0.020     23.9/ 54.8/ 68.8              -4.5       -4.5
+   0.050     27.0/ 57.8/ 69.9              -1.4       -1.4
+   0.100     27.4/ 57.2/ 70.7              -1.0       -1.0
+   0.200     27.3/ 57.7/ 71.3              -1.1       -1.1
+   0.500     27.8/ 58.1/ 70.5              -0.6       -0.6
+   1.000     28.4/ 57.7/ 70.5              +0.0       +0.0
+   best tau 1.000 at R@1 28.4  (uniform 28.4, best single modality 28.4)
+
+== sca_t1_didemo.pt
+   texts 1003   clips 1003   modalities 2   mean present 2.00
+   per-modality R@1 : m0   4.2  m1  35.3   -> best single modality 35.3
+   uniform centroid :  28.7/ 55.6/ 64.7      tax vs best single modality -6.6
+   tau      R@1/R@5/R@10             vs uniform vs best 1-mod
+   0.010     32.1/ 57.4/ 66.8              +3.4       -3.2
+   0.020     32.9/ 56.2/ 66.1              +4.2       -2.4
+   0.050     31.5/ 57.2/ 66.7              +2.8       -3.8
+   0.100     32.8/ 58.8/ 68.6              +4.1       -2.5
+   0.200     33.5/ 59.7/ 68.3              +4.8       -1.8
+   0.500     32.1/ 58.1/ 66.7              +3.4       -3.2
+   1.000     31.0/ 57.0/ 66.1              +2.3       -4.3
+   best tau 0.200 at R@1 33.5  (uniform 28.7, best single modality 35.3)
+
+gain over the uniform centroid, at each dump's best tau:
+  gram_activitynet.pt                      +10.0
+  gram_audiocaps.pt                        -0.9
+  gram_didemo.pt                           +4.8
+  gram_lora_activitynet.pt                 +11.1
+  gram_lora_audiocaps.pt                   -1.1
+  gram_lora_didemo.pt                      +8.2
+  sca_t1_activitynet.pt                    +7.4
+  sca_t1_audiocaps.pt                      +0.0
+  sca_t1_didemo.pt                         +4.8
+
+A tau that helps on one benchmark and hurts on another is a tuned constant, not a
+method. What the paper can claim is a SINGLE tau that is positive everywhere.

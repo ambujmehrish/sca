@@ -29,8 +29,24 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 DEFAULT_CLIPS = 150000
 
 
+def find_hps(workdir):
+    """The run's recorded config, wherever the trainer put it.
+
+    Not always workdir/hps.json: depending on the launcher it lands in a log/ subdirectory
+    or beside the checkpoints. Searching is what makes this usable on the real tree.
+    """
+    for pat in ('hps.json', 'log/hps.json', '*/hps.json', '*/*/hps.json',
+                'config.json', 'log/config.json'):
+        hits = sorted(glob.glob(os.path.join(workdir, pat)))
+        if hits:
+            return hits[0]
+    return None
+
+
 def expected_steps(hps_path, clips):
     """Steps the schedule implies, from the run's own recorded config."""
+    if not hps_path:
+        return None, None, None
     try:
         hps = json.load(open(hps_path))
     except (ValueError, IOError):
@@ -39,6 +55,12 @@ def expected_steps(hps_path, clips):
     train = (data.get('train') or [{}])[0]
     bs = train.get('batch_size')
     ep = train.get('epoch')
+    # an explicit step budget wins over the epoch formula, and some configs set only that
+    if train.get('steps'):
+        return int(train['steps']), bs, ep
+    for key in ('num_train_steps', 'train_steps'):
+        if hps.get('run_cfg', {}).get(key):
+            return int(hps['run_cfg'][key]), bs, ep
     if not bs or not ep:
         return None, bs, ep
     return (clips // int(bs)) * int(ep), bs, ep
@@ -79,8 +101,7 @@ def main():
     short, unknown, complete = [], [], []
     for d in dirs:
         name = os.path.basename(d)
-        hps = os.path.join(d, 'hps.json')
-        exp, bs, ep = expected_steps(hps, args.clips) if os.path.exists(hps) else (None, None, None)
+        exp, bs, ep = expected_steps(find_hps(d), args.clips)
         got = reached_step(d)
         if got is None:
             print('%-30s %8s %9s %7s  no checkpoints' % (name, '-', exp or '?', '-'))
@@ -102,6 +123,26 @@ def main():
 
     print('\n' + '=' * 84)
     print('%d complete, %d under-trained, %d undetermined' % (len(complete), len(short), len(unknown)))
+
+    # Uniformity is the real signal even when the target is unknown: a wall clock truncates
+    # arms at ragged, differing steps, whereas a schedule ends every arm at the same one.
+    counts = {}
+    for d in dirs:
+        got = reached_step(d)
+        if got is not None:
+            counts[got] = counts.get(got, 0) + 1
+    if counts:
+        top, n = max(counts.items(), key=lambda kv: kv[1])
+        print('\nstep counts on disk: %s' % ', '.join(
+            '%d steps x%d arm(s)' % (k, v) for k, v in sorted(counts.items())))
+        if n == len(dirs):
+            print('ALL %d arms stopped at the same step (%d) -- consistent with a schedule'
+                  % (n, top))
+            print('end, not with a wall clock, which would truncate arms at differing steps.')
+        else:
+            print('%d of %d arms share the modal step %d; the rest differ -- check whether'
+                  % (n, len(dirs), top))
+            print('the outliers were resubmitted to completion.')
     if short:
         print('\nUnder-trained arms, worst first:')
         for name, got, exp, frac in sorted(short, key=lambda t: t[3]):

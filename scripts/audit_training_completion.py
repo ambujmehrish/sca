@@ -26,7 +26,12 @@ import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-DEFAULT_CLIPS = 150000
+# NOT a constant. The subset is called "150k" but the loader skips clips whose video or
+# audio failed to download, so the trainable count is lower -- around 134k here. Assuming
+# the nominal figure reported every arm as "91% of schedule" when each had in fact run its
+# full five epochs. The count is read from the annotation the run itself used; the constant
+# survives only as a last resort when that file cannot be opened, and is flagged when used.
+NOMINAL_CLIPS = 150000
 
 
 def find_hps(workdir):
@@ -55,6 +60,9 @@ def expected_steps(hps_path, clips):
     train = (data.get('train') or [{}])[0]
     bs = train.get('batch_size')
     ep = train.get('epoch')
+    actual = dataset_clips(hps)
+    if actual:
+        clips = actual          # measured beats assumed
     # an explicit step budget wins over the epoch formula, and some configs set only that
     if train.get('steps'):
         return int(train['steps']), bs, ep
@@ -64,6 +72,43 @@ def expected_steps(hps_path, clips):
     if not bs or not ep:
         return None, bs, ep
     return (clips // int(bs)) * int(ep), bs, ep
+
+
+def clips_note(hps_path):
+    """Whether the target came from the real annotation or from the nominal fallback."""
+    if not hps_path:
+        return 'unknown'
+    try:
+        n = dataset_clips(json.load(open(hps_path)))
+    except (ValueError, IOError):
+        return 'unknown'
+    return ('counted %d clips' % n) if n else 'ASSUMED %d -- annotation unreadable' % NOMINAL_CLIPS
+
+
+def dataset_clips(hps):
+    """Unique clips in the annotation this run actually trained on, or None."""
+    train = (hps.get('data_cfg', {}).get('train') or [{}])[0]
+    txt = train.get('txt')
+    if not txt:
+        return None
+    txt = os.path.expandvars(txt)
+    path = txt if os.path.isabs(txt) else os.path.join(ROOT, txt)
+    if not os.path.exists(path):
+        return None
+    try:
+        data = json.load(open(path))
+    except (ValueError, IOError):
+        return None
+    if not isinstance(data, list):
+        return None
+    ids = set()
+    for e in data:
+        if isinstance(e, dict):
+            for k in ('video_id', 'clip_id', 'id'):
+                if k in e:
+                    ids.add(str(e[k]))
+                    break
+    return len(ids) or len(data)
 
 
 def reached_step(workdir):
@@ -80,7 +125,8 @@ def reached_step(workdir):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--workdir_root', default='workdir_pretrain')
-    ap.add_argument('--clips', type=int, default=DEFAULT_CLIPS)
+    ap.add_argument('--clips', type=int, default=NOMINAL_CLIPS,
+                    help='fallback clip count; the annotation is counted when readable')
     ap.add_argument('--tolerance', type=float, default=0.95,
                     help='fraction of the schedule that counts as complete')
     args = ap.parse_args()

@@ -1,0 +1,59 @@
+{
+ "run_cfg": {
+  "default": "./config/sca/default_run_cfg.json",
+  "learning_rate": 2e-05,
+  "first_eval": false,
+  "save_steps": 150,
+  "checkpoint": "${WORK_ROOT}/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/model_step_204994.pt",
+  "save_best": true,
+  "valid_freq": 10,
+  "new_params_name": []
+ },
+ "model_cfg": {
+  "default": "./config/sca/default_model_cfg.json",
+  "vision_encoder_type": "evaclip01_giant",
+  "s_star_path": "${SCA_CACHE_ROOT}/s_star_150k.pt",
+  "use_lora": true,
+  "lora_r_vision": 8,
+  "lora_r_audio": 8,
+  "lora_r_text": 8,
+  "lora_alpha": 16
+ },
+ "data_cfg": {
+  "train": [
+   {
+    "type": "annoindexed",
+    "training": true,
+    "name": "finetune_area",
+    "txt": "${DATA_ROOT}/vast27m_150k/annotations150k.json",
+    "vision": "${DATA_ROOT}/vast27m_150k/clips",
+    "audio": "${DATA_ROOT}/vast27m_150k/audios_wav",
+    "datatype": "video_rawvideo",
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 2,
+    "audio_sample_num": 1,
+    "task": "ret%tv%ta",
+    "epoch": 1,
+    "n_workers": 8,
+    "batch_size": 128
+   }
+  ],
+  "val": [
+   {
+    "type": "annoindexed",
+    "training": false,
+    "name": "msrvtt_ret",
+    "txt": "datasets/annotations/msrvtt/descs_ret_test.json",
+    "vision_transforms": "crop_flip",
+    "vision_format": "video_rawvideo",
+    "vision": "${DATA_ROOT}/MSRVTT_full/MSRVTT/videos/all",
+    "audio": "${DATA_ROOT}/MSRVTT_full/audios",
+    "vision_sample_num": 8,
+    "audio_sample_num": 1,
+    "task": "ret%tvas",
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ]
+ }
+}

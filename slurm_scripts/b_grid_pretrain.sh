@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=240G
 #SBATCH --job-name=b_grid
-#SBATCH --array=0-6
+#SBATCH --array=0-8
 #SBATCH -o ./slurm_scripts/logs/b_grid_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/b_grid_%A_%a.out
 # Batch size x LoRA capacity, from the best configuration we have.
@@ -52,6 +52,15 @@
 #   sbatch slurm_scripts/b_grid_pretrain.sh                # all six
 #   sbatch --array=4-5 slurm_scripts/b_grid_pretrain.sh    # just the new combined pair
 #   sbatch --array=6 slurm_scripts/b_grid_pretrain.sh      # T6: the frame set in the objective
+#   sbatch --array=7-8 slurm_scripts/b_grid_pretrain.sh    # E1/E2: 1 and 2 epochs
+#
+# E1/E2 test a regime nobody has: EVERY arm here has run 5 epochs, while GRAM's published
+# recipe is ONE. Both start from the same VAST foundation checkpoint
+# (model_step_204994.pt), and GRAM's released weights are model_step_459.pt on top of it --
+# so we spend ~5.8x its adaptation steps for +0.9 R@1. Two overtraining signatures are
+# already in the results: x1_xenc_full_lr2e5 fell from ~54.8 to 45.7 between its selected
+# and final checkpoints, and sca's aggregator is far worse at the end of training than at
+# its best step (DiDeMo 27.5 vs 32.8). Built on B1, the strongest arm measured.
 #
 # T6 trains what scripts/try_temporal_centroid.py measured on a finished checkpoint: the
 # video enters the centroid as one slot per FRAME, weighted by the query. Measured post hoc
@@ -76,11 +85,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-6)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-8)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

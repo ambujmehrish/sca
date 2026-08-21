@@ -58,9 +58,10 @@
 # that is worth +1.9 to +3.1 R@1 on the video pathway on all four benchmarks at tau_w=0.1,
 # beating BOTH mean-pooling and max-over-frames -- and those features were trained under
 # mean pooling, so it is a lower bound on what training with the set gives. Batch 128
-# because b1 is the strongest arm measured; training frames 2 -> 4 so the frame set is not
-# degenerate during training, while eval keeps 8 (the centroid is arity-invariant, so the
-# counts need not match).
+# because b1 is the strongest arm measured, and 2 training frames because 4 died with CUDA
+# OOM at 63.4 of 63.4 GiB -- 128 clips x 4 frames is 512 frame-images through ViT-g, double
+# the 256 b1 proved fits. Two frames still make a SET rather than a pooled vector, and eval
+# keeps 8 since the centroid is arity-invariant and the counts need not match.
 #
 # Resubmit to resume: each arm restarts from its own optimizer checkpoint.
 set -uo pipefail

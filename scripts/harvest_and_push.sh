@@ -46,6 +46,11 @@ run training_gaps "Completeness, step continuity, cross-arm uniformity, config d
 run modality_arity "Gallery arity at train vs at each benchmark" \
     python3 scripts/audit_modality_arity.py
 
+run query_centroid "Query-weighted centroid vs uniform, tau sweep on cached features" \
+    bash -c 'shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
+             [ ${#f[@]} -gt 0 ] || { echo "no feature dumps under results/e4_transfer/feats"; exit 3; }
+             python3 scripts/try_query_centroid.py "${f[@]}"'
+
 # Slurm tails: the exit line and the last error, which is where a failed cell shows up
 {
   echo "Last lines of the most recent job logs"

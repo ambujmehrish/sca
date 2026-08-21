@@ -21,6 +21,8 @@ from utils.args import get_args, logging_cfgs
 from utils.initialize import initialize
 from utils.build_model import build_model
 from utils.build_dataloader import create_val_dataloaders
+from utils.lora_geometry import sync_lora_geometry
+from utils.logger import LOGGER
 from utils.pipeline import test
 import evaluation
 import wandb
@@ -43,6 +45,12 @@ def main():
         from evaluation.evaluation_classification import evaluate_mm as evaluate_classification
         evaluation.evaluation_registry['evaluation_mm'] = evaluate_classification
         print("VGGSound classification mode: swapped in evaluation_classification.evaluate_mm")
+
+    # The eval configs hardcode LoRA rank 8, so an arm trained at another rank either fails
+    # to load (x2_xenc_r64) or -- worse -- loads cleanly with the wrong alpha/r scaling and
+    # reports numbers from a model that was never trained. Take the geometry from the
+    # checkpoint before the model is built.
+    sync_lora_geometry(args, LOGGER)
 
     model, _, _ = build_model(args)
     val_loaders = create_val_dataloaders(args)

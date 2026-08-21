@@ -34,7 +34,7 @@
     "audio": "${DATA_ROOT}/vast27m_150k/audios_wav",
     "datatype": "video_rawvideo",
     "vision_format": "video_rawvideo",
-    "vision_sample_num": 4,
+    "vision_sample_num": 2,
     "audio_sample_num": 1,
     "task": "ret%tv%ta",
     "epoch": 5,

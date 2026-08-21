@@ -182,6 +182,7 @@ def evaluate_ret(model, tasks, val_loader, global_step):
     feat_t = []
     feat_a = []
     feat_v = []
+    feat_v_frames = []          # per-frame video, present only when dump_frame_feats is set
     feat_s = []
     feat_d = []
 
@@ -198,6 +199,8 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         feat_a.append(evaluation_dict['feat_a'])
         if 'feat_v' in evaluation_dict.keys():      # audio-only (AudioCaps T-A): no video
             feat_v.append(evaluation_dict['feat_v'])
+        if 'feat_v_frames' in evaluation_dict.keys():
+            feat_v_frames.append(evaluation_dict['feat_v_frames'])
         if 'feat_s' in evaluation_dict.keys():
             feat_s.append(evaluation_dict['feat_s'])
         if 'feat_d' in evaluation_dict.keys():
@@ -238,6 +241,9 @@ def evaluate_ret(model, tasks, val_loader, global_step):
     if len(feat_v) > 0:        # audio-only (AudioCaps T-A): no video -> skip Gramian-volume/cosine-video block
         feat_v = torch.cat(feat_v, dim = 0)
         feat_v = ddp_allgather(feat_v)
+
+        if len(feat_v_frames) > 0:
+            feat_v_frames = ddp_allgather(torch.cat(feat_v_frames, dim=0))   # (N, F, d)
 
         if len(feat_s)>0:
             feat_s = torch.cat(feat_s, dim = 0)
@@ -298,10 +304,40 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         #   'pmrl_raw'/'pmrl_norm': PMRL head -- distance = -lambda_1 (/|M| for norm)
         _score_mode = getattr(model.config, 'score_mode', 'volume')
         if _score_mode == 'centroid':
-            from model.centroid import masked_spherical_mean
-            _mu, _, _ = masked_spherical_mean(torch.stack([f.float() for f in _feats], dim=1),
-                                              _present)
-            area = 1.0 - feat_t.float() @ _mu.T
+            from model.centroid import masked_spherical_mean, query_centroid_scores
+            _z = torch.stack([f.float() for f in _feats], dim=1)
+            _pres = _present
+            # An arm trained with frame slots must be SCORED with frame slots: the video
+            # enters as one slot per frame, weighted by the query. Evaluating such a
+            # checkpoint through the pooled uniform centroid would measure a model that was
+            # never trained, and would do it silently -- the shapes all still work.
+            _frames = (torch.is_tensor(feat_v_frames) and feat_v_frames.shape[0] == _z.shape[0])
+            if getattr(model.config, 'sca_frame_slots', False):
+                if not _frames:
+                    raise RuntimeError(
+                        'sca_frame_slots is set but no per-frame video features reached the '
+                        'scorer. Set model_cfg.dump_frame_feats=true in the eval config -- '
+                        'scoring this checkpoint with the pooled centroid would report a '
+                        'model that was never trained.')
+                _vi = [m for m in 'vasd' if m in _mods].index('v')
+                _zf = feat_v_frames.float()
+                _zf = _zf / _zf.norm(dim=-1, keepdim=True).clamp(min=1e-6)
+                _slots, _owner = [], []
+                for _i in range(_z.shape[1]):
+                    if _i == _vi:
+                        _slots += [_zf[:, _f] for _f in range(_zf.shape[1])]
+                        _owner += [_vi] * _zf.shape[1]
+                    else:
+                        _slots.append(_z[:, _i])
+                        _owner.append(_i)
+                _z = torch.stack(_slots, dim=1)
+                _pres = _present[:, torch.tensor(_owner, device=_present.device)]
+            if getattr(model.config, 'sca_query_weighting', False):
+                _tau_w = float(getattr(model.config, 'sca_tau_w', 0.1))
+                area = 1.0 - query_centroid_scores(feat_t.float(), _z, _pres, tau=_tau_w)
+            else:
+                _mu, _, _ = masked_spherical_mean(_z, _pres)
+                area = 1.0 - feat_t.float() @ _mu.T
         elif _score_mode == 'volume_mean_imputed':
             from utils.volume import volume_computation_mean_imputed
             area = volume_computation_mean_imputed(feat_t, _feats, present=_present)

@@ -8,10 +8,11 @@ from easydict import EasyDict as edict
 from utils.logger import LOGGER
 from utils.distributed import all_gather_with_grad, concat_all_gather
 from .gram import GRAM
-from .centroid import masked_spherical_mean, concept_resultant
+from .centroid import (masked_spherical_mean, concept_resultant,
+                       query_centroid_scores)
 from .prototypes import PrototypeMemory
 from .losses_sca import (l_align, l_sem, l_mask, l_concept, l_unif,
-                         check_calibration_config)
+                         check_calibration_config, info_nce)
 from data.mask_sampler import MaskSampler
 
 
@@ -277,7 +278,26 @@ class SCA(GRAM):
         targets = torch.arange(rank * B, rank * B + B, dtype=torch.long, device=z.device)
 
         # ---- L_align: symmetric InfoNCE text <-> masked centroid (the training view) ----
-        loss_dict['loss_align'] = l_align(feat_t32, mu_M_all, mu_M, feat_t_all, tau, targets)
+        if self.query_weighting:
+            # A query-weighted centroid is a function of the TEXT it is scored against, so
+            # feat_t @ mu_all.T is the wrong objective: mu_j was built from t_j, giving the
+            # positive pair a centroid weighted for its own text while every negative is
+            # weighted by the wrong one. The model could then win by sharpening the weights
+            # rather than by learning features, and it would not match inference, where every
+            # candidate is conditioned on the query. Both directions therefore need the
+            # PAIRWISE score S[i, j] = <t_i, mu(z_j | t_i)>.
+            z_all = _gather(z)                                          # (B_all, S, d)
+            presM_all = _gather(present_M)                              # (B_all, S)
+            sim_t2m = query_centroid_scores(feat_t32, z_all, presM_all,
+                                            tau=self.sca_tau_w) / tau
+            # clip-to-text: for each LOCAL clip, a distribution over ALL texts. Same pairwise
+            # definition, computed with the roles of the gathered side swapped.
+            sim_m2t = query_centroid_scores(feat_t_all, z, present_M,
+                                            tau=self.sca_tau_w).T / tau
+            loss_dict['loss_align'] = (info_nce(sim_t2m, targets, 0.1)
+                                       + info_nce(sim_m2t, targets, 0.1)) / 2
+        else:
+            loss_dict['loss_align'] = l_align(feat_t32, mu_M_all, mu_M, feat_t_all, tau, targets)
 
         # ---- L_sem + calibration (E6; gated to post-warmup) ----
         if not warm and self.sca_alpha > 0:

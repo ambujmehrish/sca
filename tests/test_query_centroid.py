@@ -77,3 +77,27 @@ def test_query_weighting_without_a_query_raises():
         assert 'query' in str(e)
     else:
         raise AssertionError('silently fell back to the uniform centroid')
+
+
+def test_score_matrix_is_pairwise_not_self_conditioned():
+    """The bug this guards: a query-weighted centroid is a function of the text it is
+    scored against, so building mu_j from t_j and then doing feat_t @ mu.T conditions the
+    positive on its own text and every negative on the wrong one. The model can then win by
+    sharpening the weights instead of learning features, and it does not match inference.
+
+    The correct matrix is S[i, j] = <t_i, mu(z_j | t_i)>. Its DIAGONAL coincides with the
+    self-conditioned form; its off-diagonal must not."""
+    t, z, present = _fixture(Ng=6, Nt=6)
+    S = query_centroid_scores(t, z, present, tau=0.1)
+
+    self_cond = torch.stack([
+        masked_spherical_mean(z, present, weighting='query', tau_w=0.1,
+                              query=t[j].expand(z.shape[0], z.shape[-1]))[0][j]
+        for j in range(z.shape[0])])                      # mu_j built from t_j
+    naive = t @ self_cond.T                               # what l_align used to compute
+
+    assert torch.allclose(S.diagonal(), naive.diagonal(), atol=1e-5), \
+        'diagonal must agree: both condition clip j on text j'
+    off = ~torch.eye(6, dtype=torch.bool)
+    assert (S[off] - naive[off]).abs().max() > 1e-3, \
+        'off-diagonal identical -- the weighting is not query-dependent, so this test is vacuous'

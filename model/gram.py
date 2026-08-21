@@ -321,6 +321,27 @@ class GRAM(MMGeneralModule):
             feat_v = F.normalize(feat_v,dim=-1)
             batch[key] = feat_v
         
+        elif key == 'feat_v_frames':
+            # feat_v WITHOUT the temporal mean. pool_vision_for_contra (general_module.py:426)
+            # takes the per-frame CLS tokens and then averages them away, so a two-minute
+            # ActivityNet clip and a ten-second VATEX clip both arrive at the contrastive head
+            # as a single vector. That average is the last operation before the head, which
+            # makes it the earliest point where video length stops being representable -- and
+            # it happens upstream of every aggregator, ours and both baselines'.
+            # This key keeps the frame axis: (B, n_frames, d), each row L2-normalised in the
+            # same space as feat_v, so mean over dim=1 reproduces feat_v up to normalisation.
+            vision_output = self.batch_get(batch, 'vision_output')          # (B, n, patches, C)
+            vt = self.config.vision_encoder_type
+            if vt.startswith('clip') or vt.startswith('evaclip'):
+                per_frame = vision_output[:, :, 0]                          # CLS per frame
+            elif vt.startswith('swin'):
+                per_frame = vision_output.mean(dim=2)
+            else:
+                raise NotImplementedError(
+                    f'feat_v_frames: no per-frame pooling defined for vision_encoder_type '
+                    f'{vt!r}. Guessing one would silently change what the frame axis means.')
+            batch[key] = F.normalize(self.contra_head_v(per_frame), dim=-1)
+
         elif key == 'feat_d':
             depth_output = self.batch_get(batch, 'depth_output')
             depth_output_pooled = self.pool_vision_for_contra(depth_output)
@@ -769,6 +790,10 @@ class GRAM(MMGeneralModule):
 
             evaluation_dict['feat_t'] = feat_t
             if feat_v is not None: evaluation_dict['feat_v'] = feat_v
+            # opt-in only: nothing downstream reads this unless dump_frame_feats is set, so the
+            # default eval path is byte-identical to GRAM's
+            if feat_v is not None and getattr(self.config, 'dump_frame_feats', False):
+                evaluation_dict['feat_v_frames'] = self.batch_get(batch, 'feat_v_frames')
             evaluation_dict['feat_a'] = feat_a
             if feat_s is not None: evaluation_dict['feat_s'] = feat_s
             if feat_d is not None: evaluation_dict['feat_d'] = feat_d

@@ -104,7 +104,7 @@ def collect_features(config_path, dump_path):
     (task_name, loader), = loaders.items()
     task = task_name.split('--')[0]
 
-    feats = {'feat_t': [], 'ids': [], 'gallery': {}}
+    feats = {'feat_t': [], 'ids': [], 'gallery': {}, 'v_frames': []}
     for batch in loader:
         ev = model(batch, task, compute_loss=False)
         feats['feat_t'].append(ev['feat_t'].float().cpu())
@@ -112,10 +112,17 @@ def collect_features(config_path, dump_path):
         for m in ('v', 'a', 's', 'd'):
             if f'feat_{m}' in ev:
                 feats['gallery'].setdefault(m, []).append(ev[f'feat_{m}'].float().cpu())
+        # present only when model_cfg.dump_frame_feats is set: (B, n_frames, d), the video
+        # BEFORE pool_vision_for_contra averages the frame axis away
+        if 'feat_v_frames' in ev:
+            feats['v_frames'].append(ev['feat_v_frames'].float().cpu())
     out = {'feat_t': torch.cat(feats['feat_t']),
            'gallery': {m: torch.cat(v) for m, v in feats['gallery'].items()},
            'ids': feats['ids'],
            'meta': {'config': os.path.abspath(config_path), 'task': task}}
+    if feats['v_frames']:
+        out['v_frames'] = torch.cat(feats['v_frames'])
+        print(f'[grids] per-frame video feats: {tuple(out["v_frames"].shape)}')
     os.makedirs(os.path.dirname(os.path.abspath(dump_path)), exist_ok=True)
     torch.save(out, dump_path)
     print(f'[grids] dumped {out["feat_t"].shape[0]} texts x '

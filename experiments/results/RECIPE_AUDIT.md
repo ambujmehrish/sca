@@ -488,3 +488,41 @@ prove it. The cheap test is an arm at `A5_pfull_end_0.3` (29.0%, one pretrain) -
 ActivityNet moves in proportion, the mechanism is confirmed and the explicit sub-task
 version is worth the larger change; if it does not move, the hypothesis is wrong and the
 deficit is elsewhere.
+
+## F13 — the 150k subset is really 136,674 clips (2026-08-20)
+
+Measured on the cluster against `$DATA_ROOT/vast27m_150k`:
+
+| | count |
+|---|---|
+| clips in `annotations150k.json` | 150,154 |
+| with video on disk | 136,694 |
+| with audio on disk | 136,674 |
+| **with both (what trains)** | **136,674** |
+
+13,480 clips (9.0%) are no longer downloadable, so every arm here continue-pretrains on
+91% of the nominal budget. That is also why the training-completion audit misfired twice:
+the trainer schedules against `len(dataset)`, which is built from what exists, so 2649
+steps is five full epochs of 136.7k clips and not a truncated run of 150k.
+
+**Belongs in the setup section as a measured number.** But three qualifications:
+
+1. *Probably symmetric.* GRAM documents the same attrition for VATEX -- "a large part of
+   the dataset is now unavailable online due to removed or private videos" -- so they were
+   subject to it on VAST-27M too; they simply never report the pretraining subset's
+   effective size. Our clips went offline later, so we likely hold fewer, by an unknowable
+   margin.
+2. *Too small to explain the deficit.* 9% fewer unique clips over five epochs is worth a
+   few tenths of an R@1, not the 5-6 points SCA gives back at the ITM stage. It would also
+   depress the raw scorer, where SCA wins.
+3. *Internally fair.* Our GRAM and PMRL reproductions trained on the identical reduced set,
+   so only comparisons against the released checkpoint and the published numbers are
+   touched.
+
+### Repo hygiene, found while checking this
+
+`.gitignore:21` is `data/*.py`, so the dataset package -- `data/loader.py`,
+`data/__init__.py`, the `annoindexed` class -- is untracked; only `mask_sampler.py` and
+`semantic_targets.py` were force-added. A fresh clone cannot train, the data pipeline
+cannot be reviewed, and questions like "where are unavailable clips dropped" cannot be
+answered from the repository. Worth fixing before release.

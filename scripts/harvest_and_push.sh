@@ -98,9 +98,19 @@ if git diff --cached --quiet; then
   echo "nothing changed -- not committing"; exit 0
 fi
 git commit -q -m "Harvest: extractor output at $(date -u +%Y-%m-%dT%H:%MZ)"
+# Retrying a push unchanged cannot fix the common failure: the branch moved on the remote
+# while the harvest was running, so every retry is rejected for the same reason. Rebase onto
+# the remote before retrying -- the harvest only ADDS files under experiments/results, so it
+# rebases cleanly on anything that does not touch the same file.
 for d in 2 4 8 16; do
   git push -u origin "$BRANCH" && { echo "pushed to $BRANCH"; exit 0; }
-  echo "push failed, retrying in ${d}s"; sleep "$d"
+  echo "push rejected -- rebasing onto origin/$BRANCH and retrying in ${d}s"
+  git pull --rebase origin "$BRANCH" || {
+    git rebase --abort 2>/dev/null
+    echo "FATAL: rebase failed. The results are committed locally on $BRANCH; resolve by" >&2
+    echo "       hand with: git pull --rebase origin $BRANCH" >&2
+    exit 1; }
+  sleep "$d"
 done
 echo "push failed after retries -- the results are committed locally on $BRANCH" >&2
 exit 1

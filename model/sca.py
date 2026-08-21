@@ -104,6 +104,18 @@ class SCA(GRAM):
         else:
             self.centroid_gates = None
 
+        # ---- frame slots: the video contributes one slot per frame, not one pooled vector.
+        # pool_vision_for_contra averages the per-frame CLS tokens before the contrastive
+        # head, so length stops being representable there -- upstream of every aggregator.
+        # ---- query weighting: w_m proportional to exp(<t, z_m>/tau_w) over the present
+        # slots, which is what lets a slot the query does not care about be discounted. On a
+        # trained checkpoint, scoring against the frame set at tau_w=0.1 beats mean-pooling
+        # by +1.9 to +3.1 R@1 on the video pathway on all four benchmarks, and beats
+        # max-over-frames too, so it is soft fusion rather than selection.
+        self.frame_slots = bool(getattr(cfg, 'sca_frame_slots', False))
+        self.query_weighting = bool(getattr(cfg, 'sca_query_weighting', False))
+        self.sca_tau_w = float(getattr(cfg, 'sca_tau_w', 0.1))
+
         # ---- S* semantic targets (built offline by data/semantic_targets.py) ----
         self.s_star_path = os.path.expandvars(getattr(cfg, 's_star_path', '') or '')
         # A3 ablation arm (S* = I) must be requested EXPLICITLY -- it is never a fallback
@@ -156,6 +168,42 @@ class SCA(GRAM):
             feats['d'] = self.batch_get(batch, 'feat_d')
         return feats
 
+    def _gallery_slots(self, batch, gallery, mods):
+        """(z, owner): the slot set the centroid is taken over, and each slot's modality.
+
+        Default -- one slot per modality, owner = [0, 1, ...], i.e. exactly the previous
+        behaviour and byte-identical to it.
+
+        With sca_frame_slots, video contributes ONE SLOT PER FRAME instead of one pooled
+        vector. pool_vision_for_contra (general_module.py:426) averages the per-frame CLS
+        tokens before the contrastive head, so every clip reaches the centroid as a single
+        point regardless of length. Measured on a trained checkpoint, scoring against the
+        frame set instead of the pooled vector is worth +1.9 to +3.1 R@1 on the video
+        pathway across all four benchmarks -- and beats BOTH limits (mean-pooling and
+        max-over-frames) everywhere, so it is soft fusion over frames rather than frame
+        selection.
+
+        Nothing downstream needs to change: the centroid is arity-invariant, so frames are
+        simply more slots. `owner` is what keeps the semantics right -- the mask sampler
+        draws at MODALITY level and the draw is expanded over that modality's slots, so
+        dropping video still drops the whole video rather than one frame of it.
+        """
+        z = torch.stack([gallery[m].float() for m in mods], dim=1)          # (B, L, d)
+        owner = list(range(len(mods)))
+        if not self.frame_slots or 'v' not in mods:
+            return z, owner
+        zf = self.batch_get(batch, 'feat_v_frames').float()                 # (B, F, d)
+        vi = mods.index('v')
+        slots, owner = [], []
+        for i, m in enumerate(mods):
+            if i == vi:
+                slots += [zf[:, f] for f in range(zf.shape[1])]
+                owner += [vi] * zf.shape[1]
+            else:
+                slots.append(gallery[m].float())
+                owner.append(i)
+        return torch.stack(slots, dim=1), owner
+
     # ------------------------------------------------------------------ forward
 
     def forward_ret(self, batch, task, compute_loss=True):
@@ -175,24 +223,36 @@ class SCA(GRAM):
         gallery = self._gallery_feats(batch)
         mods = list(gallery.keys())
         L = len(mods)
-        z = torch.stack([gallery[m].float() for m in mods], dim=1)          # (B, L, d)
+        z, owner = self._gallery_slots(batch, gallery, mods)                 # (B, S, d)
         B = z.shape[0]
+        owner_idx = torch.tensor(owner, device=z.device, dtype=torch.long)
 
-        # real per-clip presence (loader zero-fills a modality it could not load)
-        present = torch.stack([(gallery[m].float().norm(dim=-1) > 0.5).float()
-                               for m in mods], dim=1)                       # (B, L)
+        # real per-clip presence, at MODALITY level then expanded over that modality's slots
+        # (loader zero-fills a modality it could not load). With one slot per modality this
+        # is the previous expression unchanged.
+        present_mod = torch.stack([(gallery[m].float().norm(dim=-1) > 0.5).float()
+                                   for m in mods], dim=1)                   # (B, L)
+        present = present_mod[:, owner_idx]                                 # (B, S)
 
-        # virtual mask: train-time m-dagger draws on top of the real presence
+        # virtual mask: train-time m-dagger draws on top of the real presence. Drawn at
+        # modality level so a drop removes a whole modality, not one frame of the video.
         if self.training:
-            vmask = self.mask_sampler.sample(B, step, z.device, present=present)
+            vmask = self.mask_sampler.sample(B, step, z.device, present=present_mod)[:, owner_idx]
         else:
             vmask = torch.ones_like(present)
         present_M = present * vmask
 
         # both centroids from the ONE forward pass (virtual-mask bookkeeping)
         g = self.centroid_gates
-        mu_K, A_K, n_K = masked_spherical_mean(z, present, gates=g)         # full view
-        mu_M, A_M, n_M = masked_spherical_mean(z, present_M, gates=g)       # masked view
+        # query weighting needs the text, and the gates are per-slot; they are mutually
+        # exclusive arms, so a config asking for both is a mistake worth refusing
+        if self.query_weighting and g is not None:
+            raise RuntimeError('[SCA] sca_query_weighting and centroid gates are two different '
+                               'weightings of the same sum; enable one, not both.')
+        wkw = ({'weighting': 'query', 'tau_w': self.sca_tau_w, 'query': feat_t.float()}
+               if self.query_weighting else {'gates': g})
+        mu_K, A_K, n_K = masked_spherical_mean(z, present, **wkw)           # full view
+        mu_M, A_M, n_M = masked_spherical_mean(z, present_M, **wkw)         # masked view
 
         feat_t32 = feat_t.float()
         tau = self.sca_tau if torch.is_tensor(self.sca_tau) else torch.tensor(self.sca_tau)

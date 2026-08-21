@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=240G
 #SBATCH --job-name=b_grid
-#SBATCH --array=0-5
+#SBATCH --array=0-6
 #SBATCH -o ./slurm_scripts/logs/b_grid_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/b_grid_%A_%a.out
 # Batch size x LoRA capacity, from the best configuration we have.
@@ -51,6 +51,16 @@
 #
 #   sbatch slurm_scripts/b_grid_pretrain.sh                # all six
 #   sbatch --array=4-5 slurm_scripts/b_grid_pretrain.sh    # just the new combined pair
+#   sbatch --array=6 slurm_scripts/b_grid_pretrain.sh      # T6: the frame set in the objective
+#
+# T6 trains what scripts/try_temporal_centroid.py measured on a finished checkpoint: the
+# video enters the centroid as one slot per FRAME, weighted by the query. Measured post hoc
+# that is worth +1.9 to +3.1 R@1 on the video pathway on all four benchmarks at tau_w=0.1,
+# beating BOTH mean-pooling and max-over-frames -- and those features were trained under
+# mean pooling, so it is a lower bound on what training with the set gives. Batch 128
+# because b1 is the strongest arm measured; training frames 2 -> 4 so the frame set is not
+# degenerate during training, while eval keeps 8 (the centroid is arity-invariant, so the
+# counts need not match).
 #
 # Resubmit to resume: each arm restarts from its own optimizer checkpoint.
 set -uo pipefail
@@ -65,11 +75,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-5)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-6)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

@@ -50,13 +50,19 @@ def recall_forward(score, gt_cols, ks=(1, 5, 10)):
 
 def recall_backward(score, gt_rows, ks=(1, 5, 10)):
     """Clip-to-text. compute_metric_ret(direction='backward') sorts each COLUMN and takes the
-    BEST-ranked of that clip's captions, because a clip may have several."""
-    order = score.argsort(dim=0, descending=True)          # (Nt, Ng) row = rank position
-    ranks = []
-    for j, rows in enumerate(gt_rows):
-        col = order[:, j].tolist()
-        ranks.append(min(col.index(r) for r in rows))
-    ranks = torch.tensor(ranks, dtype=torch.float)
+    BEST-ranked of that clip's captions, because a clip may have several.
+
+    The trunk expresses this as col.index(r) over a Python list per column, which is
+    O(Ng x Nt) and was the reason a full sweep looked like it had hung. Inverting the
+    permutation gives every text's rank in every column in one scatter, after which each
+    clip is a min over a handful of entries. Same ordering, same ties -- argsort decides both.
+    """
+    order = score.argsort(dim=0, descending=True)          # (Nt, Ng): order[p, j] = text at rank p
+    pos = torch.empty_like(order)                          # pos[i, j] = rank of text i in column j
+    pos.scatter_(0, order, torch.arange(score.shape[0], device=score.device)
+                 .unsqueeze(1).expand_as(order))
+    ranks = torch.tensor([int(pos[rows, j].min()) for j, rows in enumerate(gt_rows)],
+                         dtype=torch.float)
     return [100.0 * (ranks < k).float().mean().item() for k in ks]
 
 

@@ -51,39 +51,39 @@ Next (no GPU needed):
   python3 scripts/sweep_score_fusion.py workdir/e1_fusion/*/dumps/rerank_*.pt
 EXIT=0 DONE 14:28:29
 
-===== slurm_scripts/logs/b_grid_53391964_4.out
-[h264 @ 0x5638141b67c0] mmco: unref short failure
-[h264 @ 0x55b87e65f8c0] mmco: unref short failure
-[h264 @ 0x55b87e65f8c0] mmco: unref short failure
-[h264 @ 0x5638141b67c0] mmco: unref short failure
-[h264 @ 0x5638141b67c0] mmco: unref short failure
-[h264 @ 0x56354f40d9c0] mmco: unref short failure
-[h264 @ 0x56354f40d9c0] mmco: unref short failure
-[h264 @ 0x56354b1b7780] mmco: unref short failure
-[h264 @ 0x56354b1b7780] mmco: unref short failure
-[h264 @ 0x5648bbec6200] mmco: unref short failure
-[h264 @ 0x5648bbec6200] mmco: unref short failure
-[h264 @ 0x5638100ec640] mmco: unref short failure
-[h264 @ 0x5638123ef880] mmco: unref short failure
-[h264 @ 0x56354e047a00] mmco: unref short failure
-[h264 @ 0x56354e047a00] mmco: unref short failure
+===== slurm_scripts/logs/b_grid_53432533_9.out
+[h264 @ 0x559c73f24e40] mmco: unref short failure
+[h264 @ 0x5555af510300] mmco: unref short failure
+[h264 @ 0x5555af510300] mmco: unref short failure
+[h264 @ 0x5575dad45c40] mmco: unref short failure
+[h264 @ 0x5575dad45c40] mmco: unref short failure
+[h264 @ 0x55d13ee65880] mmco: unref short failure
+[h264 @ 0x559c7352b800] mmco: unref short failure
+[h264 @ 0x559c7352b800] mmco: unref short failure
+[h264 @ 0x559c7344e3c0] mmco: unref short failure
+[h264 @ 0x559c7344e3c0] mmco: unref short failure
+[1;34mwandb[0m: 
+[1;34mwandb[0m: You can sync this run to the cloud by running:
+[1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260821_224745-33vrxye6[0m
+[1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260821_224745-33vrxye6/logs[0m
+EXIT=0 DONE 02:40:04
 
-===== slurm_scripts/logs/b_grid_53416202_7.out
- 88%|████████▊ | 14/16 [01:35<00:07,  3.72s/it][A 94%|█████████▍| 15/16 [01:36<00:03,  3.67s/it] 94%|█████████▍| 15/16 [01:37<00:03,  3.67s/it] 94%|█████████▍| 15/16 [01:37<00:03,  3.67s/it]
- 94%|█████████▍| 15/16 [01:38<00:03,  3.68s/it][A100%|██████████| 16/16 [01:38<00:00,  3.26s/it]100%|██████████| 16/16 [01:38<00:00,  6.19s/it]
-100%|██████████| 16/16 [01:39<00:00,  3.26s/it]100%|██████████| 16/16 [01:39<00:00,  6.22s/it]
-100%|██████████| 16/16 [01:39<00:00,  3.27s/it]100%|██████████| 16/16 [01:39<00:00,  6.23s/it]
-
-100%|██████████| 16/16 [01:41<00:00,  3.27s/it][A100%|██████████| 16/16 [01:41<00:00,  6.32s/it]
-08/21/2026 21:58:07 - INFO - __main__ -   [SCORE] task=tvas mode=centroid over T+VAS = 4-modal
-
-  0%|          | 0/250 [00:00<?, ?it/s][A
-  0%|          | 1/250 [00:00<00:40,  6.14it/s][A
-  1%|          | 2/250 [00:00<00:54,  4.55it/s][A
-  1%|          | 3/250 [00:00<00:50,  4.93it/s][A
-  2%|▏         | 4/250 [00:00<00:56,  4.36it/s][A
-  2%|▏         | 5/250 [00:01<01:04,  3.80it/s][A
-  2%|▏         | 6/250 [00:01<01:25,  2.87it/s][A
+===== slurm_scripts/logs/b_grid_53432533_13.out
+[h264 @ 0x5567844ec980] mmco: unref short failure
+[h264 @ 0x5567844ec980] mmco: unref short failure
+[h264 @ 0x55b951ad6ec0] mmco: unref short failure
+[h264 @ 0x55b951ad6ec0] mmco: unref short failure
+[h264 @ 0x55b952a2e400] mmco: unref short failure
+[h264 @ 0x5567850de3c0] mmco: unref short failure
+[h264 @ 0x5567850de3c0] mmco: unref short failure
+[h264 @ 0x5567846c0200] mmco: unref short failure
+[1;34mwandb[0m: 
+[1;34mwandb[0m: You can sync this run to the cloud by running:
+[1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260821_225308-63a2okd9[0m
+[1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260821_225308-63a2okd9/logs[0m
+[h264 @ 0x5651c8daf4c0] mmco: unref short failure
+[h264 @ 0x5651c8daf4c0] mmco: unref short failure
+EXIT=0 DONE 01:27:22
 
 ===== slurm_scripts/logs/e1_zs_53265198.out
 08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========

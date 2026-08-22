@@ -1,3 +1,4 @@
+import contextlib
 import math
 import torch
 import torch.nn as nn
@@ -28,9 +29,15 @@ class _EffectiveWeightMixin:
     flowing to lora_A/B through the delta exactly as through the module call."""
 
     @property
+    def _delta_active(self):
+        """False when the delta must not be applied: already folded into base (merged), or
+        switched off for this forward by lora_disabled()."""
+        return self.enabled and not self.merged
+
+    @property
     def weight(self):
         w = self.base.weight
-        if self.merged:
+        if not self._delta_active:
             return w
         return w + self._delta().to(w.dtype)
 
@@ -55,13 +62,14 @@ class LoRALinear(_EffectiveWeightMixin, nn.Module):
         nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))     # B zero-init => identity at step 0
         self.lora_dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.merged = False
+        self.enabled = True
 
     def _delta(self):
         return (self.lora_B @ self.lora_A) * self.scaling
 
     def forward(self, x):
         out = self.base(x)
-        if not self.merged:
+        if self._delta_active:
             h = self.lora_dropout(x) @ self.lora_A.T.to(x.dtype)
             out = out + (h @ self.lora_B.T.to(x.dtype)) * self.scaling
         return out
@@ -100,6 +108,7 @@ class LoRAQKVLinear(_EffectiveWeightMixin, nn.Module):
         nn.init.kaiming_uniform_(self.lora_A_v, a=math.sqrt(5))
         self.lora_dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.merged = False
+        self.enabled = True
 
     def _delta(self):
         delta = torch.zeros_like(self.base.weight, dtype=self.lora_A_q.dtype)
@@ -109,7 +118,7 @@ class LoRAQKVLinear(_EffectiveWeightMixin, nn.Module):
 
     def forward(self, x):
         out = self.base(x)
-        if not self.merged:
+        if self._delta_active:
             xd = self.lora_dropout(x)
             dq = (xd @ self.lora_A_q.T.to(x.dtype)) @ self.lora_B_q.T.to(x.dtype) * self.scaling
             dv = (xd @ self.lora_A_v.T.to(x.dtype)) @ self.lora_B_v.T.to(x.dtype) * self.scaling
@@ -149,6 +158,44 @@ def inject_lora(module, r=8, alpha=16, dropout=0.0, prefix=''):
         else:
             wrapped += inject_lora(child, r=r, alpha=alpha, dropout=dropout, prefix=path)
     return wrapped
+
+
+def lora_modules(module):
+    for m in module.modules():
+        if isinstance(m, (LoRALinear, LoRAQKVLinear)):
+            yield m
+
+
+@contextlib.contextmanager
+def lora_disabled(module):
+    """Run a forward pass through the FROZEN backbone, with every adapter switched off.
+
+    The two stages of the retrieval system want different weights. The dual encoder is what
+    the adapters were trained for -- a contrastive retrieval objective -- and it should keep
+    them. The reranker is a cross-encoder plus an ITM head that came pretrained and was never
+    trained again here: the retrieval loss reaches its BERT through the same `multimodal_encoder`
+    adapters, so every LoRA step drifts the cross-encoder away from the calibration its own
+    frozen head expects, for a gradient that is not the ITM objective. This context gives that
+    stage back the weights its head was fitted to.
+
+    Refuses when the adapters are merged: the delta is folded into the base weight there, so
+    there is nothing left to switch off and returning silently would produce a pass that
+    LOOKS adapter-free and is not.
+    """
+    mods = [m for m in lora_modules(module)]
+    merged = [m for m in mods if m.merged]
+    if merged:
+        raise RuntimeError(
+            'lora_disabled() on %d merged adapter(s): the delta is already folded into the '
+            'base weight, so it cannot be switched off. unmerge_all() first.' % len(merged))
+    prev = [m.enabled for m in mods]
+    for m in mods:
+        m.enabled = False
+    try:
+        yield len(mods)
+    finally:
+        for m, p in zip(mods, prev):
+            m.enabled = p
 
 
 def merge_all(module):

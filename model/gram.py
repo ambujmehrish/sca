@@ -87,6 +87,28 @@ class GRAM(MMGeneralModule):
         self._EVAL_MASK_KEYS = ('vision_output', 'audio_output', 'subtitle_output',
                                 'depth_output')
 
+        # ---- Two-stage weights: adapters on the dual encoder, frozen backbone on the
+        # reranker. The reported metric is produced by TWO stages with different training
+        # histories. Stage 1 (the contrastive scorer) is what LoRA was trained for. Stage 2
+        # is a cross-encoder plus an ITM head that arrived pretrained and was never trained
+        # here -- yet the retrieval loss reaches its BERT through the SAME multimodal_encoder
+        # adapters, and its condition_feats come from the adapted vision/audio encoders. So
+        # every LoRA step drifts stage 2 away from the calibration its own frozen head was
+        # fitted to, driven by an objective that is not ITM.
+        #
+        # That is the shape of the measured result: SCA leads GRAM's released checkpoint on
+        # the aggregator on every benchmark (ActivityNet +3.4, MSR-VTT +4.2) and then loses
+        # ActivityNet by 0.5 after reranking. Better candidates, worse reranker.
+        #
+        # itm_lora_off runs stage 2 through the frozen backbone: stage 1 still supplies the
+        # candidates with its adapters, stage 2 scores them with the weights its head expects.
+        self.itm_lora_off = bool(getattr(self.config, 'itm_lora_off', False))
+        if self.itm_lora_off and not bool(getattr(self.config, 'use_lora', False)):
+            raise RuntimeError(
+                'itm_lora_off=true with use_lora=false: there are no adapters to switch off, '
+                'so this would silently be the ordinary eval path under a name that claims '
+                'otherwise. Set use_lora, or drop itm_lora_off.')
+
     def _eval_mask_drop(self, clip_id, n_mod):
         """-> index of the modality dropped for this clip, or None. Deterministic."""
         import hashlib
@@ -96,11 +118,30 @@ class GRAM(MMGeneralModule):
             return None
         return int.from_bytes(h[4:8], 'big') % n_mod
 
+    def _itm_lora_ctx(self):
+        """The context stage 2 runs under: adapters off when itm_lora_off, else a no-op.
+
+        Applies in training too, not only at eval. If the adapters were switched off for the
+        reranker at inference but left in the loop during training, the ITM branch would be
+        training one set of weights and reporting another -- exactly the mismatch this flag
+        exists to remove.
+        """
+        if not self.itm_lora_off:
+            import contextlib
+            return contextlib.nullcontext()
+        from .lora import lora_disabled
+        return lora_disabled(self)
+
     def batch_get(self, batch, key):
         out = self._batch_get_impl(batch, key)
+        # An `<x>_output_itm` key is the same encoder output as `<x>_output`, computed through
+        # the frozen backbone. Test-time modality dropping must see it as the SAME modality,
+        # or the E4-ITM arm would drop a modality from stage 1 and leave it in stage 2.
+        mask_key = key[:-4] if key.endswith('_itm') else key
         if (self.eval_mask_rate <= 0 or self.training
-                or key not in self._EVAL_MASK_KEYS or out is None):
+                or mask_key not in self._EVAL_MASK_KEYS or out is None):
             return out
+        key = mask_key
         present_keys = [k for k in self._EVAL_MASK_KEYS
                         if k == 'vision_output'
                         or (k == 'audio_output')
@@ -260,27 +301,50 @@ class GRAM(MMGeneralModule):
             batch[key] = depth_output
         
         elif key == 'audio_output':
-            audio_output = self.forward_audio_encoder(batch.audio_spectrograms) 
+            audio_output = self.forward_audio_encoder(batch.audio_spectrograms)
             batch[key] = audio_output
 
+        # The `_itm` variants feed the cross-encoder. With itm_lora_off they are a SECOND
+        # encoder pass through the frozen backbone -- the extra vision/audio forward is the
+        # cost of the flag. Without it they are the cached stage-1 tensor itself, so the
+        # default path stays one pass and is byte-identical to before.
+        elif key in ('vision_output_itm', 'audio_output_itm', 'subtitle_output_itm',
+                     'depth_output_itm'):
+            base = key[:-4]
+            if not self.itm_lora_off:
+                batch[key] = self.batch_get(batch, base)
+            else:
+                with self._itm_lora_ctx():
+                    if base == 'vision_output':
+                        out = self.forward_vision_encoder(batch.vision_pixels)
+                    elif base == 'depth_output':
+                        out = self.forward_vision_encoder(batch.depth_pixels)
+                    elif base == 'audio_output':
+                        out = self.forward_audio_encoder(batch.audio_spectrograms)
+                    else:
+                        tok = self.batch_get(batch, 'subtitle_tokens')
+                        out = self.multimodal_encoder.bert(
+                            input_ids=tok.input_ids,
+                            attention_mask=tok.attention_mask).last_hidden_state
+                batch[key] = out
 
         elif key == 'condition_feats_v':
-            vision_output = self.batch_get(batch, 'vision_output')
+            vision_output = self.batch_get(batch, 'vision_output_itm')
             condition_feats_v = self.get_multimodal_forward_input_vision(vision_output)
             batch[key] = condition_feats_v
-            
+
         elif key == 'condition_feats_d':
-            vision_output = self.batch_get(batch, 'depth_output')
+            vision_output = self.batch_get(batch, 'depth_output_itm')
             condition_feats_d = self.get_multimodal_forward_input_vision(vision_output)
             batch[key] = condition_feats_d
-            
+
         elif key == 'condition_feats_a':
-            audio_output = self.batch_get(batch, 'audio_output')
+            audio_output = self.batch_get(batch, 'audio_output_itm')
             condition_feats_a = self.get_multimodal_forward_input_audio(audio_output)
             batch[key] = condition_feats_a
 
         elif key == 'condition_feats_s':
-            subtitle_output = self.batch_get(batch, 'subtitle_output')
+            subtitle_output = self.batch_get(batch, 'subtitle_output_itm')
             condition_feats_s = self.get_multimodal_forward_input_subtitle(subtitle_output)
             batch[key] = condition_feats_s
 
@@ -500,11 +564,15 @@ class GRAM(MMGeneralModule):
         return output_dict
 
     def compute_slice_scores(self, slice_multimodal_vision_input, slice_input_ids, slice_attention_mask):
-            
-        slice_output = self.multimodal_encoder.bert(input_ids = slice_input_ids,
-                                                    attention_mask = slice_attention_mask,
-                                                    encoder_hidden_states=slice_multimodal_vision_input).last_hidden_state
-        slice_scores = F.softmax(self.itm_head(slice_output[:,0]),dim=1)[:,1]
+
+        # The cross-encoder pass itself, which itm_head reads. Its BERT carries the text-side
+        # adapters, so this is the other half of running stage 2 on frozen weights -- turning
+        # the condition_feats off alone would leave the reranker half-adapted.
+        with self._itm_lora_ctx():
+            slice_output = self.multimodal_encoder.bert(input_ids = slice_input_ids,
+                                                        attention_mask = slice_attention_mask,
+                                                        encoder_hidden_states=slice_multimodal_vision_input).last_hidden_state
+            slice_scores = F.softmax(self.itm_head(slice_output[:,0]),dim=1)[:,1]
 
         return slice_scores
 
@@ -689,11 +757,15 @@ class GRAM(MMGeneralModule):
             attention_mask_1 = torch.cat((attention_mask, attention_mask, text_atts_neg),dim=0)
             
             condition_feats = torch.cat((condition_feats,condition_feats_neg,condition_feats),dim=0)
-            output = self.multimodal_encoder.bert(input_ids = input_ids_1,
-                                        attention_mask = attention_mask_1,
-                                        encoder_hidden_states=condition_feats).last_hidden_state
-            batch_size = condition_feats_neg.shape[0]
-            logits = self.itm_head(output[:,0].half())
+            # Same context as the eval reranker: with itm_lora_off, the ITM loss trains
+            # itm_head on frozen-backbone features and sends the adapters no gradient, so the
+            # weights this branch is fitted on are the weights it is scored with.
+            with self._itm_lora_ctx():
+                output = self.multimodal_encoder.bert(input_ids = input_ids_1,
+                                            attention_mask = attention_mask_1,
+                                            encoder_hidden_states=condition_feats).last_hidden_state
+                batch_size = condition_feats_neg.shape[0]
+                logits = self.itm_head(output[:,0].half())
             ground_truth = torch.zeros(batch_size*3).long().cuda()
             ground_truth[:batch_size] = 1
             loss = F.cross_entropy(logits,ground_truth) #itm (dtm)
@@ -1092,11 +1164,12 @@ class GRAM(MMGeneralModule):
                 attention_mask_1 = torch.cat((attention_mask, attention_mask, text_atts_neg),dim=0)
             
                 condition_feats = torch.cat((condition_feats,condition_feats_neg,condition_feats),dim=0)
-                output = self.multimodal_encoder.bert(input_ids = input_ids_1,
-                                            attention_mask = attention_mask_1,
-                                            encoder_hidden_states=condition_feats).last_hidden_state
-                batch_size = condition_feats_neg.shape[0]
-                logits = self.itm_head(output[:,0].half())
+                with self._itm_lora_ctx():      # see forward_ret: stage 2 on frozen weights
+                    output = self.multimodal_encoder.bert(input_ids = input_ids_1,
+                                                attention_mask = attention_mask_1,
+                                                encoder_hidden_states=condition_feats).last_hidden_state
+                    batch_size = condition_feats_neg.shape[0]
+                    logits = self.itm_head(output[:,0].half())
                 ground_truth = torch.zeros(batch_size*3).long().cuda()
                 ground_truth[:batch_size] = 1
                 loss = F.cross_entropy(logits,ground_truth)

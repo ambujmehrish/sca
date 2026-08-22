@@ -55,6 +55,20 @@
 #   sbatch --array=7-8 slurm_scripts/b_grid_pretrain.sh    # E1/E2: 1 and 2 epochs
 #   sbatch --array=9-13 slurm_scripts/b_grid_pretrain.sh   # T7-T11: frame-set variants
 #   sbatch --array=14-15 slurm_scripts/b_grid_pretrain.sh  # T12/T13: TRAINING frame parity
+#   sbatch --array=16 slurm_scripts/b_grid_pretrain.sh     # T14: adapters off the reranker
+#
+# T14 = T9 plus itm_lora_off, differing in that one key and nothing else. It is the RECIPE
+# version of what slurm_scripts/itm_frozen_eval.sh measures as a diagnostic: the reranker is a
+# pretrained cross-encoder and a frozen ITM head that was never trained here, yet the retrieval
+# loss reaches its BERT through the same multimodal_encoder adapters, so every step drifts it
+# away from the calibration its head was fitted to. T9 leads the released GRAM checkpoint on
+# the aggregator on all five benchmarks (+3.4 to +6.5) and keeps only +2.3/+0.8/-0.5/+0.5/+3.0
+# after reranking. In T14 the adapters take no gradient from the ITM branch and the branch is
+# scored on the weights it was fitted on, so train and test agree.
+#
+# ORDER MATTERS: run itm_frozen_eval.sh on the existing T9 checkpoints FIRST. That costs eval
+# only and tells you whether adapter drift is the cost at all. Do not spend a 24h training
+# slot on T14 before that reads out.
 #
 # T12/T13 fix a recipe gap that has been in every arm: we train on 2 frames and evaluate on
 # 8, while GRAM trains on 8 (RECIPE_AUDIT.md:207 -- the audit only ever corrected the eval
@@ -120,11 +134,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-15)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-16)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

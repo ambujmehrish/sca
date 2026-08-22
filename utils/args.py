@@ -333,6 +333,8 @@ def get_args():
     parser.add_argument('--lora_r_text', type=int, default=8)
     parser.add_argument('--lora_alpha', type=int, default=16)
     parser.add_argument('--lora_lr', type=float, default=None)
+    # run the ITM reranking stage through the frozen backbone (adapters on stage 1 only)
+    parser.add_argument('--itm_lora_off', type=str2bool, default=False)
     parser.add_argument('--s_star_path', type=str, default='')
     parser.add_argument('--sca_alpha', type=float, default=1.0)
     parser.add_argument('--sca_beta', type=float, default=1.0)

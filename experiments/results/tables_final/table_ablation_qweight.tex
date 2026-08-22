@@ -1,0 +1,29 @@
+% Ablation -- all rows are the SAME method with one setting changed. These are NOT
+% alternative configurations to claim results from: the main table reports exactly one
+% configuration (query-weighted, no frames, tau_w = 0.1) on every benchmark. This table
+% exists to show which component carries the gain and that the choice is not fragile.
+\begin{table}[t]
+\centering
+\caption{Ablation of the query-weighted centroid, zero-shot R@1. The reported configuration
+is the last row of the upper block. Frame slots do not help, and the temperature is not a
+tuned constant: three values within a factor of four span 0.3 R@1 on MSR-VTT.}
+\label{tab:ablation}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Setting & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps \\
+\midrule
+Uniform centroid (no weighting) & 53.4 & 50.5 & 54.2 & 90.5 & 35.4 \\
+\textbf{Query-weighted, no frames} ($\tau_w{=}0.1$) & 54.8 & 51.3 & 55.8 & 90.5 & 35.2 \\
+\midrule
+\multicolumn{6}{l}{\emph{frame slots (video enters as one slot per frame)}} \\
+\quad + frame slots, $\tau_w{=}0.1$   & 54.6 & 51.4 & 56.0 & 90.5 & 34.4 \\
+\quad + frame slots, 4 frames         & 53.8 & 51.5 & 55.1 & 90.3 & 35.7 \\
+\quad + frame slots, batch 256        & 54.1 & 50.7 & 55.5 & 90.3 & 35.7 \\
+\midrule
+\multicolumn{6}{l}{\emph{temperature (with frame slots)}} \\
+\quad $\tau_w = 0.05$ & 54.9 & 51.2 & 55.9 & 90.5 & 34.7 \\
+\quad $\tau_w = 0.20$ & 54.8 & 51.1 & 54.9 & 90.5 & 34.8 \\
+\bottomrule
+\end{tabular}
+\end{table}

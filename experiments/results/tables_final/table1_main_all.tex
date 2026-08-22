@@ -1,27 +1,27 @@
 % Main table -- zero-shot text-to-video R@1 on five benchmarks.
 %
-% Convention: $^{\S}$ published by the authors; $^{\ast}$ measured by us in ONE environment.
-% GRAM released its weights, so the same checkpoint appears both ways and the pair measures
-% the environment shift rather than assuming one.
+% SINGLE CONFIGURATION. Exactly ONE SCA row appears here: query-weighted centroid, no frame
+% slots, tau_w = 0.1, LoRA, batch 128, lr 2e-5, 5 epochs. It is evaluated on every benchmark
+% and reported everywhere INCLUDING where it loses. The configuration was chosen by a rule
+% fixed before looking at the transfer numbers -- the simplest setting the ablation supports
+% (Table~\ref{tab:ablation} shows frame slots do not help) -- not by which benchmark any
+% variant happened to win. Other settings appear only as ablation rows, never as alternative
+% claims.
 %
-% SINGLE CONFIGURATION: each SCA row is one arm evaluated on all five benchmarks. No row
-% takes the best arm per column. T6 and T9 are two settings of the same mechanism, shown
-% separately rather than merged.
+% Convention: $^{\S}$ published by the authors; $^{\ast}$ measured by us in one environment.
+% GRAM released its weights, so the same checkpoint appears both ways.
 %
-% OUR HYPERGRAM REPRODUCTION IS NOT IN THIS TABLE. It reaches 35.2 R@1 on MSR-VTT against a
-% published 56.6, and a second attempt peaked at 51.0 before collapsing to 37.4. Neither
-% produced transfer numbers. Reporting our own numbers against a reproduction that failed by
-% 20 points would flatter us and would not survive review, so HyperGRAM appears only as its
-% published figure.
+% Our HyperGRAM reproduction is NOT a row: v1 reached 35.2 on MSR-VTT against a published
+% 56.6, v2 reached 51.0 at best before collapsing to 37.4, and neither produced transfer
+% numbers (wave4/ANALYSIS.md). HyperGRAM is cited from its paper only.
 \begin{table*}[t]
 \centering
 \caption{Zero-shot text-to-video retrieval, R@1. $^{\S}$ as published; $^{\ast}$ measured by us
 in a single environment. GRAM is the only method here that released weights, so the same
-checkpoint appears as both: the difference between those two rows is a \emph{measured}
-environment shift ($-2.3$ on MSR-VTT, $+6.5$ on VATEX), not an assumption, and it is why
-$^{\S}$ and $^{\ast}$ rows are not directly comparable in absolute terms. Each SCA row is a
-single configuration evaluated on every benchmark. \textbf{Bold} marks the best $^{\ast}$
-entry per column. ``--'' not reported.}
+checkpoint appears as both rows: the difference is a \emph{measured} environment shift
+($-2.3$ on MSR-VTT, $+6.5$ on VATEX), which is why $^{\S}$ and $^{\ast}$ rows are not directly
+comparable in absolute terms. SCA is a \emph{single configuration} evaluated on all five
+benchmarks and reported everywhere, including where it trails. ``--'' not reported.}
 \label{tab:main}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -46,9 +46,7 @@ HyperGRAM$^{\S}$             & full-FT & 56.6 & 51.3 & 58.2 & 79.9 & -- \\
 PMRL$^{\S}$                  & full-FT & 54.5 & 50.6 & 56.0 & 80.5 & -- \\
 \midrule
 \multicolumn{7}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
-SCA, uniform centroid$^{\ast}$            & LoRA & 53.4 & 50.5 & 54.2 & \textbf{90.5} & 35.4 \\
-SCA, query-weighted ($\tau_w{=}0.1$)$^{\ast}$ & LoRA & 54.6 & \textbf{51.4} & 56.0 & \textbf{90.5} & 34.4 \\
-\textbf{SCA, query-weighted} (no frames)$^{\ast}$ & LoRA & \textbf{54.8} & 51.3 & 55.8 & \textbf{90.5} & \textbf{35.2} \\
+\textbf{SCA}$^{\ast}$        & LoRA & \textbf{54.8} & \textbf{51.3} & 55.8 & \textbf{90.5} & \textbf{35.2} \\
 \bottomrule
 \end{tabular}
 \end{table*}

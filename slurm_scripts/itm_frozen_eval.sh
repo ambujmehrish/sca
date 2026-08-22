@@ -92,6 +92,7 @@ if not c['model_cfg'].get('use_lora'):
 OUT="workdir/e1_itmfrozen/${ARM}_${BENCH}"
 cell_is_done "$OUT" "$CFG" && { echo "== [$ARM/$BENCH] already done, skip"; exit 0; }
 mkdir -p "$OUT"
+claim_outdir "$OUT" || exit 2
 
 echo "arm    : $ARM"
 echo "ckpt   : $CKPT"

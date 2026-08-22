@@ -93,6 +93,7 @@ print('gamma = %.2f' % c['sca_itm_qw_gamma'])
 OUT="workdir/e1_itmqw/${ARM}_${GAMMA}_${BENCH}"
 cell_is_done "$OUT" "$CFG" && { echo "== [$GAMMA/$BENCH] already done, skip"; exit 0; }
 mkdir -p "$OUT"
+claim_outdir "$OUT" || exit 2
 
 echo "arm    : $ARM"
 echo "ckpt   : $CKPT"

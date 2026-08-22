@@ -72,3 +72,40 @@ cell_is_done() {
 cell_mark_done() {
   cell_fingerprint "$2" > "$1/.done"
 }
+
+# ---- Output-directory exclusivity -------------------------------------------------------
+#
+# Two jobs writing one workdir is silent and destructive. On 2026-08-22 the seed arms were
+# submitted twice (53620809 and 53621049, both --array=17-18), so two four-GPU jobs wrote
+# ckpt/model_step_*.pt, ckpt/optimizer_step_*.pt and log/ under
+# workdir_pretrain/s1_t9_seed51 for 26 minutes, five minutes out of phase. torch.save is not
+# atomic, and the second job's resume check found the first job's optimizer checkpoint and
+# continued from it, so their optimizer states diverged into shared files. Nothing in the
+# logs said so; both jobs reported normal progress. Both runs had to be discarded.
+#
+# The claim is a live SLURM job id, not a bare lockfile: a job killed by a timeout or by
+# scancel never removes its marker, and a stale marker that blocks a legitimate resume would
+# be worse than no marker at all. So the id is looked up, and only a job that is STILL in the
+# queue counts as an owner.
+#
+#   claim_outdir "$OUT" || exit 2
+
+claim_outdir() {
+  local out="$1" mine="${SLURM_JOB_ID:-$$}" owner state
+  mkdir -p "$out"
+  owner=$(cat "$out/.owner" 2>/dev/null)
+  if [ -n "$owner" ] && [ "$owner" != "$mine" ]; then
+    # squeue prints nothing for a job that has left the queue; that marker is stale.
+    state=$(squeue -h -j "$owner" -o '%T' 2>/dev/null | head -1)
+    if [ -n "$state" ]; then
+      echo "FATAL: $out is already being written by job $owner (state $state)." >&2
+      echo "       Two jobs sharing one output directory corrupt each other's checkpoints" >&2
+      echo "       without any error being logged. Refusing to start." >&2
+      echo "       If $owner is a duplicate submission: scancel $owner, delete $out, resubmit." >&2
+      return 1
+    fi
+    echo "   ($out was claimed by job $owner, which is no longer queued -- taking it over)"
+  fi
+  echo "$mine" > "$out/.owner"
+  return 0
+}

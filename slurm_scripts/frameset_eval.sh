@@ -48,13 +48,35 @@ rc_all=0
 for arm in $FOUND; do
   ckpt=$(final_ckpt "workdir_pretrain/$arm")
   for bench in msrvtt didemo activitynet vatex audiocaps; do
-    # t9 trains query weighting WITHOUT frames, so it must be scored that way: through
-    # configs_frames it would hit the guard, and through configs_e1 it would be scored with
-    # uniform weights -- neither is the model that was trained.
-    case "$arm" in
-      *qweight*) cfg="benchmark_eval/configs_qweight/sca_${bench}.json" ;;
-      *)         cfg="benchmark_eval/configs_frames/sca_${bench}.json" ;;
+    # Pick the eval config from what the arm was TRAINED with, read out of its own hps.json --
+    # never from its name. Matching on '*qweight*' worked while every query-weighted arm was
+    # called t9_qweight_only, and silently broke the moment the sweep arms arrived: g1_r16_qw,
+    # s1_t9_seed51 and x3_xenc_clean_lr2e5 are all query-weighted without frames, none of them
+    # matches, and all three would have been routed to configs_frames and died on the
+    # frame-slots guard. A name is not a record of a configuration; hps.json is.
+    #
+    #   frame slots      -> configs_frames  (video enters as one slot per frame)
+    #   query weighting  -> configs_qweight (weighted centroid over modalities)
+    #   neither          -> configs_e1      (uniform centroid)
+    #
+    # Scoring an arm through the wrong one measures a model that was never trained.
+    cfgdir=$(python3 -c "
+import json, sys
+try:
+    m = json.load(open('workdir_pretrain/$arm/log/hps.json'))['model_cfg']
+except Exception as e:
+    sys.exit('NOHPS %s' % e)
+if m.get('sca_frame_slots'):        print('configs_frames')
+elif m.get('sca_query_weighting'):  print('configs_qweight')
+else:                               print('configs_e1')
+" 2>/dev/null)
+    case "$cfgdir" in
+      configs_frames|configs_qweight|configs_e1) ;;
+      *) echo "== [$arm/$bench] SKIP: cannot read workdir_pretrain/$arm/log/hps.json --" >&2
+         echo "   refusing to guess the scoring geometry from the arm name." >&2
+         rc_all=2; continue ;;
     esac
+    cfg="benchmark_eval/${cfgdir}/sca_${bench}.json"
     [ -f "$cfg" ] || { echo "== [$arm/$bench] SKIP: no $cfg" >&2; rc_all=2; continue; }
     out="workdir/e1_frames/${arm}_${bench}"
     cell_is_done "$out" "$cfg" && { echo "== [$arm/$bench] already done, skip"; continue; }

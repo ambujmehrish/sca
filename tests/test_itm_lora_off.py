@@ -164,6 +164,23 @@ def test_the_itm_eval_configs_actually_set_the_flag():
             '%s differs from configs_qweight by more than itm_lora_off' % p
 
 
+def test_the_readout_script_imports_and_covers_every_benchmark():
+    """itm_frozen_delta.py is read once, on cluster output, after a job has already run. An
+    import error or a benchmark missing from BAR would surface only then."""
+    import importlib.util
+    import os
+    p = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'itm_frozen_delta.py')
+    spec = importlib.util.spec_from_file_location('itm_frozen_delta', p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert set(mod.BAR) == set(mod.BENCHES), 'BAR and BENCHES disagree: %s' % (
+        set(mod.BAR) ^ set(mod.BENCHES))
+    for bench, (bar, who) in mod.BAR.items():
+        assert isinstance(bar, float) and bar > 0 and who, bench
+    # an absent root must say so and fail, never print an empty table as a negative result
+    assert mod.collect('workdir/definitely-not-a-real-root') == {}
+
+
 class _MaskingHost:
     """GRAM.batch_get / _eval_mask_drop lifted onto a stub, so the masking interaction can be
     tested without constructing three real encoders."""

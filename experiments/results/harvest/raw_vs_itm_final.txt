@@ -47,6 +47,36 @@ b3_bs512_r8                      43.7         36.4         36.5         81.7    
 sca                              42.3         35.0         32.6         81.0         12.1
 x1_xenc_full_lr2e5               37.9         31.9         27.4         75.9         12.2
 
+EVAL NOISE FLOOR -- repeated runs of the same cell, same checkpoint, same config
+cell                               metric                       runs   spread
+------------------------------------------------------------------------------
+sca_activitynet                    cosine_TA                 2.9 2.9      0.0
+sca_audiocaps                      cosine_TA               28.6 28.6      0.0
+sca_didemo                         cosine_TA                 4.5 4.5      0.0
+sca_msrvtt                         cosine_TA                 6.9 6.9      0.0
+sca_vatex                          cosine_TA               17.2 17.2      0.0
+sca_didemo                         cosine_TV               35.1 35.0      0.1
+sca_activitynet                    cosine_TV               32.6 32.6      0.0
+sca_audiocaps                      cosine_TV               12.1 12.1      0.0
+sca_msrvtt                         cosine_TV               42.3 42.3      0.0
+sca_vatex                          cosine_TV               81.0 81.0      0.0
+sca_didemo                         ret_area_forward              27.5 27.4      0.1
+sca_activitynet                    ret_area_forward              26.9 26.9      0.0
+sca_audiocaps                      ret_area_forward              29.5 29.5      0.0
+sca_msrvtt                         ret_area_forward              33.5 33.5      0.0
+sca_vatex                          ret_area_forward              70.5 70.5      0.0
+sca_didemo                         ret_itm_area              50.5 50.6      0.1
+sca_activitynet                    ret_itm_area              54.2 54.2      0.0
+sca_audiocaps                      ret_itm_area              35.4 35.4      0.0
+sca_msrvtt                         ret_itm_area              53.4 53.4      0.0
+sca_vatex                          ret_itm_area              90.5 90.5      0.0
+
+largest disagreement between two runs of one cell: 0.1 R@1
+Any margin in the paper below that is inside eval noise and cannot be claimed as a
+win on this evidence. Replicates here are eval-side ONLY -- they share a checkpoint,
+so they bound eval jitter and say nothing about seed-to-seed training variance,
+which is larger. Treat this as a LOWER bound on the error bar.
+
 TAX is the diagnostic: an aggregator that scores below the best modality it was
 built from is destroying information. Compare an SCA cell against the released-GRAM
 cell for the SAME benchmark -- a worse tax on equal or better single-modality

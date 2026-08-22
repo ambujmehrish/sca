@@ -35,6 +35,12 @@ echo "harvesting into $OUT"
 run raw_vs_itm "Aggregator vs ITM per cell, plus arm x benchmark pivots" \
     python3 scripts/raw_vs_itm.py --root workdir/e1_zs --pivot
 
+run raw_vs_itm_final "Final-checkpoint eval (workdir/e1_final), arm x benchmark pivots" \
+    python3 scripts/raw_vs_itm.py --root workdir/e1_final --pivot
+
+run raw_vs_itm_frames "Query-weighted / frame-set arms (workdir/e1_frames), pivots" \
+    python3 scripts/raw_vs_itm.py --root workdir/e1_frames --pivot
+
 run score_fusion "Candidate recall@k (the ceiling) and the fusion-weight sweep" \
     bash -c 'shopt -s nullglob; f=(workdir/e1_fusion/*/dumps/rerank_*.pt);
              [ ${#f[@]} -gt 0 ] || { echo "no rerank dumps under workdir/e1_fusion"; exit 3; }
@@ -84,9 +90,11 @@ echo "  [job_logs] -> $OUT/job_logs.txt"
   echo "2. \`score_fusion\` -- \`w=0\` must equal the ITM number in the eval log, or the metric is"
   echo "   wrong. Then \`cand recall@k\`: where it is saturated, the aggregator cannot influence"
   echo "   the reported number at all and only fusion can."
-  echo "3. \`raw_vs_itm\` -- the pivots give arm x benchmark for the aggregator score and for the"
+  echo "3. \`raw_vs_itm_frames\` -- the query-weighted arms, which carry the current result;"
+  echo "   \`raw_vs_itm_final\` -- final-checkpoint numbers for the earlier arms."
+  echo "4. \`raw_vs_itm\` -- the pivots give arm x benchmark for the aggregator score and for the"
   echo "   reported ITM metric. Compare an SCA arm against \`released\` down each column."
-  echo "4. \`job_logs\` -- only if something above is missing or failed."
+  echo "5. \`job_logs\` -- only if something above is missing or failed."
 } > "$OUT/INDEX.md"
 echo "  [INDEX] -> $OUT/INDEX.md"
 rm -f "$OUT/.status"

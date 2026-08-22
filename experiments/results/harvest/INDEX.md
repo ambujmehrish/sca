@@ -8,6 +8,8 @@ ran, any other value means the file records a failure rather than a result.
 | [raw_vs_itm](raw_vs_itm.txt) | 0 | Aggregator vs ITM per cell, plus arm x benchmark pivots |
 | [raw_vs_itm_final](raw_vs_itm_final.txt) | 0 | Final-checkpoint eval (workdir/e1_final), arm x benchmark pivots |
 | [raw_vs_itm_frames](raw_vs_itm_frames.txt) | 0 | Query-weighted / frame-set arms (workdir/e1_frames), pivots |
+| [raw_vs_itm_itmfrozen](raw_vs_itm_itmfrozen.txt) | 0 | Reranker on FROZEN weights (workdir/e1_itmfrozen), pivots |
+| [itm_frozen_delta](itm_frozen_delta.txt) | 4 | Frozen-reranker vs adapted, paired per cell, with the stage-1 check |
 | [score_fusion](score_fusion.txt) | 0 | Candidate recall@k (the ceiling) and the fusion-weight sweep |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |
@@ -21,7 +23,12 @@ ran, any other value means the file records a failure rather than a result.
 2. `score_fusion` -- `w=0` must equal the ITM number in the eval log, or the metric is
    wrong. Then `cand recall@k`: where it is saturated, the aggregator cannot influence
    the reported number at all and only fusion can.
-3. `raw_vs_itm_frames` -- the query-weighted arms, which carry the current result;
+3. `itm_frozen_delta` -- READ THIS ONE FIRST of the three. It pairs each frozen-
+   reranker cell with the same cell in `e1_frames` and checks that AGGREG is
+   identical before reporting anything: stage 1 is untouched by the flag, so if it
+   moved, the ITM column cannot be attributed to the reranker and the run is void.
+   `raw_vs_itm_itmfrozen` is the same cells as a raw pivot, for reading the detail.
+3b. `raw_vs_itm_frames` -- the query-weighted arms, which carry the current result;
    `raw_vs_itm_final` -- final-checkpoint numbers for the earlier arms.
 4. `raw_vs_itm` -- the pivots give arm x benchmark for the aggregator score and for the
    reported ITM metric. Compare an SCA arm against `released` down each column.

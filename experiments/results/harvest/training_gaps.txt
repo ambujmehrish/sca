@@ -48,8 +48,8 @@ sca                          256    5    2e-05    2660~     2649     10      1  
 sca_nomask                   256    5    2e-05    2660~     2649     10      1  annotations150k.json
 t10_frameset_bs256           256    5    2e-05    2664~     2660      3      1  annotations150k.json
 t11_frameset_tau02           128    5    2e-05    5334~     5330      3      1  annotations150k.json
-t12_qw_4frames               128    5    2e-05    5334~     3553      2      1  annotations150k.json
-t13_qw_8frames                64    5    2e-05  UNKNOWN     3556      1      1  annotations150k.json
+t12_qw_4frames               128    5    2e-05    5334~     5330      3      1  annotations150k.json
+t13_qw_8frames                64    5    2e-05   10674~     7113      2      1  annotations150k.json
 t1_lr1e4                     256    5   0.0001    2660~     2649     10      1  annotations150k.json
 t1_s51                       256    5   0.0001    2660~     2649     10      1  annotations150k.json
 t1_s52                       256    5   0.0001    2660~     2649     10      1  annotations150k.json
@@ -67,8 +67,7 @@ x2_xenc_r64                  256    5   0.0001    2660~     2649     10      1  
 x2_xenc_r64_lr2e5            256    5    2e-05    2660~     2649     10      1  annotations150k.json
 
 SHORT OF THE TRAINING SCHEDULE -- these stopped early:
-  t12_qw_4frames             3553/5334 steps (67%)
-  t13_qw_8frames             3556/? steps
+  t13_qw_8frames             7113/10674 steps (67%)
 
 BATCH_SIZE DIFFERS ACROSS ARMS -- these are not comparable as they stand:
   256            48 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+42 more)
@@ -85,8 +84,6 @@ COULD NOT BE VERIFIED -- these checks did not run, which is not the same as
 passing. Do not read the summary below as clearing them:
   b6_bs512_xenc              no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
   b6_bs512_xenc              only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
-  t12_qw_4frames             only 2 evaluation and 1 checkpoint step(s) -- too few to see a hole in the sequence
-  t13_qw_8frames             no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
-  t13_qw_8frames             only 1 evaluation and 1 checkpoint step(s) -- too few to see a hole in the sequence
+  t13_qw_8frames             only 2 evaluation and 1 checkpoint step(s) -- too few to see a hole in the sequence
 
 Gaps above. Any table row drawn from an affected arm is not comparable until fixed.

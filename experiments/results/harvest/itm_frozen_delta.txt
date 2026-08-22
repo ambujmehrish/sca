@@ -1,0 +1,10 @@
+$ python3 scripts/itm_frozen_delta.py
+
+INVALID: the aggregator score MOVED between the two roots.
+
+cell                         workdir/e1_frames     frozen    drift
+t9_qweight_only/didemo             34.2       34.3     +0.1
+
+itm_lora_off is meant to touch the reranker only, so stage 1 should be
+bit-identical. It is not, so these cells differ by more than the reranker and
+the ITM column below cannot be attributed to it. Fix that before reading on.

@@ -1,0 +1,54 @@
+% Main table -- zero-shot text-to-video R@1 on five benchmarks.
+%
+% Convention: $^{\S}$ published by the authors; $^{\ast}$ measured by us in ONE environment.
+% GRAM released its weights, so the same checkpoint appears both ways and the pair measures
+% the environment shift rather than assuming one.
+%
+% SINGLE CONFIGURATION: each SCA row is one arm evaluated on all five benchmarks. No row
+% takes the best arm per column. T6 and T9 are two settings of the same mechanism, shown
+% separately rather than merged.
+%
+% OUR HYPERGRAM REPRODUCTION IS NOT IN THIS TABLE. It reaches 35.2 R@1 on MSR-VTT against a
+% published 56.6, and a second attempt peaked at 51.0 before collapsing to 37.4. Neither
+% produced transfer numbers. Reporting our own numbers against a reproduction that failed by
+% 20 points would flatter us and would not survive review, so HyperGRAM appears only as its
+% published figure.
+\begin{table*}[t]
+\centering
+\caption{Zero-shot text-to-video retrieval, R@1. $^{\S}$ as published; $^{\ast}$ measured by us
+in a single environment. GRAM is the only method here that released weights, so the same
+checkpoint appears as both: the difference between those two rows is a \emph{measured}
+environment shift ($-2.3$ on MSR-VTT, $+6.5$ on VATEX), not an assumption, and it is why
+$^{\S}$ and $^{\ast}$ rows are not directly comparable in absolute terms. Each SCA row is a
+single configuration evaluated on every benchmark. \textbf{Bold} marks the best $^{\ast}$
+entry per column. ``--'' not reported.}
+\label{tab:main}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{llccccc}
+\toprule
+Method & Adapter & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps \\
+\midrule
+\multicolumn{7}{l}{\emph{(a) Foundation models}} \\
+ImageBind$^{\S}$        & --      & 36.8 & --   & --   & --   & -- \\
+UMT-L (25M)$^{\S}$      & --      & 40.7 & 48.6 & 41.9 & --   & -- \\
+LanguageBind$^{\S}$     & --      & 44.8 & 39.9 & 41.0 & --   & -- \\
+mPLUG-2$^{\S}$          & --      & 47.1 & 45.7 & --   & --   & -- \\
+VideoPrism-b$^{\S}$     & --      & 51.4 & --   & 49.6 & 62.5 & -- \\
+VAST (27M)$^{\S}$       & full-FT & 50.7 & 49.5 & 51.4 & 82.1 & -- \\
+\midrule
+\multicolumn{7}{l}{\emph{(b) Gramian-volume alignment}} \\
+GRAM$^{\S}$                  & full-FT & 54.8 & 54.2 & 59.0 & 83.5 & -- \\
+GRAM, released ckpt$^{\ast}$ & full-FT & 52.5 & 50.7 & \textbf{56.3} & 90.0 & 32.2 \\
+HyperGRAM$^{\S}$             & full-FT & 56.6 & 51.3 & 58.2 & 79.9 & -- \\
+\midrule
+\multicolumn{7}{l}{\emph{(c) Leading-eigenvalue alignment}} \\
+PMRL$^{\S}$                  & full-FT & 54.5 & 50.6 & 56.0 & 80.5 & -- \\
+\midrule
+\multicolumn{7}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
+SCA, uniform centroid$^{\ast}$            & LoRA & 53.4 & 50.5 & 54.2 & \textbf{90.5} & 35.4 \\
+SCA, query-weighted ($\tau_w{=}0.1$)$^{\ast}$ & LoRA & 54.6 & \textbf{51.4} & 56.0 & \textbf{90.5} & 34.4 \\
+\textbf{SCA, query-weighted} (no frames)$^{\ast}$ & LoRA & \textbf{54.8} & 51.3 & 55.8 & \textbf{90.5} & \textbf{35.2} \\
+\bottomrule
+\end{tabular}
+\end{table*}

@@ -220,8 +220,12 @@ def evaluate_ret(model, tasks, val_loader, global_step):
 
   
         for task in subtasks:
-            # store_dict[f'feat_cond_{task}'].append(evaluation_dict[f'feat_cond_{task}'])    
+            # store_dict[f'feat_cond_{task}'].append(evaluation_dict[f'feat_cond_{task}'])
             store_dict[f'condition_feats_{task}'].append(evaluation_dict[f'condition_feats_{task}'])
+            # per-modality cross-encoder inputs, present only when the weighted reranker is on
+            for key in evaluation_dict:
+                if key.startswith(f'condition_feats_{task}_'):
+                    store_dict.setdefault(key, []).append(evaluation_dict[key])
 
         
             
@@ -375,11 +379,37 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         store_dict[f'condition_feats_{task}'] = torch.cat(store_dict[f'condition_feats_{task}'],dim=0)
         itm_rerank_num = model.config.itm_rerank_num
         #itm_rerank_num = 30
-        itm_fwd = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area , model, itm_rerank_num, direction='forward')#-(area-video_similarity)
+
+        # Query-weighted reranking: one extra cross-encoder pass per modality, combined by the
+        # same w_m the centroid uses. gamma = 0 (default) skips all of it and the call below is
+        # the one that produced every number we hold.
+        _qw_kw = {}
+        if float(getattr(model.config, 'sca_itm_qw_gamma', 0.0)) > 0:
+            if _score_mode != 'centroid' or not getattr(model.config, 'sca_query_weighting', False):
+                raise RuntimeError(
+                    'sca_itm_qw_gamma is set but this config does not use the query-weighted '
+                    'centroid (score_mode=%r, sca_query_weighting=%r). The reranker weights '
+                    'would come from a rule the scorer never used.'
+                    % (_score_mode, getattr(model.config, 'sca_query_weighting', False)))
+            _mod_keys = [f'condition_feats_{task}_{m}' for m in task[1:]]
+            _missing = [k for k in _mod_keys if k not in store_dict]
+            if _missing:
+                raise RuntimeError(
+                    'per-modality condition_feats absent from the eval loop (%s). The weighted '
+                    'reranker would silently reduce to the unweighted one.' % ', '.join(_missing))
+            _per_mod = [torch.cat(store_dict[k], dim=0) for k in _mod_keys]
+            # _z / _pres are the gallery slots the scorer weighted; the reranker must weigh the
+            # SAME slots in the SAME order, which is why the modality letters drive both.
+            _qw_kw = dict(per_modality=_per_mod, feat_t=feat_t, z=_z, present=_pres)
+            LOGGER.info('[ITM-QW] gamma=%.2f tau_w=%.3f over %d modalities'
+                        % (float(model.config.sca_itm_qw_gamma),
+                           float(getattr(model.config, 'sca_tau_w', 0.1)), len(_per_mod)))
+
+        itm_fwd = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area , model, itm_rerank_num, direction='forward', **_qw_kw)#-(area-video_similarity)
         log = compute_metric_ret(itm_fwd, ids, ids_txt, direction='forward')
         log = {k.replace('forward','volume_ITM_T2D'): v for k,v in log.items()}
 
-        itm_bwd = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area, model, itm_rerank_num, direction='backward') #-(area-video_similarity)
+        itm_bwd = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask, -area, model, itm_rerank_num, direction='backward', **_qw_kw)
         log2 = compute_metric_ret(itm_bwd, ids, ids_txt, direction='backward')
         log2 = {k.replace('backward','volume_ITM_D2T'): v for k,v in log2.items()}
         log.update(log2)
@@ -483,7 +513,47 @@ def _dump_rerank(task, area, itm_fwd, itm_bwd, ids, ids_txt, itm_rerank_num, glo
     LOGGER.info(f'[DUMP] rerank matrices -> {path}')
 
 
-def refine_score_matrix(condition_feats, input_ids, attention_mask, score_matrix_t_cond, model, itm_rerank_num, direction='forward'):
+def _qw_weights(model, feat_t_rows, z_clip, pres_clip):
+    """Query-conditioned modality weights for ONE clip against a set of texts -> (N, L).
+
+    The same w_m propto exp(<t, z_m>/tau_w) the centroid uses, so the reranker and the scorer
+    weigh the modalities by the same rule rather than by two unrelated ones.
+    """
+    from model.centroid import query_weights
+    n = feat_t_rows.shape[0]
+    z = z_clip.unsqueeze(0).expand(n, -1, -1)                 # (N, L, d)
+    pres = pres_clip.unsqueeze(0).expand(n, -1)               # (N, L)
+    return query_weights(z, feat_t_rows, pres,
+                         tau=float(getattr(model.config, 'sca_tau_w', 0.1)))
+
+
+def refine_score_matrix(condition_feats, input_ids, attention_mask, score_matrix_t_cond, model,
+                        itm_rerank_num, direction='forward',
+                        per_modality=None, feat_t=None, z=None, present=None):
+    """Rerank the top-k candidates with the cross-encoder.
+
+    With `per_modality` (a list of single-modality condition_feats, in gallery order) the score
+    becomes
+
+        (1 - gamma) * ITM(joint)  +  gamma * sum_m w_m(t, clip) * ITM(modality m)
+
+    gamma = 0 reproduces the current protocol exactly, including the same number of
+    cross-encoder passes, so the flag degrades to the measured baseline rather than to
+    something merely close to it.
+
+    Why here. The reported metric is candidate recall times the reranker's accuracy on those
+    candidates. The second factor is the small one -- 39.2% on AudioCaps against 89.9% recall --
+    and SCA's query weighting reaches only the first. Each per-modality pass is exactly the
+    input the tv / ta pretraining tasks give this cross-encoder, so no feature is rescaled and
+    the frozen ITM head is never taken out of distribution; the weighting acts on the
+    HEAD'S OUTPUTS, where it cannot break a calibration.
+    """
+    gamma = float(getattr(model.config, 'sca_itm_qw_gamma', 0.0)) if per_modality else 0.0
+    if gamma > 0 and (feat_t is None or z is None or present is None):
+        raise ValueError(
+            'sca_itm_qw_gamma > 0 but the query weighting has no features to weigh with '
+            '(feat_t/z/present missing). Refusing to fall back to the unweighted reranker '
+            'under a config that claims to be weighting.')
 
     top_k = itm_rerank_num
     if direction=='forward':
@@ -539,9 +609,39 @@ def refine_score_matrix(condition_feats, input_ids, attention_mask, score_matrix
             slice_input_ids = cur_input_ids[k*small_batch:(k+1)*small_batch]
             slice_attention_mask = cur_attention_mask[k*small_batch:(k+1)*small_batch]
             slice_condition_feats = cur_condition_feats[k*small_batch:(k+1)*small_batch]
-            slice_scores = model.compute_slice_scores(slice_condition_feats, slice_input_ids, slice_attention_mask) 
+            slice_scores = model.compute_slice_scores(slice_condition_feats, slice_input_ids, slice_attention_mask)
             cur_scores.append(slice_scores)
         cur_scores = torch.cat(cur_scores,dim=0)
+
+        if gamma > 0:
+            # One extra cross-encoder pass per modality over the same candidates. The weights
+            # come from the texts actually being scored against THIS clip, so a caption about
+            # a sound and a caption about a scene weigh the same clip's modalities differently.
+            # condition_feats is this rank's SHARD, so i is local; z and present are the full
+            # gallery and need the global row. Using i for both would weight each clip by
+            # another clip's modality features on every rank but the first.
+            gi = start_ls[rank] + i
+            rows = torch.nonzero(cur_idxs_new[:, i] == 1, as_tuple=True)[0]
+            w = _qw_weights(model, feat_t[rows].float(), z[gi].float(), present[gi].float())
+            per_mod = []
+            for cf_m in per_modality:
+                mod_scores = []
+                cur_cf_m = cf_m[i].unsqueeze(0).expand(cur_input_ids.shape[0], -1, -1)
+                for kk in range(times):
+                    mod_scores.append(model.compute_slice_scores(
+                        cur_cf_m[kk*small_batch:(kk+1)*small_batch],
+                        cur_input_ids[kk*small_batch:(kk+1)*small_batch],
+                        cur_attention_mask[kk*small_batch:(kk+1)*small_batch]))
+                per_mod.append(torch.cat(mod_scores, dim=0))
+            stacked = torch.stack(per_mod, dim=1).to(w.dtype)          # (N, L)
+            if stacked.shape[1] != w.shape[1]:
+                raise ValueError(
+                    'the reranker was given %d modality inputs but the query weights cover %d '
+                    'slots -- the two disagree about what the modalities ARE, and pairing them '
+                    'positionally would weight the wrong stream'
+                    % (stacked.shape[1], w.shape[1]))
+            cur_scores = ((1.0 - gamma) * cur_scores.to(w.dtype)
+                          + gamma * (w * stacked).sum(dim=1)).to(cur_scores.dtype)
 
         cur_score_matrix_t_cond_new[:,i][(cur_idxs_new[:,i] == 1)] = cur_scores
         pbar.update(1)

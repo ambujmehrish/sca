@@ -335,6 +335,8 @@ def get_args():
     parser.add_argument('--lora_lr', type=float, default=None)
     # run the ITM reranking stage through the frozen backbone (adapters on stage 1 only)
     parser.add_argument('--itm_lora_off', type=str2bool, default=False)
+    # gamma for the query-weighted reranker: 0 = the current two-stage protocol untouched
+    parser.add_argument('--sca_itm_qw_gamma', type=float, default=0.0)
     parser.add_argument('--s_star_path', type=str, default='')
     parser.add_argument('--sca_alpha', type=float, default=1.0)
     parser.add_argument('--sca_beta', type=float, default=1.0)

@@ -883,6 +883,25 @@ class GRAM(MMGeneralModule):
                 condition_feats = self.batch_get(batch, f'condition_feats_{task[1:]}')
                 evaluation_dict[f'condition_feats_{task}'] = condition_feats
 
+                # Per-modality cross-encoder inputs, for the query-weighted reranker.
+                #
+                # The reported number is candidate recall times the reranker's accuracy on
+                # those candidates, and the second factor is by far the smaller: on AudioCaps
+                # recall@50 is 89.9 and the cross-encoder ranks the ground truth first on only
+                # 39.2% of the candidate sets that contain it. SCA's query weighting is applied
+                # to the contrastive features and to nothing else, so it never reaches the
+                # stage that decides that 39%.
+                #
+                # These are the SAME tensors the tv and ta tasks feed the cross-encoder during
+                # VAST pretraining -- a single modality's condition_feats, unmodified -- so
+                # scoring them is in distribution for the frozen ITM head. That is what makes
+                # this safe where rescaling the joint features would not be: nothing is
+                # perturbed, the head is simply asked one question per modality.
+                if getattr(self.config, 'sca_itm_qw_gamma', 0.0) > 0:
+                    for m in task[1:]:
+                        evaluation_dict[f'condition_feats_{task}_{m}'] = \
+                            self.batch_get(batch, f'condition_feats_{m}')
+
             return evaluation_dict
 
     def forward_cap(self, batch, task, compute_loss=True):

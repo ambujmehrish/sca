@@ -59,6 +59,34 @@
 #   sbatch --array=17-18 slurm_scripts/b_grid_pretrain.sh  # S1/S2: seeds on the reported recipe
 #   sbatch --array=19-29 slurm_scripts/b_grid_pretrain.sh  # G1-G10: capacity, lr, objective
 #   sbatch --array=30-32 slurm_scripts/b_grid_pretrain.sh  # X3-X5: cross-encoder, done properly
+#   sbatch --array=33-40 slurm_scripts/b_grid_pretrain.sh  # X6-X13: HOW MUCH to move it
+#
+# X6-X13 attack the term the reported metric actually turns on. R@1 factors as candidate
+# recall times the reranker's accuracy on those candidates, and the second is the small one:
+# 61.3% on MSR-VTT against 89.4% recall. Reaching HyperGRAM's published 56.6 from our 54.8
+# needs that 61.3 to become 63.3; ActivityNet needs 59.2 -> 61.8. Recall is not the constraint
+# and never was -- we already beat the released GRAM checkpoint on recall on all five.
+#
+# X3-X5 showed fine-tuning the cross-encoder at the base rate for the full schedule DESTROYS
+# it: 51.4 / 51.1 / 50.9 against 54.8 frozen. But all three are HIGHEST at their first
+# validation (step 1776) and falling, and GRAM's released weights are model_step_459. We have
+# never looked at the range GRAM actually uses. "Freeze it" was the wrong lesson; "how much"
+# is the question.
+#
+# Two mechanisms drive the forgetting. Scale: 5330 steps on 150k clips against the 27M this
+# component was pretrained on. Modality mix: the ITM loss trains on condition_feats_va
+# (gram.py:732, hardcoded) and our training set has no subtitles at all, while MSR-VTT and
+# VATEX are scored with tvas -- so fine-tuning erases a subtitle pathway that no gradient in
+# this recipe can restore, on exactly the benchmark where the gap sits.
+#
+# X6/X7  one epoch, so the whole run lives near GRAM's step count.
+# X8-X10 the full schedule, with the cross-encoder on its own rate 10-40x below the heads.
+# X11/X12 only the top 2 or 4 BERT layers move; the lower layers keep VAST's representation.
+# X13    itm_ratio 0.5 rather than 0.1 -- if this component is what we are training, ask
+#        whether it is trained hard ENOUGH relative to how fast it forgets.
+#
+# Every one validates ten times instead of three. The three-point schedule cannot see below
+# step 1776, and the entire hypothesis is that the peak is below it.
 #
 # X3-X5 REDO the trainable-cross-encoder experiment, which was never validly run.
 #
@@ -187,11 +215,11 @@ export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 source "$(dirname "$0")/../scripts/cell_done.sh"
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6 X6_xenc_1ep_lr2e5 X7_xenc_1ep_lr5e6 X8_xenclr_1e6 X9_xenclr_2e6 X10_xenclr_5e7 X11_xenc_top2 X12_xenc_top4 X13_xenclr_2e6_itm05)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-32)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-40)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

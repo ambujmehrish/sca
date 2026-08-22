@@ -1,4 +1,5 @@
 import math
+import re
 import torch
 from torch.optim import Adam, Adamax, Optimizer
 from .logger import LOGGER
@@ -50,6 +51,53 @@ def build_optimizer(model, args, checkpoint_optim):
             % int(getattr(args.model_cfg, 'lora_r_text', 8)))
     backbone_prefixes = (('vision_encoder', 'audio_encoder', 'multimodal_encoder')
                          if freeze_mm else ('vision_encoder', 'audio_encoder'))
+
+    # ---- How MUCH to move the cross-encoder, not whether to.
+    #
+    # Fine-tuning it at the base rate for the full schedule destroys it: X3/X4/X5 read 51.4,
+    # 51.1 and 50.9 against 54.8 with it frozen, and every one of them is HIGHEST at its first
+    # validation and falling. That is forgetting, and two things drive it.
+    #
+    # Scale. GRAM's released weights are model_step_459 on the same VAST foundation we start
+    # from -- 459 steps of adaptation. We run 5330, on 150k clips, against the 27M this
+    # component was pretrained on.
+    #
+    # Modality mix. The ITM loss trains on condition_feats_va (gram.py:732, hardcoded), and
+    # our training set carries no subtitles at all. MSR-VTT and VATEX are then evaluated with
+    # tvas. Fine-tuning here therefore erases a subtitle pathway that no gradient in this
+    # recipe can restore, and MSR-VTT is exactly where the gap to HyperGRAM sits.
+    #
+    # xenc_lr gives the cross-encoder its own, much smaller step while the rest of the model
+    # trains normally. xenc_train_layers keeps the lower BERT layers frozen and moves only the
+    # top K, so the general representation survives and only the task head adapts. Both are
+    # off by default, and both require the cross-encoder to be unfrozen to mean anything.
+    xenc_lr = getattr(args.run_cfg, 'xenc_lr', None)
+    xenc_layers = int(getattr(args.model_cfg, 'xenc_train_layers', 0) or 0)
+    if (xenc_lr or xenc_layers) and freeze_mm:
+        raise ValueError(
+            'xenc_lr/xenc_train_layers set while lora_freeze_multimodal is true: the '
+            'cross-encoder is frozen, so neither does anything. Set '
+            'lora_freeze_multimodal=false (with lora_r_text=0), or drop these keys.')
+    xenc_frozen_by_depth = []
+    if xenc_layers and not freeze_mm:
+        idx = []
+        for k, _ in model.named_parameters():
+            m = re.search(r'multimodal_encoder\..*?\.layer\.(\d+)\.', k)
+            if m:
+                idx.append(int(m.group(1)))
+        if not idx:
+            raise RuntimeError(
+                'xenc_train_layers=%d but no multimodal_encoder layer index matched -- the '
+                'BERT naming has drifted, and silently training ALL layers under a flag that '
+                'says otherwise is the failure this refuses to have.' % xenc_layers)
+        cutoff = max(idx) + 1 - xenc_layers
+        for k, v in model.named_parameters():
+            m = re.search(r'multimodal_encoder\..*?\.layer\.(\d+)\.', k)
+            if m and int(m.group(1)) < cutoff:
+                v.requires_grad = False
+                xenc_frozen_by_depth.append(k)
+        LOGGER.info('[XENC] training the top %d of %d layers (froze %d tensors below layer %d)'
+                    % (xenc_layers, max(idx) + 1, len(xenc_frozen_by_depth), cutoff))
     lora_params = []
     lora_params_name = []
     if use_lora:
@@ -72,10 +120,18 @@ def build_optimizer(model, args, checkpoint_optim):
     new_params_no_decay = []
 
 
+    xenc_params, xenc_params_no_decay, xenc_params_name = [], [], []
     for k, v in model.named_parameters():
         if use_lora and not v.requires_grad:
             continue
-        if use_lora and ('lora_A' in k or 'lora_B' in k):
+        if xenc_lr and k.startswith('multimodal_encoder'):
+            # its own group, so the cross-encoder can move at 1e-6 while the heads move at
+            # 2e-5. Checked before the lora branch because with lora_r_text=0 there are no
+            # adapters here anyway, and after it the params would land in basic_params at the
+            # base rate -- which is the setting already measured to destroy this component.
+            (xenc_params_no_decay if any(nd in k for nd in no_decay) else xenc_params).append(v)
+            xenc_params_name.append(k)
+        elif use_lora and ('lora_A' in k or 'lora_B' in k):
             lora_params.append(v)
             lora_params_name.append(k)
         elif any(nd in k for nd in args.run_cfg.new_params_name) and not any(nd in k for nd in no_decay):
@@ -108,6 +164,19 @@ def build_optimizer(model, args, checkpoint_optim):
         {'params': clip_params_visual, 'weight_decay': args.run_cfg.weight_decay, 'lr': args.run_cfg.clip_lr},
         {'params': clip_params_no_decay_visual, 'weight_decay': 0.0, 'lr': args.run_cfg.clip_lr},
     ]
+    if xenc_lr:
+        optimizer_grouped_parameters += [
+            {'params': xenc_params, 'weight_decay': args.run_cfg.weight_decay, 'lr': xenc_lr},
+            {'params': xenc_params_no_decay, 'weight_decay': 0.0, 'lr': xenc_lr},
+        ]
+        if not xenc_params and not xenc_params_no_decay:
+            raise RuntimeError(
+                'xenc_lr=%s but no trainable multimodal_encoder parameter reached the '
+                'optimizer. The cross-encoder would train at no rate at all while the config '
+                'claims a discriminative one.' % xenc_lr)
+        LOGGER.info('[XENC] %d tensors at lr %s (base lr %s)'
+                    % (len(xenc_params) + len(xenc_params_no_decay), xenc_lr,
+                       args.run_cfg.learning_rate))
     if use_lora:
         optimizer_grouped_parameters.append(
             {'params': lora_params, 'weight_decay': args.run_cfg.weight_decay, 'lr': lora_lr})

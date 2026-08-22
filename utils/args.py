@@ -337,6 +337,9 @@ def get_args():
     parser.add_argument('--itm_lora_off', type=str2bool, default=False)
     # gamma for the query-weighted reranker: 0 = the current two-stage protocol untouched
     parser.add_argument('--sca_itm_qw_gamma', type=float, default=0.0)
+    # discriminative rate + depth for the cross-encoder when it is unfrozen
+    parser.add_argument('--xenc_lr', type=float, default=None)
+    parser.add_argument('--xenc_train_layers', type=int, default=0)
     parser.add_argument('--s_star_path', type=str, default='')
     parser.add_argument('--sca_alpha', type=float, default=1.0)
     parser.add_argument('--sca_beta', type=float, default=1.0)

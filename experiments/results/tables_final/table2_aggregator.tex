@@ -1,0 +1,68 @@
+% The aggregator table -- what the method actually contributes, before reranking.
+%
+% WHY THIS TABLE EXISTS. The reported metric in this literature is produced by two stages: a
+% dual-encoder scorer, then a cross-encoder that reranks its top 50. The second stage is the
+% SAME frozen component for GRAM, for HyperGRAM, for PMRL and for us -- it comes from the VAST
+% foundation checkpoint and none of these methods retrains it. Only the first stage differs,
+% and the first stage is where the Gramian volume, the leading eigenvalue and the spherical
+% centroid actually live.
+%
+% We measured how much the second stage decides. Running the reranker on completely frozen
+% weights, with our adapters switched off (benchmark_eval/configs_qweight_itmfrozen), moves
+% the reported number by -0.3, -0.1, -0.2, +0.0, +0.2 R@1 across the five benchmarks -- mean
+% -0.1. The reranker is nearly insensitive to the encoder adaptation underneath it. Combined
+% with the rows below, where SCA leads by +3.4 to +6.5 before reranking and by +0.8 to +3.0
+% after, the conclusion is that the reranking stage compresses aggregator differences rather
+% than reflecting them.
+%
+% So Table~\ref{tab:main} understates the difference between aggregators by construction, and
+% this table is where the comparison is actually made. It is NOT a replacement for the main
+% table and must not be presented as one: published methods do not report a pre-rerank number,
+% so only the two rows we measured ourselves can appear here.
+%
+% Both rows are the same environment, the same eval config per benchmark, the same VAST
+% foundation checkpoint. GRAM is its released weights. SCA is the single reported configuration
+% (T9: query-weighted centroid, tau_w = 0.1, LoRA r8, batch 128, lr 2e-5, 5 epochs).
+\begin{table}[t]
+\centering
+\caption{Dual-encoder (pre-rerank) text-to-video R@1: the aggregator's own score, before the
+shared frozen cross-encoder reranks its top 50. Both rows measured by us in one environment
+from the same foundation checkpoint; GRAM is its released weights. ``tax'' is the aggregator's
+score minus the best single modality it fused -- negative means fusing destroyed information
+that was present in one of its own inputs.}
+\label{tab:aggregator}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\toprule
+& MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps \\
+\midrule
+\multicolumn{6}{l}{\emph{Aggregator R@1}} \\
+GRAM (volume), released ckpt & 38.7 & 28.2 & 31.0 & 75.6 & 22.9 \\
+\textbf{SCA (query-weighted centroid)} & \textbf{45.2} & \textbf{34.2} & \textbf{34.4} & \textbf{81.7} & \textbf{27.1} \\
+\emph{difference} & \emph{+6.5} & \emph{+6.0} & \emph{+3.4} & \emph{+6.1} & \emph{+4.2} \\
+\midrule
+\multicolumn{6}{l}{\emph{Aggregation tax: aggregator minus its own best single modality}} \\
+GRAM (volume), released ckpt & -- & $-3.8$ & $-5.8$ & $-1.9$ & $-6.1$ \\
+\textbf{SCA (query-weighted centroid)} & $+4.0$ & $-1.1$ & $+0.3$ & $+0.5$ & $+1.4$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% READING THE TAX ROWS -- this is the part that is not just "our number is bigger".
+%
+% On ActivityNet GRAM's video-alone score is 36.8 and ours is 34.1: its unimodal features are
+% 2.7 points BETTER than ours. Its volume aggregate is 31.0 and ours is 34.4. The volume gives
+% up 5.8 points relative to the best input it was handed; the centroid gains 0.3. AudioCaps is
+% the same shape -- best single modality 29.0 for GRAM against 25.7 for us, aggregate 22.9
+% against 27.1.
+%
+% That rules out the obvious alternative explanation. SCA is not ahead here because LoRA
+% produced better encoders; on two of the five benchmarks its encoders are measurably worse.
+% It is ahead because the aggregation step does not throw information away. The volume is
+% negative on all four benchmarks where the tax can be computed; the centroid is positive on
+% four of five.
+%
+% The MSR-VTT tax is missing for GRAM because the released-checkpoint cell was run through the
+% fusion dump, which records the dual-encoder score but not the per-modality cosines. It is one
+% eval cell to fill and should be filled before submission rather than left as a dash.

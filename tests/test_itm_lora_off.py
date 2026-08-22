@@ -234,3 +234,29 @@ def test_both_wrapper_types_are_covered():
     with lora_disabled(root) as n:
         assert n == 3                              # q_proj, v_proj, qkv
         assert not any(m.enabled for m in lora_modules(root))
+
+
+def test_the_noise_floor_reports_the_worst_disagreement():
+    """The repeated cells are free replicates -- same checkpoint, same config -- so their
+    spread bounds eval jitter. The number that matters is the WORST pair, not the mean: a
+    margin is only safe if it clears the largest disagreement observed, and averaging would
+    quietly license claims the data does not support."""
+    import importlib.util
+    import io
+    import os
+    p = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'raw_vs_itm.py')
+    spec = importlib.util.spec_from_file_location('raw_vs_itm_nf', p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    buf = io.StringIO()
+    mod.noise_floor({'ret_itm_area': [('a_didemo', [51.5, 51.4], 0.1),
+                                      ('a_msrvtt', [54.8, 54.1], 0.7)]}, out=buf)
+    text = buf.getvalue()
+    assert 'largest disagreement between two runs of one cell: 0.7' in text
+    assert '51.5 51.4' in text and '54.8 54.1' in text, 'every run must be shown, not a summary'
+    assert 'LOWER bound' in text, 'must not be read as a full error bar'
+
+    empty = io.StringIO()
+    mod.noise_floor({}, out=empty)
+    assert empty.getvalue() == '', 'no replicates must print nothing, not a floor of zero'

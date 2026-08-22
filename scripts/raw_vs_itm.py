@@ -38,11 +38,12 @@ ITM_PREFIX = 'volume_ITM_T2D'      # the reported direction inside the ret_itm_a
 
 
 def scan(workdir):
-    """(metric suffix -> R@1 from the LAST run, suffix -> how many runs were found).
+    """(metric suffix -> R@1 from the LAST run, suffix -> EVERY run's R@1 in log order).
 
-    A repeated count is worth surfacing: it means the cell was evaluated more than once, so
-    the log holds several values and the choice between them is a real decision rather than
-    a detail.
+    The full list, not just a count. Where a cell was evaluated more than once the repeats are
+    the SAME checkpoint scored by the SAME config, so the spread between them is the eval
+    noise floor -- measured, on data already on disk, rather than assumed. Any margin in the
+    paper smaller than that spread is not a result.
     """
     out, seen = {}, {}
     for lg in sorted(glob.glob(os.path.join(workdir, 'log', 'log*.txt'))):
@@ -61,7 +62,7 @@ def scan(workdir):
                     # had not finished) would silently report the luckier of the two runs.
                     # Max over steps is right for a training log and wrong here.
                     out[suffix] = r1
-                    seen[suffix] = seen.get(suffix, 0) + 1
+                    seen.setdefault(suffix, []).append(r1)
     return out, seen
 
 
@@ -105,6 +106,35 @@ def pivot(rows, metric_idx, title, out=sys.stdout):
         print('%-24s %s' % (arm, line), file=out)
 
 
+def noise_floor(repeats, out=sys.stdout):
+    """What a repeated evaluation of the SAME checkpoint by the SAME config disagrees by.
+
+    Some cells were evaluated twice -- fs_eval was rerun to pick up arms that had not finished
+    the first time, and it re-scored the ones that had. Those repeats are free replicates: same
+    weights, same data, same config, so everything separating them is eval-side nondeterminism
+    (fp16 reduction order, sharding across ranks, decode jitter on the video reader).
+
+    That number decides how the main table may be read. A reported margin smaller than this
+    spread is not a measurement of anything, no matter how carefully it was extracted."""
+    if not repeats:
+        return
+    print('\nEVAL NOISE FLOOR -- repeated runs of the same cell, same checkpoint, same config',
+          file=out)
+    print('%-34s %-10s %22s %8s' % ('cell', 'metric', 'runs', 'spread'), file=out)
+    print('-' * 78, file=out)
+    worst = 0.0
+    for suffix in sorted(repeats):
+        for name, vals, spread in sorted(repeats[suffix], key=lambda t: -t[2]):
+            worst = max(worst, spread)
+            print('%-34s %-10s %22s %8.1f'
+                  % (name, suffix, ' '.join('%.1f' % v for v in vals), spread), file=out)
+    print('\nlargest disagreement between two runs of one cell: %.1f R@1' % worst, file=out)
+    print('Any margin in the paper below that is inside eval noise and cannot be claimed as a', file=out)
+    print('win on this evidence. Replicates here are eval-side ONLY -- they share a checkpoint,', file=out)
+    print('so they bound eval jitter and say nothing about seed-to-seed training variance,', file=out)
+    print('which is larger. Treat this as a LOWER bound on the error bar.', file=out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--root', default='workdir/e1_zs')
@@ -120,6 +150,7 @@ def main():
 
     f = lambda v: '--' if v is None else '%.1f' % v
     rows = {}                       # cell -> (cos T-V, cos T-A, aggregator, ITM), for the pivots
+    repeats = {}                    # suffix -> [(cell, [every run], spread)], the noise floor
     print('%-34s %8s %8s %8s %8s %8s %8s' %
           ('cell', 'cos T-V', 'cos T-A', 'best 1mod', 'AGGREG', 'TAX', 'ITM'))
     print('-' * 88)
@@ -136,10 +167,14 @@ def main():
         # Negative means the aggregator scores WORSE than one of its own inputs.
         tax = '%+.1f' % (agg - solo) if (agg is not None and solo is not None) else '--'
         rows[name] = (tv, ta, agg, itm)
-        rerun = max(seen.values()) if seen else 1
+        rerun = max((len(v) for v in seen.values()), default=1)
         print('%-34s %8s %8s %8s %8s %8s %8s%s'
               % (name, f(tv), f(ta), f(solo), f(agg), tax, f(itm),
                  '   <- %d runs in the log, reporting the LAST' % rerun if rerun > 1 else ''))
+        for suffix, vals in sorted(seen.items()):
+            if len(vals) > 1:
+                repeats.setdefault(suffix, []).append(
+                    (name, vals, max(vals) - min(vals)))
 
     if not parsed:
         # never report an empty comparison as if it were a negative result
@@ -150,6 +185,7 @@ def main():
         pivot(rows, 2, 'AGGREGATOR R@1 (the method\'s own score -- centroid vs volume)')
         pivot(rows, 3, 'ITM R@1 (the REPORTED metric, after cross-encoder reranking)')
         pivot(rows, 0, 'cosine T-V R@1 (video alone)')
+    noise_floor(repeats)
 
     print('\nTAX is the diagnostic: an aggregator that scores below the best modality it was')
     print('built from is destroying information. Compare an SCA cell against the released-GRAM')

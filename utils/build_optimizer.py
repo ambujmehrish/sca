@@ -27,6 +27,27 @@ def build_optimizer(model, args, checkpoint_optim):
     # stage it under-trains. lora_freeze_multimodal=false keeps vision/audio adapted but lets
     # the reranker train, which is the targeted version of that fix.
     freeze_mm = bool(getattr(args.model_cfg, 'lora_freeze_multimodal', True))
+    # Unfreezing the cross-encoder while an adapter is still injected into it trains the SAME
+    # matrices twice per step: W_q and W_v get the base update at learning_rate AND a rank-r
+    # update at lora_lr, scaled by alpha/r, while every other projection in the layer (key,
+    # output.dense, the FFN) gets only the base update. The layer's attention then moves at a
+    # different effective rate from the rest of it, which is not what full fine-tuning is and
+    # not what GRAM does.
+    #
+    # Three arms were run this way before it was noticed. x1_xenc_full_lr2e5 validated
+    # 52.6 / 45.8 / 50.3 / 48.7 / 40.7 / 40.3 / 43.7 / 49.5 / 49.8 / 49.2 -- oscillation, which
+    # was misread as overtraining decay and used to conclude that training the cross-encoder
+    # does not work. That conclusion was drawn from a defect, not from the method.
+    #
+    # To train the cross-encoder, set lora_r_text = 0 alongside this flag: vision and audio
+    # keep their adapters, the cross-encoder is fine-tuned cleanly, and the parameterization
+    # matches GRAM's.
+    if use_lora and not freeze_mm and int(getattr(args.model_cfg, 'lora_r_text', 8)) > 0:
+        raise ValueError(
+            'lora_freeze_multimodal=false with lora_r_text=%d: the cross-encoder would be '
+            'trained by its base weights AND by a LoRA adapter on the same W_q/W_v at once. '
+            'Set lora_r_text=0 to fine-tune it cleanly, or keep it frozen.'
+            % int(getattr(args.model_cfg, 'lora_r_text', 8)))
     backbone_prefixes = (('vision_encoder', 'audio_encoder', 'multimodal_encoder')
                          if freeze_mm else ('vision_encoder', 'audio_encoder'))
     lora_params = []

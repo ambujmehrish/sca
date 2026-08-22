@@ -58,6 +58,30 @@
 #   sbatch --array=16 slurm_scripts/b_grid_pretrain.sh     # T14: adapters off the reranker
 #   sbatch --array=17-18 slurm_scripts/b_grid_pretrain.sh  # S1/S2: seeds on the reported recipe
 #   sbatch --array=19-29 slurm_scripts/b_grid_pretrain.sh  # G1-G10: capacity, lr, objective
+#   sbatch --array=30-32 slurm_scripts/b_grid_pretrain.sh  # X3-X5: cross-encoder, done properly
+#
+# X3-X5 REDO the trainable-cross-encoder experiment, which was never validly run.
+#
+# B5, B6, X1 and X2 all set lora_freeze_multimodal=false and left lora_r_text=8. That trains
+# the cross-encoder's W_q and W_v TWICE per step -- the base weight at learning_rate and a
+# rank-8 adapter (alpha/r = 2) at 0.1 x learning_rate, on the same matrices -- while the key
+# projection, output.dense and the FFN in the same layer get only the base update. The layer's
+# attention then moves at a different effective rate from the rest of it. That is not full
+# fine-tuning and it is not what GRAM does.
+#
+# The symptom was there to read: x1_xenc_full_lr2e5 validated 52.6 / 45.8 / 50.3 / 48.7 / 40.7
+# / 40.3 / 43.7 / 49.5 / 49.8 / 49.2. Oscillation, not decay. It was called overtraining and
+# used to conclude that training the cross-encoder does not work -- a conclusion drawn from a
+# defect. build_optimizer.py now refuses the combination outright.
+#
+# X3-X5 set lora_r_text = 0 with lora_freeze_multimodal = false: vision and audio keep their
+# rank-8 adapters, and the cross-encoder is fine-tuned cleanly with one parameterization, as
+# GRAM and HyperGRAM do. multimodal_encoder is both the text tower and the cross-encoder, so
+# this unfreezes both -- which is also what GRAM full-FT does.
+#
+# X3 uses 2e-5, GRAM's own pretraining learning rate, so it is the matched control. X4 and X5
+# halve and quarter it: GRAM trains at batch 256 and this recipe at 128, and a pretrained BERT
+# needs less to move than a fresh head does.
 #
 # G1-G10 are each T9 with ONE key changed. The recipe has converged -- t9 reads 54.3 / 54.8 /
 # 54.8 over its three validations, flat across the last third -- so a longer schedule is not
@@ -162,11 +186,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-29)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-32)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

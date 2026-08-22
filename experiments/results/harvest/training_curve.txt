@@ -92,6 +92,10 @@ t10_frameset_bs256         886:53.7  1773:54.5  2660:54.1
                              peak 54.5 at step 1773 (67% of the run), final 54.1, drop -0.4
 t11_frameset_tau02         1776:54.4  3553:54.7  5330:54.8
                              peak 54.8 at step 5330 (100% of the run), final 54.8, drop +0.0
+t12_qw_4frames             1776:53.5  3553:54.0
+                             peak 54.0 at step 3553 (100% of the run), final 54.0, drop +0.0
+t13_qw_8frames             3556:52.7
+                             peak 52.7 at step 3556 (100% of the run), final 52.7, drop +0.0
 t1_lr1e4                   264:52.0  529:51.8  794:53.8  1059:53.5  1324:53.1  1589:54.8  1854:53.9  2119:54.9  2384:54.1  2649:54.4
                              peak 54.9 at step 2119 (80% of the run), final 54.4, drop -0.5
 t1_s51                     264:52.6  529:51.5  794:53.4  1059:54.2  1324:54.6  1589:54.3  1854:54.0  2119:54.7  2384:54.7  2649:55.0

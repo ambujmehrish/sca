@@ -6,6 +6,8 @@ ran, any other value means the file records a failure rather than a result.
 | output | rc | what it answers |
 |---|---|---|
 | [raw_vs_itm](raw_vs_itm.txt) | 0 | Aggregator vs ITM per cell, plus arm x benchmark pivots |
+| [raw_vs_itm_final](raw_vs_itm_final.txt) | 0 | Final-checkpoint eval (workdir/e1_final), arm x benchmark pivots |
+| [raw_vs_itm_frames](raw_vs_itm_frames.txt) | 0 | Query-weighted / frame-set arms (workdir/e1_frames), pivots |
 | [score_fusion](score_fusion.txt) | 0 | Candidate recall@k (the ceiling) and the fusion-weight sweep |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |
@@ -19,6 +21,8 @@ ran, any other value means the file records a failure rather than a result.
 2. `score_fusion` -- `w=0` must equal the ITM number in the eval log, or the metric is
    wrong. Then `cand recall@k`: where it is saturated, the aggregator cannot influence
    the reported number at all and only fusion can.
-3. `raw_vs_itm` -- the pivots give arm x benchmark for the aggregator score and for the
+3. `raw_vs_itm_frames` -- the query-weighted arms, which carry the current result;
+   `raw_vs_itm_final` -- final-checkpoint numbers for the earlier arms.
+4. `raw_vs_itm` -- the pivots give arm x benchmark for the aggregator score and for the
    reported ITM metric. Compare an SCA arm against `released` down each column.
-4. `job_logs` -- only if something above is missing or failed.
+5. `job_logs` -- only if something above is missing or failed.

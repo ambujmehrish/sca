@@ -57,6 +57,24 @@
 #   sbatch --array=14-15 slurm_scripts/b_grid_pretrain.sh  # T12/T13: TRAINING frame parity
 #   sbatch --array=16 slurm_scripts/b_grid_pretrain.sh     # T14: adapters off the reranker
 #   sbatch --array=17-18 slurm_scripts/b_grid_pretrain.sh  # S1/S2: seeds on the reported recipe
+#   sbatch --array=19-29 slurm_scripts/b_grid_pretrain.sh  # G1-G10: capacity, lr, objective
+#
+# G1-G10 are each T9 with ONE key changed. The recipe has converged -- t9 reads 54.3 / 54.8 /
+# 54.8 over its three validations, flat across the last third -- so a longer schedule is not
+# the gap and none of these lengthens it. What has never been crossed is capacity WITH query
+# weighting: b2 (r32, uniform centroid) peaked 54.4 against b1's 53.9 at the same batch, and
+# T9 is b1 plus query weighting at 54.8. G1-G3 sweep rank on top of the weighting, holding
+# alpha at 2r so the adapter scale is constant and the comparison is rank alone; G2b repeats
+# r32 at alpha 16 to match b2 exactly, which is the only way to separate a rank effect from
+# the scale change b2 silently carried.
+#
+# G4/G5 bracket the learning rate. 2e-5 beat 1e-4 on 4 of 5 benchmarks, so the optimum is at
+# or below 2e-5 and neither side of it has been probed at this recipe.
+#
+# G6-G10 re-check the auxiliary losses. They were last tuned under the UNIFORM centroid at
+# batch 256; query weighting changes what the alignment term does, so a weight that helped
+# then need not help now. These double as the paper's ablation table, which has to be run at
+# the reported configuration rather than at an older one.
 #
 # S1/S2 are T9 with run_cfg.seed changed and nothing else. They exist because the table has no
 # error bars, and the eval-side floor measured from repeated evals (0.2 R@1, raw_vs_itm.py) is
@@ -144,11 +162,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-18)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-29)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

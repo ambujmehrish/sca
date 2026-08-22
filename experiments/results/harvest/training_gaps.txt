@@ -34,6 +34,17 @@ b5_bs128_xenc                128    5    2e-05    5330~     5319     10      1  
 b6_bs512_xenc                512    5    2e-05  UNKNOWN        -      0      0  annotations150k.json
 e1_bs128_ep1                 128    1    2e-05    1060~     1049     10      1  annotations150k.json
 e2_bs128_ep2                 128    2    2e-05    2130~     2119     10      1  annotations150k.json
+g10_mask0                    128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g1_r16_qw                    128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g2_r32_qw                    128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g2b_r32_a16_qw               128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g3_r64_qw                    128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g4_lr5e5                     128    5    5e-05    5334~     5330      3      1  annotations150k.json
+g5_lr1e5                     128    5    1e-05    5334~     5330      3      1  annotations150k.json
+g6_lambda0                   128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g7_lambda03                  128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g8_sem0                      128    5    2e-05    5334~     5330      3      1  annotations150k.json
+g9_concept0                  128    5    2e-05    5334~     5330      3      1  annotations150k.json
 gram                         256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_hyp                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_hyp2                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
@@ -44,12 +55,14 @@ gram_s52                     256    5    2e-05    2660~     2649     10      1  
 pmrl                         256    5    2e-05    2660~     2649     10      1  annotations150k.json
 pmrl_lora                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
 pmrl_masked                  256    5    2e-05    2660~     2649     10      1  annotations150k.json
+s1_t9_seed51                 128    5    2e-05    5334~     5330      3      1  annotations150k.json
+s2_t9_seed52                 128    5    2e-05    5334~     5330      3      1  annotations150k.json
 sca                          256    5    2e-05    2660~     2649     10      1  annotations150k.json
 sca_nomask                   256    5    2e-05    2660~     2649     10      1  annotations150k.json
 t10_frameset_bs256           256    5    2e-05    2664~     2660      3      1  annotations150k.json
 t11_frameset_tau02           128    5    2e-05    5334~     5330      3      1  annotations150k.json
 t12_qw_4frames               128    5    2e-05    5334~     5330      3      1  annotations150k.json
-t13_qw_8frames                64    5    2e-05   10674~     7113      2      1  annotations150k.json
+t13_qw_8frames                64    5    2e-05   10674~    10670      3      1  annotations150k.json
 t1_lr1e4                     256    5   0.0001    2660~     2649     10      1  annotations150k.json
 t1_s51                       256    5   0.0001    2660~     2649     10      1  annotations150k.json
 t1_s52                       256    5   0.0001    2660~     2649     10      1  annotations150k.json
@@ -65,18 +78,18 @@ x1_xenc_full                 256    5   0.0001    2660~     2649     10      1  
 x1_xenc_full_lr2e5           256    5    2e-05    2660~     2649     10      1  annotations150k.json
 x2_xenc_r64                  256    5   0.0001    2660~     2649     10      1  annotations150k.json
 x2_xenc_r64_lr2e5            256    5    2e-05    2660~     2649     10      1  annotations150k.json
-
-SHORT OF THE TRAINING SCHEDULE -- these stopped early:
-  t13_qw_8frames             7113/10674 steps (67%)
+x3_xenc_clean_lr2e5          128    5    2e-05    5334~     5330      3      1  annotations150k.json
+x4_xenc_clean_lr1e5          128    5    1e-05    5334~     5330      3      1  annotations150k.json
+x5_xenc_clean_lr5e6          128    5    5e-06    5334~     5330      3      1  annotations150k.json
 
 BATCH_SIZE DIFFERS ACROSS ARMS -- these are not comparable as they stand:
   256            48 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+42 more)
-  128            10 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, t11_frameset_tau02 (+4 more)
+  128            26 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, g10_mask0 (+20 more)
   512             3 arm(s): b3_bs512_r8, b4_bs512_r32, b6_bs512_xenc
   64              2 arm(s): t13_qw_8frames, t7_frameset_4f
 
 EPOCH DIFFERS ACROSS ARMS -- these are not comparable as they stand:
-  5              61 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+55 more)
+  5              77 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+71 more)
   1               1 arm(s): e1_bs128_ep1
   2               1 arm(s): e2_bs128_ep2
 
@@ -84,6 +97,5 @@ COULD NOT BE VERIFIED -- these checks did not run, which is not the same as
 passing. Do not read the summary below as clearing them:
   b6_bs512_xenc              no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
   b6_bs512_xenc              only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
-  t13_qw_8frames             only 2 evaluation and 1 checkpoint step(s) -- too few to see a hole in the sequence
 
 Gaps above. Any table row drawn from an affected arm is not comparable until fixed.

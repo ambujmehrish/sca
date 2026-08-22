@@ -110,77 +110,70 @@ x1_xenc_full_lr2e5                 --         37.2         37.7         78.7    
 x2_xenc_r64                        --         36.0         32.0         81.2         13.4
 x2_xenc_r64_lr2e5                  --         36.0         38.1         81.4         14.1
 
-EVAL NOISE FLOOR -- repeated runs of the same cell, same checkpoint, same config
-cell                               metric                       runs   spread
-------------------------------------------------------------------------------
-sca_didemo                         cosine_TA                 4.1 4.5      0.4
-gram_didemo                        cosine_TA                 4.6 4.9      0.3
-sca_activitynet                    cosine_TA                 3.0 2.7      0.3
-gram_activitynet                   cosine_TA                 3.2 3.3      0.1
-gram_audiocaps                     cosine_TA          25.3 25.3 25.3      0.0
-gram_vatex                         cosine_TA               15.5 15.5      0.0
-sca_audiocaps                      cosine_TA               25.1 25.1      0.0
-sca_vatex                          cosine_TA               15.1 15.1      0.0
-x1_xenc_full_activitynet           cosine_TA                 2.5 2.5      0.0
-x1_xenc_full_audiocaps             cosine_TA               13.9 13.9      0.0
-x1_xenc_full_didemo                cosine_TA                 2.3 2.3      0.0
-x1_xenc_full_lr2e5_activitynet     cosine_TA                 3.5 3.5      0.0
-x1_xenc_full_lr2e5_audiocaps       cosine_TA               29.1 29.1      0.0
-x1_xenc_full_lr2e5_didemo          cosine_TA                 5.8 5.8      0.0
-x1_xenc_full_lr2e5_vatex           cosine_TA               19.0 19.0      0.0
-x1_xenc_full_vatex                 cosine_TA               10.9 10.9      0.0
-sca_didemo                         cosine_TV               37.1 36.0      1.1
-sca_activitynet                    cosine_TV               38.4 38.1      0.3
-gram_didemo                        cosine_TV               30.6 30.5      0.1
-gram_activitynet                   cosine_TV               33.2 33.3      0.1
-gram_audiocaps                     cosine_TV          12.5 12.5 12.5      0.0
-gram_vatex                         cosine_TV               76.1 76.1      0.0
-sca_audiocaps                      cosine_TV               13.5 13.5      0.0
-sca_vatex                          cosine_TV               81.4 81.4      0.0
-x1_xenc_full_activitynet           cosine_TV               26.3 26.3      0.0
-x1_xenc_full_audiocaps             cosine_TV               10.8 10.8      0.0
-x1_xenc_full_didemo                cosine_TV               29.5 29.5      0.0
-x1_xenc_full_lr2e5_activitynet     cosine_TV               37.7 37.7      0.0
-x1_xenc_full_lr2e5_audiocaps       cosine_TV               12.2 12.2      0.0
-x1_xenc_full_lr2e5_didemo          cosine_TV               37.2 37.2      0.0
-x1_xenc_full_lr2e5_vatex           cosine_TV               78.7 78.7      0.0
-x1_xenc_full_vatex                 cosine_TV               75.4 75.4      0.0
-gram_activitynet                   ret_area_forward              29.2 28.8      0.4
-sca_activitynet                    ret_area_forward              33.3 32.9      0.4
-gram_didemo                        ret_area_forward              26.4 26.5      0.1
-x1_xenc_full_didemo                ret_area_forward              23.8 23.9      0.1
-sca_didemo                         ret_area_forward              32.7 32.8      0.1
+EVAL NOISE FLOOR -- repeated runs of one cell on the SAME checkpoint
+cell                               metric                             runs   spread
+------------------------------------------------------------------------------------
+gram_audiocaps                     cosine_TA                25.3 25.3 25.3      0.0
+gram_audiocaps                     cosine_TV                12.5 12.5 12.5      0.0
 gram_audiocaps                     ret_area_forward         21.9 21.9 21.9      0.0
+gram_audiocaps                     ret_itm_area             33.1 33.1 33.1      0.0
+gram_vatex                         cosine_TA                     15.5 15.5      0.0
+gram_vatex                         cosine_TV                     76.1 76.1      0.0
 gram_vatex                         ret_area_forward              73.8 73.8      0.0
+gram_vatex                         ret_itm_area                  88.9 88.9      0.0
+sca_audiocaps                      cosine_TA                     25.1 25.1      0.0
+sca_audiocaps                      cosine_TV                     13.5 13.5      0.0
 sca_audiocaps                      ret_area_forward              26.1 26.1      0.0
+sca_audiocaps                      ret_itm_area                  35.2 35.2      0.0
+sca_vatex                          cosine_TA                     15.1 15.1      0.0
+sca_vatex                          cosine_TV                     81.4 81.4      0.0
 sca_vatex                          ret_area_forward              71.9 71.9      0.0
+sca_vatex                          ret_itm_area                  90.3 90.3      0.0
+x1_xenc_full_activitynet           cosine_TA                       2.5 2.5      0.0
+x1_xenc_full_activitynet           cosine_TV                     26.3 26.3      0.0
 x1_xenc_full_activitynet           ret_area_forward              24.0 24.0      0.0
+x1_xenc_full_activitynet           ret_itm_area                  51.7 51.7      0.0
+x1_xenc_full_audiocaps             cosine_TA                     13.9 13.9      0.0
+x1_xenc_full_audiocaps             cosine_TV                     10.8 10.8      0.0
 x1_xenc_full_audiocaps             ret_area_forward              20.7 20.7      0.0
+x1_xenc_full_audiocaps             ret_itm_area                  30.5 30.5      0.0
+x1_xenc_full_didemo                cosine_TA                       2.3 2.3      0.0
+x1_xenc_full_didemo                cosine_TV                     29.5 29.5      0.0
+x1_xenc_full_didemo                ret_area_forward              23.8 23.9      0.1
+x1_xenc_full_didemo                ret_itm_area                  48.6 48.7      0.1
+x1_xenc_full_lr2e5_activitynet     cosine_TA                       3.5 3.5      0.0
+x1_xenc_full_lr2e5_activitynet     cosine_TV                     37.7 37.7      0.0
 x1_xenc_full_lr2e5_activitynet     ret_area_forward              31.9 31.9      0.0
+x1_xenc_full_lr2e5_activitynet     ret_itm_area                  55.2 55.2      0.0
+x1_xenc_full_lr2e5_audiocaps       cosine_TA                     29.1 29.1      0.0
+x1_xenc_full_lr2e5_audiocaps       cosine_TV                     12.2 12.2      0.0
 x1_xenc_full_lr2e5_audiocaps       ret_area_forward              25.6 25.6      0.0
+x1_xenc_full_lr2e5_audiocaps       ret_itm_area                  34.4 34.4      0.0
+x1_xenc_full_lr2e5_didemo          cosine_TA                       5.8 5.8      0.0
+x1_xenc_full_lr2e5_didemo          cosine_TV                     37.2 37.2      0.0
 x1_xenc_full_lr2e5_didemo          ret_area_forward              30.7 30.7      0.0
+x1_xenc_full_lr2e5_didemo          ret_itm_area                  51.5 51.5      0.0
+x1_xenc_full_lr2e5_vatex           cosine_TA                     19.0 19.0      0.0
+x1_xenc_full_lr2e5_vatex           cosine_TV                     78.7 78.7      0.0
 x1_xenc_full_lr2e5_vatex           ret_area_forward              73.1 73.1      0.0
+x1_xenc_full_lr2e5_vatex           ret_itm_area                  90.0 90.0      0.0
+x1_xenc_full_vatex                 cosine_TA                     10.9 10.9      0.0
+x1_xenc_full_vatex                 cosine_TV                     75.4 75.4      0.0
 x1_xenc_full_vatex                 ret_area_forward              64.3 64.3      0.0
-gram_activitynet                   ret_itm_area              52.0 54.1      2.1
-sca_activitynet                    ret_itm_area              52.6 54.6      2.0
-gram_didemo                        ret_itm_area              49.6 50.6      1.0
-sca_didemo                         ret_itm_area              50.0 50.4      0.4
-x1_xenc_full_didemo                ret_itm_area              48.6 48.7      0.1
-gram_audiocaps                     ret_itm_area         33.1 33.1 33.1      0.0
-gram_vatex                         ret_itm_area              88.9 88.9      0.0
-sca_audiocaps                      ret_itm_area              35.2 35.2      0.0
-sca_vatex                          ret_itm_area              90.3 90.3      0.0
-x1_xenc_full_activitynet           ret_itm_area              51.7 51.7      0.0
-x1_xenc_full_audiocaps             ret_itm_area              30.5 30.5      0.0
-x1_xenc_full_lr2e5_activitynet     ret_itm_area              55.2 55.2      0.0
-x1_xenc_full_lr2e5_audiocaps       ret_itm_area              34.4 34.4      0.0
-x1_xenc_full_lr2e5_didemo          ret_itm_area              51.5 51.5      0.0
-x1_xenc_full_lr2e5_vatex           ret_itm_area              90.0 90.0      0.0
-x1_xenc_full_vatex                 ret_itm_area              87.7 87.7      0.0
+x1_xenc_full_vatex                 ret_itm_area                  87.7 87.7      0.0
 
-largest disagreement between two runs of one cell: 2.1 R@1
+EXCLUDED -- the unimodal encoder scores moved, so these are two different
+checkpoints of the same arm, not two runs of one model:
+  sca_didemo                     encoder drift 1.1   (cosine_TA 4.1/4.5  cosine_TV 37.1/36.0)
+  gram_didemo                    encoder drift 0.3   (cosine_TA 4.6/4.9  cosine_TV 30.6/30.5)
+  sca_activitynet                encoder drift 0.3   (cosine_TA 3.0/2.7  cosine_TV 38.4/38.1)
+  gram_activitynet               encoder drift 0.1   (cosine_TA 3.2/3.3  cosine_TV 33.2/33.3)
+  Their spread measures training progress between the two evals. Counting it
+  would inflate the floor and excuse real margins as noise.
+
+largest disagreement between two runs of one checkpoint: 0.1 R@1  (x1_xenc_full_didemo / ret_itm_area)
 Any margin in the paper below that is inside eval noise and cannot be claimed as a
-win on this evidence. Replicates here are eval-side ONLY -- they share a checkpoint,
+win on this evidence. These replicates are eval-side ONLY -- they share a checkpoint,
 so they bound eval jitter and say nothing about seed-to-seed training variance,
 which is larger. Treat this as a LOWER bound on the error bar.
 

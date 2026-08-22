@@ -56,6 +56,16 @@
 #   sbatch --array=9-13 slurm_scripts/b_grid_pretrain.sh   # T7-T11: frame-set variants
 #   sbatch --array=14-15 slurm_scripts/b_grid_pretrain.sh  # T12/T13: TRAINING frame parity
 #   sbatch --array=16 slurm_scripts/b_grid_pretrain.sh     # T14: adapters off the reranker
+#   sbatch --array=17-18 slurm_scripts/b_grid_pretrain.sh  # S1/S2: seeds on the reported recipe
+#
+# S1/S2 are T9 with run_cfg.seed changed and nothing else. They exist because the table has no
+# error bars, and the eval-side floor measured from repeated evals (0.2 R@1, raw_vs_itm.py) is
+# a LOWER bound: it shares a checkpoint, so it says nothing about seed-to-seed training
+# variance, which is the larger term and the one a reviewer will ask about. Three runs of the
+# reported configuration give a mean and a range for every row of the main table.
+#
+# These take priority over any new hypothesis. A margin without an error bar is not a result,
+# and every SCA row currently has n=1.
 #
 # T14 = T9 plus itm_lora_off, differing in that one key and nothing else. It is the RECIPE
 # version of what slurm_scripts/itm_frozen_eval.sh measures as a diagnostic: the reranker is a
@@ -134,11 +144,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-16)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-18)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

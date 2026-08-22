@@ -49,7 +49,19 @@ source "${SCA_ENV_RC:-/leonardo_work/AIFAC_S07_041/sca_env.rc}"
 cd "$CODE_DIR"
 [ -f "$MODELS_DIR/env.sh" ] && source "$MODELS_DIR/env.sh" || { echo "FATAL: prefetch first" >&2; exit 1; }
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
-source "$(dirname "$0")/../scripts/cell_done.sh"
+# Resolve from CODE_DIR, which every launcher has already cd'd into. Under sbatch, $0 is a
+# COPY of the script in Slurm's spool directory (/var/spool/slurmd/job<N>/slurm_script), so
+# "$(dirname "$0")/.." points at /var/spool/slurmd and there is no scripts/ there. This source
+# has been failing in every Slurm job since it was written. Nothing surfaced because the
+# callers use `cell_is_done ... && continue`: an undefined function returns 127, the && short-
+# circuits, and the cell simply runs. So the resume-skip and the config fingerprinting have
+# both been inert under Slurm, which is also why eval cells show up twice in the logs.
+HELPER="${CODE_DIR:-.}/scripts/cell_done.sh"
+[ -f "$HELPER" ] || HELPER="$(dirname "$0")/../scripts/cell_done.sh"
+# shellcheck source=/dev/null
+source "$HELPER" || { echo "FATAL: cannot source $HELPER" >&2; exit 2; }
+command -v cell_is_done >/dev/null || {
+  echo "FATAL: sourced $HELPER but cell_is_done is not defined." >&2; exit 2; }
 mkdir -p slurm_scripts/logs
 
 # the FINAL checkpoint explicitly -- never best_*.pt, which is what this job exists to avoid

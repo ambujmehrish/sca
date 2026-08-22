@@ -109,18 +109,25 @@ if git diff --cached --quiet; then
   echo "nothing changed -- not committing"; exit 0
 fi
 git commit -q -m "Harvest: extractor output at $(date -u +%Y-%m-%dT%H:%MZ)"
-# Retrying a push unchanged cannot fix the common failure: the branch moved on the remote
-# while the harvest was running, so every retry is rejected for the same reason. Rebase onto
-# the remote before retrying -- the harvest only ADDS files under experiments/results, so it
-# rebases cleanly on anything that does not touch the same file.
+# Two failures look identical to `git push` but need opposite responses: a REJECTION means
+# the branch moved and a rebase fixes it, while a NETWORK error means nothing is wrong with
+# the history and rebasing just fails again with a misleading message. Read the output and
+# only rebase on the first.
 for d in 2 4 8 16; do
-  git push -u origin "$BRANCH" && { echo "pushed to $BRANCH"; exit 0; }
-  echo "push rejected -- rebasing onto origin/$BRANCH and retrying in ${d}s"
-  git pull --rebase origin "$BRANCH" || {
-    git rebase --abort 2>/dev/null
-    echo "FATAL: rebase failed. The results are committed locally on $BRANCH; resolve by" >&2
-    echo "       hand with: git pull --rebase origin $BRANCH" >&2
-    exit 1; }
+  out=$(git push -u origin "$BRANCH" 2>&1) && { echo "pushed to $BRANCH"; exit 0; }
+  echo "$out" | tail -2
+  if echo "$out" | grep -qiE "could not resolve host|connection timed out|network is unreachable|failed to connect|operation timed out"; then
+    echo "network is down, not a rejection -- retrying the push in ${d}s (history is fine)"
+  elif echo "$out" | grep -qiE "rejected|fetch first|non-fast-forward"; then
+    echo "push rejected -- rebasing onto origin/$BRANCH and retrying in ${d}s"
+    git pull --rebase origin "$BRANCH" || {
+      git rebase --abort 2>/dev/null
+      echo "FATAL: rebase failed. The results are committed locally on $BRANCH; resolve by" >&2
+      echo "       hand with: git pull --rebase origin $BRANCH" >&2
+      exit 1; }
+  else
+    echo "push failed for an unrecognised reason -- retrying in ${d}s without rebasing"
+  fi
   sleep "$d"
 done
 echo "push failed after retries -- the results are committed locally on $BRANCH" >&2

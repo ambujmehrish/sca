@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=240G
 #SBATCH --job-name=b_grid
-#SBATCH --array=0-13
+#SBATCH --array=0-15
 #SBATCH -o ./slurm_scripts/logs/b_grid_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/b_grid_%A_%a.out
 # Batch size x LoRA capacity, from the best configuration we have.
@@ -54,6 +54,21 @@
 #   sbatch --array=6 slurm_scripts/b_grid_pretrain.sh      # T6: the frame set in the objective
 #   sbatch --array=7-8 slurm_scripts/b_grid_pretrain.sh    # E1/E2: 1 and 2 epochs
 #   sbatch --array=9-13 slurm_scripts/b_grid_pretrain.sh   # T7-T11: frame-set variants
+#   sbatch --array=14-15 slurm_scripts/b_grid_pretrain.sh  # T12/T13: TRAINING frame parity
+#
+# T12/T13 fix a recipe gap that has been in every arm: we train on 2 frames and evaluate on
+# 8, while GRAM trains on 8 (RECIPE_AUDIT.md:207 -- the audit only ever corrected the eval
+# side). Worse, max_vision_sample_num is computed from the TRAIN block (utils/args.py:179),
+# so pretraining learns a 2-position temporal embedding while the eval build wants 8 and
+# nearest-neighbour interpolates the two up (general_module.py:130). Every number we hold
+# came from a model whose temporal embedding was stretched 2 -> 8 at load. Both effects hit
+# long videos hardest, which is exactly where our gaps are (ActivityNet, DiDeMo).
+#
+# T12 = 4 frames at batch 128, T13 = 8 frames at batch 64. Both are 512 frame-images, the
+# vision load sca already trains at, and neither uses frame slots so there is no extra
+# overhead. T13 reaches GRAM's 8-frame parity at half the in-batch negatives (256 vs 512);
+# T12 keeps the full negative pool at half the frames. That trade is the point of running
+# both.
 #
 # T9 is the ablation that matters most: T6 changes TWO things at once -- the frame axis and
 # query weighting -- so a gain could come from either. T9 runs query weighting over
@@ -105,11 +120,11 @@ MODELS_DIR="${MODELS_DIR:-$WORK_ROOT/sca_models}"
 export WANDB_MODE=offline GRAM_MP_CTX=forkserver
 mkdir -p slurm_scripts/logs
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-13)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-15)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

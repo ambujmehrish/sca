@@ -38,8 +38,13 @@ ITM_PREFIX = 'volume_ITM_T2D'      # the reported direction inside the ret_itm_a
 
 
 def scan(workdir):
-    """metric suffix -> best R@1 over steps, using the extractor's own log parser."""
-    out = {}
+    """(metric suffix -> R@1 from the LAST run, suffix -> how many runs were found).
+
+    A repeated count is worth surfacing: it means the cell was evaluated more than once, so
+    the log holds several values and the choice between them is a real decision rather than
+    a detail.
+    """
+    out, seen = {}, {}
     for lg in sorted(glob.glob(os.path.join(workdir, 'log', 'log*.txt'))):
         for family, entries in parse_log(lg).items():
             suffix = next((w for w in WANT if family.endswith(w)), None)
@@ -47,14 +52,17 @@ def scan(workdir):
                 continue
             # ret_itm_area carries both directions in one dict; T2D is the reported one
             prefix = ITM_PREFIX if suffix == 'ret_itm_area' else None
-            best = None
             for _step, metrics in entries:
                 r1, _r10 = r1_r10(metrics, prefix)
-                if r1 is not None and (best is None or r1 > best):
-                    best = r1
-            if best is not None:
-                out[suffix] = best
-    return out
+                if r1 is not None:
+                    # LAST, not max. These are EVAL workdirs: one entry per run of the cell.
+                    # Taking the max was max-over-REPEATS -- a cell re-evaluated twice (as the
+                    # frame-set cells were, when fs_eval ran a second time to pick up arms that
+                    # had not finished) would silently report the luckier of the two runs.
+                    # Max over steps is right for a training log and wrong here.
+                    out[suffix] = r1
+                    seen[suffix] = seen.get(suffix, 0) + 1
+    return out, seen
 
 
 BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
@@ -116,7 +124,7 @@ def main():
           ('cell', 'cos T-V', 'cos T-A', 'best 1mod', 'AGGREG', 'TAX', 'ITM'))
     print('-' * 88)
     for d in dirs:
-        got = scan(d)
+        got, seen = scan(d)
         if not got:
             continue
         parsed += 1
@@ -128,8 +136,10 @@ def main():
         # Negative means the aggregator scores WORSE than one of its own inputs.
         tax = '%+.1f' % (agg - solo) if (agg is not None and solo is not None) else '--'
         rows[name] = (tv, ta, agg, itm)
-        print('%-34s %8s %8s %8s %8s %8s %8s'
-              % (name, f(tv), f(ta), f(solo), f(agg), tax, f(itm)))
+        rerun = max(seen.values()) if seen else 1
+        print('%-34s %8s %8s %8s %8s %8s %8s%s'
+              % (name, f(tv), f(ta), f(solo), f(agg), tax, f(itm),
+                 '   <- %d runs in the log, reporting the LAST' % rerun if rerun > 1 else ''))
 
     if not parsed:
         # never report an empty comparison as if it were a negative result

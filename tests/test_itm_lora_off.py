@@ -250,12 +250,27 @@ def test_the_noise_floor_reports_the_worst_disagreement():
     spec.loader.exec_module(mod)
 
     buf = io.StringIO()
-    mod.noise_floor({'ret_itm_area': [('a_didemo', [51.5, 51.4], 0.1),
-                                      ('a_msrvtt', [54.8, 54.1], 0.7)]}, out=buf)
+    mod.noise_floor({
+        # a true replicate: same checkpoint, so the encoder scores reproduce exactly
+        'a_didemo': {'cosine_TV': [35.3, 35.3], 'cosine_TA': [4.4, 4.4],
+                     'ret_area_forward': [34.2, 34.2], 'ret_itm_area': [51.3, 51.5]},
+        # NOT a replicate: the arm trained further between the two evals, so the encoder
+        # outputs moved. Its 0.7 must not become the floor.
+        'b_msrvtt': {'cosine_TV': [41.0, 40.4], 'cosine_TA': [5.2, 5.3],
+                     'ret_itm_area': [54.8, 54.1]},
+    }, out=buf)
     text = buf.getvalue()
-    assert 'largest disagreement between two runs of one cell: 0.7' in text
-    assert '51.5 51.4' in text and '54.8 54.1' in text, 'every run must be shown, not a summary'
+    assert 'largest disagreement between two runs of one checkpoint: 0.2' in text, text
+    assert 'b_msrvtt' in text.split('EXCLUDED')[1], 'the drifted cell must be named, not dropped'
+    assert '51.3 51.5' in text, 'every run must be shown, not a summary'
     assert 'LOWER bound' in text, 'must not be read as a full error bar'
+
+    # a floor built ONLY from drifted cells is no floor at all, and must not be reported as one
+    only_drift = io.StringIO()
+    mod.noise_floor({'b_msrvtt': {'cosine_TV': [41.0, 40.4], 'ret_itm_area': [54.8, 54.1]}},
+                    out=only_drift)
+    assert 'largest disagreement' not in only_drift.getvalue()
+    assert 'not a floor of zero' in only_drift.getvalue()
 
     empty = io.StringIO()
     mod.noise_floor({}, out=empty)

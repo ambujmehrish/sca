@@ -11,6 +11,28 @@
 % Convention: $^{\S}$ published by the authors; $^{\ast}$ measured by us in one environment.
 % GRAM released its weights, so the same checkpoint appears both ways.
 %
+% WHAT THIS TABLE CAN AND CANNOT SETTLE. The reported metric is produced by two stages, and
+% the second is a cross-encoder from the VAST foundation checkpoint that GRAM, HyperGRAM, PMRL
+% and SCA all share and none retrains. We measured how much it decides: running it with our
+% adapters switched off entirely moves the numbers below by -0.3, -0.1, -0.2, +0.0, +0.2 --
+% mean -0.1. It is nearly insensitive to the encoders underneath it, and it compresses
+% aggregator differences rather than reflecting them. SCA leads the released GRAM checkpoint
+% by +3.4 to +6.5 R@1 BEFORE reranking and by +0.8 to +3.0 after
+% (Table~\ref{tab:aggregator}). This table is the field's reported metric and belongs here;
+% Table~\ref{tab:aggregator} is where the aggregators are actually compared.
+%
+% NOISE FLOOR, measured rather than assumed. Several cells were evaluated twice on the same
+% checkpoint with the same config (fs_eval was rerun to pick up unfinished arms and re-scored
+% the finished ones). Those are free replicates. On four of five benchmarks both runs agree to
+% the reported digit; on DiDeMo they differ by 0.2. Repeats whose unimodal encoder scores also
+% moved were EXCLUDED -- those arms trained further between the two evals, so they are two
+% checkpoints rather than two runs, and counting them inflated the floor to 0.9.
+%
+% Consequence, applied: SCA reads 51.5 on DiDeMo against HyperGRAM's published 51.3, and the
+% two runs of that exact cell were 51.3 and 51.5. The margin equals the cell's own
+% reproducibility, so it is reported as a tie. An earlier draft of this table bolded it as a
+% win; that claim does not survive its own noise floor.
+%
 % Our HyperGRAM reproduction is NOT a row: v1 reached 35.2 on MSR-VTT against a published
 % 56.6, v2 reached 51.0 at best before collapsing to 37.4, and neither produced transfer
 % numbers (wave4/ANALYSIS.md). HyperGRAM is cited from its paper only.
@@ -21,7 +43,14 @@ in a single environment. GRAM is the only method here that released weights, so 
 checkpoint appears as both rows: the difference is a \emph{measured} environment shift
 ($-2.3$ on MSR-VTT, $+6.5$ on VATEX), which is why $^{\S}$ and $^{\ast}$ rows are not directly
 comparable in absolute terms. SCA is a \emph{single configuration} evaluated on all five
-benchmarks and reported everywhere, including where it trails. ``--'' not reported. AudioCaps figures for the published rows are the tri-modal (T-V-A) numbers from each paper; HyperGRAM does not report AudioCaps.}
+benchmarks and reported everywhere, including where it trails. \textbf{Bold marks the best
+value in each column.} ``--'' not reported. AudioCaps figures for the published rows are the
+tri-modal (T-V-A) numbers from each paper; HyperGRAM does not report AudioCaps. Cells that
+were evaluated twice on one checkpoint disagree by at most $0.2$ R@1 (DiDeMo; every other
+benchmark reproduced exactly), so differences below that are not resolved by this table --
+SCA's DiDeMo score and HyperGRAM's are a tie, not a lead. This is an eval-side floor measured
+on shared checkpoints and is a \emph{lower} bound on the full error bar, which also carries
+seed-to-seed training variance.}
 \label{tab:main}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -38,15 +67,15 @@ VideoPrism-b$^{\S}$     & --      & 51.4 & --   & 49.6 & 62.5 & -- \\
 VAST (27M)$^{\S}$       & full-FT & 50.7 & 49.5 & 51.4 & 82.1 & 32.1 \\
 \midrule
 \multicolumn{7}{l}{\emph{(b) Gramian-volume alignment}} \\
-GRAM$^{\S}$                  & full-FT & 54.8 & 54.2 & 59.0 & 83.5 & 33.2 \\
-GRAM, released ckpt$^{\ast}$ & full-FT & 52.5 & 50.7 & \textbf{56.3} & 90.0 & 32.2 \\
-HyperGRAM$^{\S}$             & full-FT & 56.6 & 51.3 & 58.2 & 79.9 & -- \\
+GRAM$^{\S}$                  & full-FT & 54.8 & \textbf{54.2} & \textbf{59.0} & 83.5 & 33.2 \\
+GRAM, released ckpt$^{\ast}$ & full-FT & 52.5 & 50.7 & 56.3 & 90.0 & 32.2 \\
+HyperGRAM$^{\S}$             & full-FT & \textbf{56.6} & 51.3 & 58.2 & 79.9 & -- \\
 \midrule
 \multicolumn{7}{l}{\emph{(c) Leading-eigenvalue alignment}} \\
-PMRL$^{\S}$                  & full-FT & 54.5 & 50.6 & 56.0 & 80.5 & 36.1 \\
+PMRL$^{\S}$                  & full-FT & 54.5 & 50.6 & 56.0 & 80.5 & \textbf{36.1} \\
 \midrule
 \multicolumn{7}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
-\textbf{SCA}$^{\ast}$        & LoRA & \textbf{54.8} & \textbf{51.5} & 55.8 & \textbf{90.5} & \textbf{35.2} \\
+\textbf{SCA}$^{\ast}$        & LoRA & 54.8 & 51.5 & 55.8 & \textbf{90.5} & 35.2 \\
 \bottomrule
 \end{tabular}
 \end{table*}

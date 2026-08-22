@@ -106,31 +106,76 @@ def pivot(rows, metric_idx, title, out=sys.stdout):
         print('%-24s %s' % (arm, line), file=out)
 
 
+# The unimodal cosine scores are the encoder outputs with no fusion on top. Two runs of one
+# cell that agree on the aggregator but disagree HERE cannot be two runs of one model.
+ENCODER_METRICS = ('cosine_TV', 'cosine_TA')
+
+
 def noise_floor(repeats, out=sys.stdout):
     """What a repeated evaluation of the SAME checkpoint by the SAME config disagrees by.
 
-    Some cells were evaluated twice -- fs_eval was rerun to pick up arms that had not finished
-    the first time, and it re-scored the ones that had. Those repeats are free replicates: same
-    weights, same data, same config, so everything separating them is eval-side nondeterminism
-    (fp16 reduction order, sharding across ranks, decode jitter on the video reader).
+    Some cells were evaluated twice: fs_eval was rerun to pick up arms that had not finished
+    the first time, and it re-scored the ones that had. Where the checkpoint was the same both
+    times those repeats are free replicates -- same weights, same data, same config -- so
+    everything separating them is eval-side nondeterminism (fp16 reduction order, sharding
+    across ranks, decode jitter on the video reader).
 
-    That number decides how the main table may be read. A reported margin smaller than this
-    spread is not a measurement of anything, no matter how carefully it was extracted."""
+    NOT ALL OF THEM ARE. fs_eval resolves the checkpoint with `ls model_step_*.pt | tail -1`,
+    so an arm that trained further between the two runs was scored at a LATER step the second
+    time. Those two numbers differ because the model differs, and folding them into a noise
+    floor inflates it -- which would then excuse real margins as noise, the most expensive
+    direction to be wrong in.
+
+    They are separable without any extra run. cosine_TV and cosine_TA are raw encoder outputs
+    with no fusion above them: identical weights give identical values, deterministically. A
+    cell whose unimodal scores moved was scored on two different checkpoints, and is reported
+    separately rather than counted.
+
+    The surviving number decides how the main table may be read. A reported margin below it is
+    not a measurement of anything, however carefully it was extracted."""
     if not repeats:
         return
-    print('\nEVAL NOISE FLOOR -- repeated runs of the same cell, same checkpoint, same config',
-          file=out)
-    print('%-34s %-10s %22s %8s' % ('cell', 'metric', 'runs', 'spread'), file=out)
-    print('-' * 78, file=out)
-    worst = 0.0
-    for suffix in sorted(repeats):
-        for name, vals, spread in sorted(repeats[suffix], key=lambda t: -t[2]):
-            worst = max(worst, spread)
-            print('%-34s %-10s %22s %8.1f'
-                  % (name, suffix, ' '.join('%.1f' % v for v in vals), spread), file=out)
-    print('\nlargest disagreement between two runs of one cell: %.1f R@1' % worst, file=out)
+    # repeats: cell -> {metric suffix: [every run's R@1]}
+    same, moved = {}, {}
+    for cell, metrics in repeats.items():
+        drift = max((max(v) - min(v) for k, v in metrics.items()
+                     if k in ENCODER_METRICS and len(v) > 1), default=0.0)
+        (moved if drift > 0.05 else same)[cell] = (metrics, drift)
+
+    print('\nEVAL NOISE FLOOR -- repeated runs of one cell on the SAME checkpoint', file=out)
+    print('%-34s %-18s %20s %8s' % ('cell', 'metric', 'runs', 'spread'), file=out)
+    print('-' * 84, file=out)
+    worst, worst_cell = 0.0, None
+    for cell in sorted(same):
+        for suffix, vals in sorted(same[cell][0].items()):
+            if len(vals) < 2:
+                continue
+            spread = max(vals) - min(vals)
+            if spread > worst:
+                worst, worst_cell = spread, '%s / %s' % (cell, suffix)
+            print('%-34s %-18s %20s %8.1f'
+                  % (cell, suffix, ' '.join('%.1f' % v for v in vals), spread), file=out)
+
+    if moved:
+        print('\nEXCLUDED -- the unimodal encoder scores moved, so these are two different', file=out)
+        print('checkpoints of the same arm, not two runs of one model:', file=out)
+        for cell in sorted(moved, key=lambda c: -moved[c][1]):
+            metrics, drift = moved[cell]
+            detail = '  '.join('%s %s' % (k, '/'.join('%.1f' % v for v in vals))
+                               for k, vals in sorted(metrics.items())
+                               if k in ENCODER_METRICS and len(vals) > 1)
+            print('  %-30s encoder drift %.1f   (%s)' % (cell, drift, detail), file=out)
+        print('  Their spread measures training progress between the two evals. Counting it', file=out)
+        print('  would inflate the floor and excuse real margins as noise.', file=out)
+
+    if worst_cell is None:
+        print('\nNo cell was evaluated twice on one checkpoint -- no floor can be stated, and', file=out)
+        print('an absent floor is not a floor of zero. Re-run one finished cell to measure it.', file=out)
+        return
+    print('\nlargest disagreement between two runs of one checkpoint: %.1f R@1  (%s)'
+          % (worst, worst_cell), file=out)
     print('Any margin in the paper below that is inside eval noise and cannot be claimed as a', file=out)
-    print('win on this evidence. Replicates here are eval-side ONLY -- they share a checkpoint,', file=out)
+    print('win on this evidence. These replicates are eval-side ONLY -- they share a checkpoint,', file=out)
     print('so they bound eval jitter and say nothing about seed-to-seed training variance,', file=out)
     print('which is larger. Treat this as a LOWER bound on the error bar.', file=out)
 
@@ -171,10 +216,10 @@ def main():
         print('%-34s %8s %8s %8s %8s %8s %8s%s'
               % (name, f(tv), f(ta), f(solo), f(agg), tax, f(itm),
                  '   <- %d runs in the log, reporting the LAST' % rerun if rerun > 1 else ''))
-        for suffix, vals in sorted(seen.items()):
-            if len(vals) > 1:
-                repeats.setdefault(suffix, []).append(
-                    (name, vals, max(vals) - min(vals)))
+        if rerun > 1:
+            # keyed by CELL, not by metric: telling a replicate from a later checkpoint needs
+            # this cell's unimodal scores alongside its aggregator and ITM scores
+            repeats[name] = {k: v for k, v in seen.items() if len(v) > 1}
 
     if not parsed:
         # never report an empty comparison as if it were a negative result

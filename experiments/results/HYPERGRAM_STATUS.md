@@ -128,6 +128,32 @@ loads them by relative path deep inside model construction: a missing file other
 as a traceback on all four ranks after the data pipeline has spun up. `srun --chdir` puts the
 ranks in their root so those relative paths resolve at all.
 
+## The training set is equal — verified in code, not assumed
+
+Both forks build the VAST-150k training set through `data/IndexAnno.py`, under the dataset
+name `finetune_area`, with structurally identical filters:
+
+```python
+# ours                                  # theirs
+path = audio/f"{clip_id}.wav"           path = audio/f"{clip_id}.mp3"
+if exists(path):                        if exists(path):
+    path = vision/f"{clip_id}.mp4"          path = vision/f"{clip_id}.mp4"
+    if exists(path):                        if exists(path):
+        keep(key)                               keep(key)
+```
+
+Only the audio extension differs. `audios_wav/` holds `.wav` exclusively, and the shim's farm
+links exactly the ids that have a readable source there, so their `.mp3` test selects the same
+ids ours does. Both methods therefore train on `{.wav} ∩ {.mp4}` — the same clips.
+
+Of 150,154 annotation ids, 136,674 (91.0%) have audio; the rest are dropped by BOTH sides.
+Our `IndexAnno` does have a `vast27m` branch that keeps video-only clips and masks the missing
+audio, but `config/sca/pretrain_cfg/sca_paper.json` uses `finetune_area`, so that branch is
+not in play for any reported row.
+
+**Do not re-open this as a data-parity concern.** It was raised on a partial reading of the
+filter and closed against the source.
+
 ## Their repository also implements PMRL
 
 `model/gram.py:93` -- `geometry_mode` accepts `'pmrl'`, `'pmrl_volume'` and `'hybrid_pmrl'`

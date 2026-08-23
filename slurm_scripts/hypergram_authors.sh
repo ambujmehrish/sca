@@ -77,10 +77,32 @@ HG_ROOT="${HYPERGRAM_ROOT:-$WORK_ROOT/hypergram}"
 # level, so their code will not import at all without it -- this is a packaging omission on
 # their side, not a difference in method. Supplying ours as a SYMLINK adds a missing dependency
 # without editing a line of their code.
+[ -d "$CODE_DIR/evaluation_tools" ] || {
+  echo "FATAL: $CODE_DIR/evaluation_tools missing -- nothing to supply from" >&2; exit 2; }
 if [ ! -e "$HG_ROOT/evaluation_tools" ]; then
-  ln -s "$CODE_DIR/evaluation_tools" "$HG_ROOT/evaluation_tools" \
-    && echo "linked evaluation_tools -> $CODE_DIR/evaluation_tools (their repo omits it)"
+  ln -s "$CODE_DIR/evaluation_tools" "$HG_ROOT/evaluation_tools" || {
+    echo "FATAL: could not link evaluation_tools into $HG_ROOT (read-only checkout?)" >&2
+    exit 2; }
+  echo "linked evaluation_tools -> $CODE_DIR/evaluation_tools (their repo omits it)"
+else
+  echo "evaluation_tools already present in $HG_ROOT"
 fi
+# Verify it actually IMPORTS from their root. The previous attempt created the link and still
+# died on ModuleNotFoundError, so existence on disk is not the property that matters --
+# importability from the directory their run.py executes in is. Checked here, loudly, rather
+# than discovered four ranks deep in a torchrun traceback.
+( cd "$HG_ROOT" && python3 -c "import evaluation_tools" ) 2>/dev/null || {
+  echo "FATAL: evaluation_tools is on disk at $HG_ROOT but does not import from there." >&2
+  echo "       ls -l $HG_ROOT/evaluation_tools" >&2
+  ls -l "$HG_ROOT/evaluation_tools" >&2
+  echo "       (a dangling symlink, or a package with no __init__.py, looks exactly like" >&2
+  echo "        this from inside torchrun)" >&2
+  exit 2; }
+# srun does not necessarily inherit the subshell's cwd, and sys.path[0] under
+# `python3 -m torch.distributed.launch` is whatever cwd the RANKS start in -- which is why the
+# link on disk was not enough. Naming their root explicitly makes the import independent of
+# that. HG_ROOT goes FIRST so their modules still shadow ours everywhere else.
+export PYTHONPATH="$HG_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
 # Their repo must otherwise be pristine. A local edit would make this our code again under
 # their name, which is the whole thing this job exists to avoid. The two exclusions are the

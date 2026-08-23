@@ -106,3 +106,27 @@ def test_val_annotations_come_from_our_tree_with_a_loud_failure_if_absent():
     does not exist."""
     assert 'their repo ships no' in SRC
     assert 'val annotation' in SRC and 'FATAL' in SRC
+
+
+def test_the_dependency_link_is_verified_by_importing_not_by_existing():
+    """The first attempt created the symlink and still died on ModuleNotFoundError across all
+    four ranks. Existence on disk is not the property that matters -- importability from the
+    directory their ranks actually start in is, and srun does not necessarily inherit the
+    subshell's cwd. So the launcher imports it for real before spending a node, and names
+    their root on PYTHONPATH so the import does not depend on cwd at all."""
+    assert 'python3 -c "import evaluation_tools"' in LAUNCH, \
+        'the link is assumed to work rather than checked'
+    assert 'does not import from there' in LAUNCH
+    assert 'export PYTHONPATH="$HG_ROOT' in LAUNCH, \
+        'their root must be on PYTHONPATH, since sys.path[0] under torchrun is the ranks\\' cwd'
+    # and it must come FIRST, or our modules would shadow theirs
+    line = [l for l in LAUNCH.splitlines() if l.startswith('export PYTHONPATH=')][0]
+    assert line.index('$HG_ROOT') < line.index('PYTHONPATH:+'), \
+        'HG_ROOT must precede the inherited path so their code still wins'
+
+
+def test_a_failed_link_is_fatal_rather_than_silent():
+    """`ln -s ... && echo` swallowed the failure: no link, no message, and the job ran on to
+    die inside torchrun instead."""
+    assert 'could not link evaluation_tools' in LAUNCH
+    assert 'ln -s "$CODE_DIR/evaluation_tools" "$HG_ROOT/evaluation_tools" || {' in LAUNCH

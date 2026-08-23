@@ -106,6 +106,13 @@ def main():
     cfg['run_cfg']['checkpoint'] = os.path.abspath(args.checkpoint)
     cfg['run_cfg']['zero_shot'] = True
     cfg['run_cfg']['output_dir'] = 'output_pmrl_released_%s' % args.bench
+    # run.py:28 reads run_cfg.log_name for wandb.init(name=...), and their released
+    # default_run_cfg.json does not define it -- their own experiment configs must have. It is
+    # a logging label and nothing else: no code path reads it again. Supplied here so the run
+    # does not die at line 28 having loaded a 5.6 GB checkpoint. Every other unset attribute
+    # their code touches (valid_steps, beam_size, prompt, ...) is either commented out in
+    # utils/args.py or lives on the training path, which mode=testing never enters.
+    cfg['run_cfg']['log_name'] = 'pmrl_released_%s' % args.bench
     # Their configs inherit from ./config/vast/, a directory the release does not ship. The
     # launcher links config/vast -> config/pmrl, whose default_model_cfg.json IS the VAST
     # default (it still says model_type "vast"), so the inheritance resolves to what they meant.
@@ -133,6 +140,9 @@ def main():
                        'with strict=False, so leaving it would have evaluated a partly random '
                        'model without any error'),
         'benchmark': args.bench,
+        'log_name': ('supplied because run.py:28 reads run_cfg.log_name for the wandb run '
+                     'name and their released default_run_cfg.json omits it. A logging label '
+                     'only -- no other code path reads it.'),
     }
 
     out = args.out or 'config/pmrl/finetune_cfg/repro_released_%s.json' % args.bench

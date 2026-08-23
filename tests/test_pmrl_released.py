@@ -130,3 +130,23 @@ def test_bytecode_caches_do_not_count_as_a_modified_checkout():
 def test_the_import_stub_is_installed_atomically():
     """Five tasks writing the same file directly can interleave into a truncated module."""
     assert 'STUB_TMP' in LAUNCH and 'mv -f "$STUB_TMP" "$STUB"' in LAUNCH
+
+
+def test_log_name_is_supplied_because_their_default_omits_it():
+    """run.py:28 reads run_cfg.log_name for wandb.init and their released default_run_cfg.json
+    does not define it, so the run died there having already loaded a 5.6 GB checkpoint. It is
+    a logging label; supplying it changes no measured quantity, and it is recorded as an
+    addition rather than passed off as theirs."""
+    assert "cfg['run_cfg']['log_name']" in SRC
+    assert 'run.py:28' in SRC
+    assert "'log_name':" in SRC, 'the addition must be recorded in _repro_note'
+
+
+def test_the_load_check_is_skipped_when_the_run_itself_failed():
+    """Otherwise a crash is reported as "the log does not record missing/unexpected keys",
+    which describes a different problem and hides the real one."""
+    assert 'if [ $rc -ne 0 ]; then' in LAUNCH
+    assert 'The real error is above this line' in LAUNCH
+    i_guard = LAUNCH.index('the checkpoint-load check is skipped')
+    i_check = LAUNCH.index('the log does not record missing/unexpected keys')
+    assert i_guard < i_check, 'the skip must come before the check it guards'

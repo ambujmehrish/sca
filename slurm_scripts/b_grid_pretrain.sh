@@ -230,14 +230,28 @@ source "$HELPER" || { echo "FATAL: cannot source $HELPER" >&2; exit 2; }
 command -v claim_outdir >/dev/null || {
   echo "FATAL: sourced $HELPER but claim_outdir is not defined." >&2; exit 2; }
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6 X6_xenc_1ep_lr2e5 X7_xenc_1ep_lr5e6 X8_xenclr_1e6 X9_xenclr_2e6 X10_xenclr_5e7 X11_xenc_top2 X12_xenc_top4 X13_xenclr_2e6_itm05)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6 X6_xenc_1ep_lr2e5 X7_xenc_1ep_lr5e6 X8_xenclr_1e6 X9_xenclr_2e6 X10_xenclr_5e7 X11_xenc_top2 X12_xenc_top4 X13_xenclr_2e6_itm05 R1_itm_vas R2_itm_top50 R3_itm_top50_n4 R4_itm_vas_top50_n4)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-40)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-$((${#ARMS[@]} - 1)))" >&2;
+  exit 2; }
 
-CFG="config/sca/ablations/${ARM}.json"
-[ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }
+# Arms live in ablations/ (the sweep) or reranker/ (the stage-2 arms). Searched rather than
+# hardcoded, and a name present in BOTH is fatal: two configs answering to one arm name is
+# how a cell gets scored with a geometry it was not trained with, which audit_eval_geometry
+# has already caught 25 times.
+CFG=""
+for d in config/sca/ablations config/sca/reranker; do
+  if [ -f "$d/${ARM}.json" ]; then
+    [ -z "$CFG" ] || { echo "FATAL: $ARM exists in more than one config directory:" >&2
+      echo "         $CFG" >&2; echo "         $d/${ARM}.json" >&2
+      echo "       Rename one -- an arm name must identify exactly one config." >&2; exit 2; }
+    CFG="$d/${ARM}.json"
+  fi
+done
+[ -n "$CFG" ] || { echo "FATAL: no config for arm $ARM in config/sca/{ablations,reranker}" >&2
+  exit 2; }
 OUT="workdir_pretrain/$(echo "$ARM" | tr 'A-Z' 'a-z')"
 
 # Refuse to start if another live job is already writing this directory. A duplicate
@@ -273,6 +287,11 @@ m, r, d = c['model_cfg'], c['run_cfg'], c['data_cfg']['train'][0]
 print('model  : %s' % m.get('model_type', 'sca'))
 print('batch  : %d  (epochs %d)' % (d['batch_size'], d['epoch']))
 print('lr     : %s' % r.get('learning_rate'))
+# The stage-2 knobs, printed for every arm. An arm whose name promises hard negatives
+# and whose config does not carry them is the failure mode this whole block exists for.
+print('itm    : neg_topk=%s num_neg=%s condition=%s' % (
+    m.get('itm_neg_topk', 0) or 'all', m.get('itm_num_neg', 1) or 1,
+    m.get('itm_condition_key', 'va')))
 if m.get('use_lora'):
     print('rank   : %s  (alpha %s)' % (m.get('lora_r_vision'), m.get('lora_alpha')))
     print('xenc   : freeze_mm=%s r_text=%s xenc_lr=%s top_layers=%s'

@@ -1,0 +1,7 @@
+
+=== t9_qweight_only
+CONTROL FAILED: gamma=0 does not reproduce workdir/e1_frames.
+  didemo        baseline 51.5  gamma=0 51.3  (-0.2)
+gamma=0 skips every extra cross-encoder pass, so it must be the untouched
+protocol. It is not, which means the plumbing changed the baseline and the
+rows below would be measuring two things at once. Fix this first.

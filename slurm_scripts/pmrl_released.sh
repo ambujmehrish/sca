@@ -25,8 +25,12 @@
 #
 #   GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/Xiaohao-Liu/PMRL \
 #     "$WORK_ROOT/pmrl"
-#   huggingface-cli download xhLiu/PMRL model_ckpts/pmrl_base.pt \
+#   HF_HUB_OFFLINE=0 huggingface-cli download xhLiu/PMRL model_ckpts/pmrl_base.pt \
 #     --local-dir "$WORK_ROOT/pmrl_weights"
+#
+#   HF_HUB_OFFLINE=0 is load-bearing: $MODELS_DIR/env.sh sets HF_HUB_OFFLINE=1 so compute
+#   nodes never reach for the network, and with it set the download reports
+#   LocalEntryNotFoundError ("check your connection") rather than an offline-mode error.
 #
 #   sbatch slurm_scripts/pmrl_released.sh                 # all five benchmarks
 #   sbatch --array=0 slurm_scripts/pmrl_released.sh       # MSR-VTT alone
@@ -58,8 +62,11 @@ PM_CKPT="${PMRL_CKPT:-$WORK_ROOT/pmrl_weights/model_ckpts/pmrl_base.pt}"
   echo "    \"$PM_ROOT\"   (or set PMRL_ROOT)" >&2; exit 2; }
 [ -f "$PM_CKPT" ] || {
   echo "FATAL: released checkpoint not at $PM_CKPT. Fetch it on a LOGIN node:" >&2
-  echo "  huggingface-cli download xhLiu/PMRL model_ckpts/pmrl_base.pt \\" >&2
-  echo "    --local-dir \"$WORK_ROOT/pmrl_weights\"   (5.6 GB; or set PMRL_CKPT)" >&2; exit 2; }
+  echo "  HF_HUB_OFFLINE=0 huggingface-cli download xhLiu/PMRL model_ckpts/pmrl_base.pt \\" >&2
+  echo "    --local-dir \"$WORK_ROOT/pmrl_weights\"   (5.6 GB; or set PMRL_CKPT)" >&2
+  echo "  HF_HUB_OFFLINE=0 matters: \$MODELS_DIR/env.sh sets HF_HUB_OFFLINE=1, and the" >&2
+  echo "  download then fails as LocalEntryNotFoundError, which reads like a network fault." >&2
+  exit 2; }
 
 # ---- the three things their release omits. Symlinks and one stub; no edit to their code.
 link_dep() {                          # link_dep <path-in-their-tree> <target> <what it is>

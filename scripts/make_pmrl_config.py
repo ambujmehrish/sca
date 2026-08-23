@@ -63,9 +63,14 @@ def main():
     if not os.path.exists(src):
         sys.exit('FATAL: %s not found -- is --pmrl_root a PMRL checkout?' % src)
     if not os.path.exists(args.checkpoint):
-        sys.exit('FATAL: checkpoint %s not found. Fetch it with:\n'
-                 '  huggingface-cli download xhLiu/PMRL model_ckpts/pmrl_base.pt \\\n'
-                 '      --local-dir $WORK_ROOT/pmrl_weights' % args.checkpoint)
+        sys.exit('FATAL: checkpoint %s not found. Fetch it on a LOGIN node with:\n'
+                 '  HF_HUB_OFFLINE=0 huggingface-cli download xhLiu/PMRL '
+                 'model_ckpts/pmrl_base.pt \\\n'
+                 '      --local-dir $WORK_ROOT/pmrl_weights\n'
+                 '  (HF_HUB_OFFLINE=0 is required: $MODELS_DIR/env.sh sets it to 1 for the\n'
+                 '   compute nodes, and the download then fails as LocalEntryNotFoundError,\n'
+                 '   which reads like a network fault rather than offline mode.)'
+                 % args.checkpoint)
 
     code_dir = os.environ.get('CODE_DIR') or os.path.join(
         os.path.dirname(os.path.abspath(__file__)), '..')

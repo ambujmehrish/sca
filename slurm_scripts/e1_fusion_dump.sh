@@ -83,12 +83,32 @@ SCA_CKPT="${SCA_CKPT:-$(best_ckpt "$SCA_ARM")}"
 echo "GRAM released : $GRAM_RELEASED_CKPT"
 echo "SCA ($SCA_ARM): $SCA_CKPT"
 
-# msrvtt uses the configs_depth T-VAS config; configs_e1 has no sca_msrvtt.
+# The eval config must match the geometry the arm was TRAINED with, read from its own
+# hps.json. Hardcoding configs_e1 was right while the only SCA arm was the uniform-centroid
+# one; pointing SCA_ARM at a query-weighted checkpoint (t9 and every arm since) would then
+# score it with uniform weights. Nothing would raise -- the shapes are identical -- and the
+# dump would describe a model that was never trained. frameset_eval.sh had the same defect.
 cfg_for() {
-  case "$1|$2" in
-    sca\|msrvtt)  echo "benchmark_eval/configs_depth/sca_msrvtt_tvas.json" ;;
-    sca\|*)       echo "benchmark_eval/configs_e1/sca_$2.json" ;;
-    released\|*)  echo "benchmark_eval/configs_e1/gram_$2.json" ;;
+  local arm="$1" bench="$2"
+  if [ "$arm" = released ]; then echo "benchmark_eval/configs_e1/gram_$bench.json"; return; fi
+  local dir
+  dir=$(python3 -c "
+import json, sys
+try:
+    m = json.load(open('$SCA_ARM/log/hps.json'))['model_cfg']
+except Exception as e:
+    sys.exit('NOHPS %s' % e)
+if m.get('sca_frame_slots'):        print('configs_frames')
+elif m.get('sca_query_weighting'):  print('configs_qweight')
+else:                               print('configs_e1')
+" 2>/dev/null)
+  case "$dir" in
+    configs_frames|configs_qweight) echo "benchmark_eval/$dir/sca_$bench.json" ;;
+    configs_e1) # configs_e1 had no sca_msrvtt until recently; prefer the T-VAS config there
+      if [ "$bench" = msrvtt ] && [ -f benchmark_eval/configs_depth/sca_msrvtt_tvas.json ]; then
+        echo "benchmark_eval/configs_depth/sca_msrvtt_tvas.json"
+      else echo "benchmark_eval/configs_e1/sca_$bench.json"; fi ;;
+    *) echo "NOCFG" ;;
   esac
 }
 
@@ -98,6 +118,8 @@ for arm in released sca; do
   [ "$arm" = released ] && ckpt="$GRAM_RELEASED_CKPT" || ckpt="$SCA_CKPT"
   for bench in msrvtt didemo activitynet vatex audiocaps; do
     cfg=$(cfg_for "$arm" "$bench")
+    [ "$cfg" != NOCFG ] || { echo "== [$arm/$bench] SKIP: cannot read $SCA_ARM/log/hps.json --" >&2
+      echo "   refusing to guess the scoring geometry from the arm name." >&2; rc_all=2; continue; }
     [ -f "$cfg" ] || { echo "== [$arm/$bench] SKIP: no config at $cfg" >&2; rc_all=2; continue; }
     out="workdir/e1_fusion/${arm}_${bench}"
     cell_is_done "$out" "$cfg" && { echo "== [$arm/$bench] already done, skip"; continue; }

@@ -37,26 +37,11 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from repro_common import anno_ids                                   # noqa: E402
+
 # The extensions their reader accepts, in the order it tries them.
 READ_ORDER = ('', '.wav', '.mp3', '.mkv')
-ID_KEYS = ('clip_id', 'video_id', 'image_id', 'image', 'id')
-
-
-def anno_ids(path):
-    annos = json.load(open(path))
-    if not isinstance(annos, list):
-        sys.exit('FATAL: %s is not a list of annotations.' % path)
-    ids = []
-    for a in annos:
-        if not isinstance(a, dict):
-            sys.exit('FATAL: %s contains a non-object entry.' % path)
-        for k in ID_KEYS:
-            if k in a:
-                ids.append(str(a[k]).split('.')[0] if k == 'video_id' else str(a[k]))
-                break
-        else:
-            sys.exit('FATAL: an entry of %s has none of %s' % (path, ', '.join(ID_KEYS)))
-    return ids
 
 
 def find_source(audio_dir, id_):

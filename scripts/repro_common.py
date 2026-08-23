@@ -17,6 +17,21 @@ def task_modalities(task):
     return set(''.join(task.split('%')[1:]))
 
 
+# Only a real media extension is stripped from an id. VAST clip_ids contain a dot as part of
+# the id itself -- `G1DRYgjsZTw.63` is one clip -- so a blind split('.')[0] turns every clip
+# into a different, nonexistent one. That bug made a farm of 136,674 correct symlinks look
+# like zero matches.
+MEDIA_EXT = ('.mp4', '.mp3', '.wav', '.mkv', '.avi', '.webm', '.flac', '.m4a')
+
+
+def strip_media_ext(value):
+    s = str(value)
+    for ext in MEDIA_EXT:
+        if s.lower().endswith(ext):
+            return s[:-len(ext)]
+    return s
+
+
 def anno_ids(txt, limit=None):
     annos = json.load(open(txt))
     if not isinstance(annos, list):
@@ -25,7 +40,7 @@ def anno_ids(txt, limit=None):
     for a in annos:
         for k in ID_KEYS:
             if k in a:
-                ids.append(str(a[k]).split('.')[0])
+                ids.append(strip_media_ext(a[k]))
                 break
         if limit and len(ids) >= limit:
             break

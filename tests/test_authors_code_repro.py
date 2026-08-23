@@ -445,3 +445,23 @@ def test_without_the_flag_a_subtitleless_file_still_refuses(hypergram_sandbox):
     r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
     assert r.returncode == 1 and cfg is None
     assert '--drop_subtitle_task does exactly that' in r.stdout + r.stderr
+
+
+def test_a_dotted_clip_id_survives_id_derivation(tmp_path):
+    """VAST clip ids contain a dot as part of the id: `G1DRYgjsZTw.63` is one clip. A blind
+    split('.')[0] turns it into a different, nonexistent clip -- which made a farm of 136,674
+    correct symlinks report zero matches. Only a real media extension may be stripped, and the
+    shim and the resolver must agree, so they share one function."""
+    import sys
+    sys.path.insert(0, 'scripts')
+    from repro_common import anno_ids, strip_media_ext
+    (tmp_path / 'a.json').write_text(json.dumps(
+        [{'clip_id': 'G1DRYgjsZTw.63'}, {'clip_id': 'dGKjwnqs3AA.0'}]))
+    assert anno_ids(str(tmp_path / 'a.json')) == ['G1DRYgjsZTw.63', 'dGKjwnqs3AA.0']
+    assert strip_media_ext('Y7fmOlUlwoNg.mp4') == 'Y7fmOlUlwoNg'
+    assert strip_media_ext('clip.63') == 'clip.63'
+    shim = open('scripts/hypergram_audio_shim.py').read()
+    assert 'from repro_common import anno_ids' in shim, \
+        'the shim must derive ids the same way the resolver does, or the farm it builds is '\
+        'invisible to the check that consumes it'
+    assert 'def anno_ids' not in shim

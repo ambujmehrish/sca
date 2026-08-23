@@ -152,7 +152,8 @@ echo "authors' code : $HG_ROOT @ $(git -C "$HG_ROOT" rev-parse --short HEAD 2>/d
 
 CFG_REL="configs/pretrain/repro_${MODE}_ours_paths.json"
 python3 scripts/make_hypergram_config.py --hypergram_root "$HG_ROOT" \
-  --geometry_mode "$MODE" ${SCA_HG_ALLOW_ANNO:+--allow_annotation_mismatch} || exit 2
+  --geometry_mode "$MODE" ${SCA_HG_ALLOW_ANNO:+--allow_annotation_mismatch} \
+  ${SCA_HG_DROP_SUB:+--drop_subtitle_task} || exit 2
 
 # The encoder checkpoints, checked HERE rather than 38 seconds into a four-way array. Their
 # code loads them by relative path from inside model construction, so a missing file surfaces

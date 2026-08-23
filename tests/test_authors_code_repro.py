@@ -85,17 +85,19 @@ def test_the_superseded_reimplementation_rows_are_refused():
     assert 'RETIRED -- do not run' in src.split('\n')[15:25][0] or 'RETIRED' in src[:2000]
 
 
-def test_the_missing_vendored_package_is_supplied_by_symlink_not_by_editing():
-    """Their repo ships no evaluation_tools/ -- the caption-eval package both forks inherit
-    from VAST -- and evaluation/evaluation_mm.py imports it at module level, so their code
-    does not import at all without it. That is a packaging omission, not a difference in
+def test_the_missing_directories_are_supplied_by_symlink_not_by_editing():
+    """Their repo ships neither evaluation_tools/ -- the caption-eval package both forks
+    inherit from VAST, imported at module level by evaluation/evaluation_mm.py -- nor
+    pretrained_weights/, the encoder checkpoints their own default_model_cfg.json names and
+    their model code loads by relative path. Both are packaging omissions, not differences in
     method, and the fix must be a symlink rather than a patch: copying files in, or editing
-    their imports, would make the run our code under their name."""
-    assert 'ln -s "$CODE_DIR/evaluation_tools"' in LAUNCH
-    assert 'packaging omission on' in LAUNCH
-    # and the dirty check must not then reject the very link it created
-    assert "':!evaluation_tools'" in LAUNCH, \
-        'the dirty check would refuse the checkout it just linked into'
+    their paths, would make the run our code under their name."""
+    assert 'ln -s "$CODE_DIR/$name" "$HG_ROOT/$name"' in LAUNCH
+    for dep in ('evaluation_tools', 'pretrained_weights'):
+        assert 'link_dep %s ' % dep in LAUNCH, 'no dependency link for %s' % dep
+        # and the dirty check must not then reject the very link it created
+        assert "':!%s'" % dep in LAUNCH, \
+            'the dirty check would refuse the %s link it just created' % dep
 
 
 def test_val_annotations_come_from_our_tree_with_a_loud_failure_if_absent():
@@ -128,5 +130,30 @@ def test_the_dependency_link_is_verified_by_importing_not_by_existing():
 def test_a_failed_link_is_fatal_rather_than_silent():
     """`ln -s ... && echo` swallowed the failure: no link, no message, and the job ran on to
     die inside torchrun instead."""
-    assert 'could not link evaluation_tools' in LAUNCH
-    assert 'ln -s "$CODE_DIR/evaluation_tools" "$HG_ROOT/evaluation_tools" || {' in LAUNCH
+    assert 'could not link $name' in LAUNCH
+    assert 'ln -s "$CODE_DIR/$name" "$HG_ROOT/$name" || {' in LAUNCH
+    for dep in ('evaluation_tools', 'pretrained_weights'):
+        call = [l for l in LAUNCH.splitlines() if l.startswith('link_dep %s ' % dep)]
+        assert call and call[0].endswith('|| exit 2'), \
+            'link_dep %s must abort the job when it fails, got %r' % (dep, call)
+
+
+def test_the_encoder_weights_are_checked_before_a_node_is_spent():
+    """Their model code loads encoder checkpoints by relative path from inside model
+    construction, so a missing file surfaces as a torchrun traceback on all four ranks after
+    the run has already started -- which is how EVA01_CLIP_g_14 was discovered, 38 seconds
+    into a four-way array. The check reads the RESOLVED config rather than assuming the
+    encoder, and an unrecognised encoder name is fatal instead of skipped."""
+    assert 'vision_encoder_type' in LAUNCH and 'audio_encoder_type' in LAUNCH
+    assert 'default_model_cfg.json' in LAUNCH, \
+        'the encoder type comes from their defaults merged with this run"s model_cfg'
+    assert 'evaclip01_giant' in LAUNCH and 'BEATs_iter3_plus_AS2M.pt' in LAUNCH
+    assert 'bert/bert-base-uncased' in LAUNCH
+    assert 'is not one this pre-flight knows a weight file' in LAUNCH, \
+        'an unknown encoder must be fatal, not silently unchecked'
+
+
+def test_the_ranks_are_placed_in_their_root_explicitly():
+    """Every relative path their code hardcodes resolves inside the RANKS, and the subshell's
+    `cd` only sets the cwd of srun itself."""
+    assert 'srun --chdir="$HG_ROOT"' in LAUNCH

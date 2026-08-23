@@ -72,21 +72,34 @@ HG_ROOT="${HYPERGRAM_ROOT:-$WORK_ROOT/hypergram}"
   echo "    \"$HG_ROOT\"" >&2
   echo "  (or set HYPERGRAM_ROOT)" >&2; exit 2; }
 
-# Their repo omits evaluation_tools/, the vendored caption-eval package (pycocoevalcap and
-# friends) that both forks inherit from VAST. evaluation/evaluation_mm.py imports it at module
-# level, so their code will not import at all without it -- this is a packaging omission on
-# their side, not a difference in method. Supplying ours as a SYMLINK adds a missing dependency
-# without editing a line of their code.
-[ -d "$CODE_DIR/evaluation_tools" ] || {
-  echo "FATAL: $CODE_DIR/evaluation_tools missing -- nothing to supply from" >&2; exit 2; }
-if [ ! -e "$HG_ROOT/evaluation_tools" ]; then
-  ln -s "$CODE_DIR/evaluation_tools" "$HG_ROOT/evaluation_tools" || {
-    echo "FATAL: could not link evaluation_tools into $HG_ROOT (read-only checkout?)" >&2
-    exit 2; }
-  echo "linked evaluation_tools -> $CODE_DIR/evaluation_tools (their repo omits it)"
-else
-  echo "evaluation_tools already present in $HG_ROOT"
-fi
+# Their repo omits two directories that both forks inherit from VAST, and neither omission is
+# a difference in method -- they are things the published tarball simply does not carry:
+#
+#   evaluation_tools/    the vendored caption-eval package (pycocoevalcap and friends).
+#                        evaluation/evaluation_mm.py imports it at module level, so their code
+#                        does not import at all without it.
+#   pretrained_weights/  the encoder checkpoints their own configs/default_model_cfg.json
+#                        names. model/general_module.py and model/gram.py load them by
+#                        RELATIVE path (./pretrained_weights/...), so they must exist under
+#                        their root, not merely somewhere on the system.
+#
+# Supplying ours as SYMLINKS adds the missing dependencies without editing a line of their
+# code. Copying files in, or patching their paths, would make the run our code under their
+# name -- which is the one thing this job exists to avoid.
+link_dep() {                          # link_dep <dirname> <what it is>
+  local name="$1" what="$2"
+  [ -e "$CODE_DIR/$name" ] || {
+    echo "FATAL: $CODE_DIR/$name missing -- nothing to supply from ($what)" >&2; return 1; }
+  if [ ! -e "$HG_ROOT/$name" ]; then
+    ln -s "$CODE_DIR/$name" "$HG_ROOT/$name" || {
+      echo "FATAL: could not link $name into $HG_ROOT (read-only checkout?)" >&2; return 1; }
+    echo "linked $name -> $CODE_DIR/$name (their repo omits it)"
+  else
+    echo "$name already present in $HG_ROOT"
+  fi
+}
+link_dep evaluation_tools "the vendored caption-eval package" || exit 2
+link_dep pretrained_weights "the encoder checkpoints their configs name" || exit 2
 # Verify it actually IMPORTS from their root. The previous attempt created the link and still
 # died on ModuleNotFoundError, so existence on disk is not the property that matters --
 # importability from the directory their run.py executes in is. Checked here, loudly, rather
@@ -108,7 +121,8 @@ export PYTHONPATH="$HG_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 # their name, which is the whole thing this job exists to avoid. The two exclusions are the
 # configs we generate and the dependency symlink above -- neither is a change to their method.
 DIRTY=$(git -C "$HG_ROOT" status --porcelain \
-          -- ':!configs/pretrain/repro_*' ':!evaluation_tools' 2>/dev/null | head -5)
+          -- ':!configs/pretrain/repro_*' ':!evaluation_tools' ':!pretrained_weights' \
+          2>/dev/null | head -5)
 if [ -n "$DIRTY" ]; then
   echo "FATAL: $HG_ROOT has local modifications outside the generated configs:" >&2
   echo "$DIRTY" >&2
@@ -120,6 +134,57 @@ echo "authors' code : $HG_ROOT @ $(git -C "$HG_ROOT" rev-parse --short HEAD 2>/d
 CFG_REL="configs/pretrain/repro_${MODE}_ours_paths.json"
 python3 scripts/make_hypergram_config.py --hypergram_root "$HG_ROOT" \
   --geometry_mode "$MODE" ${SCA_HG_ALLOW_ANNO:+--allow_annotation_mismatch} || exit 2
+
+# The encoder checkpoints, checked HERE rather than 38 seconds into a four-way array. Their
+# code loads them by relative path from inside model construction, so a missing file surfaces
+# as a torchrun traceback on every rank after the data pipeline has already spun up. Which
+# files are needed is read from the RESOLVED config (their defaults, then this run's
+# model_cfg) rather than assumed: a config naming a different encoder must be checked against
+# the file THAT encoder loads, and an encoder name with no known file is fatal, not skipped.
+python3 - "$HG_ROOT" "$CFG_REL" <<'PREFLIGHT' || exit 2
+import json, os, sys
+root, cfg_rel = sys.argv[1], sys.argv[2]
+VISION = {'evaclip01_giant':        'clip/EVA01_CLIP_g_14_psz14_s11B.pt',
+          'evaclip02_base':         'clip/EVA02_CLIP_B_psz16_s8B.pt',
+          'evaclip02_base_self':    'clip/EVA02_B_psz14to16.pt',
+          'evaclip02_large':        'clip/EVA02_CLIP_L_psz14_s4B.pt',
+          'evaclip02_bige':         'clip/EVA02_CLIP_E_psz14_plus_s9B.pt',
+          'clip_vit_base_16':       'clip/ViT-B-16.pt',
+          'clip_vit_base_32':       'clip/ViT-B-32.pt',
+          'clip_vit_large_14_336px': 'clip/ViT-L-14-336px.pt',
+          'videoswin_base_k600_22k': 'videoswin_base_k600_22k.pth'}
+AUDIO = {'beat': 'beats/BEATs_iter3_plus_AS2M.pt', 'ast': 'audioset_10_10_0.4593.pth'}
+
+mcfg = json.load(open(os.path.join(root, 'configs/default_model_cfg.json')))
+mcfg.update(json.load(open(os.path.join(root, cfg_rel))).get('model_cfg', {}))
+vt, at = mcfg.get('vision_encoder_type'), mcfg.get('audio_encoder_type')
+
+need = {'text/multimodal (BertForMaskedLM + tokenizer)': 'bert/bert-base-uncased'}
+if vt not in VISION:
+    sys.exit('FATAL: vision_encoder_type %r is not one this pre-flight knows a weight file\n'
+             '       for. Add it from their model/general_module.py::load_clip_model rather\n'
+             '       than letting the run find out.' % vt)
+need['vision (%s)' % vt] = VISION[vt]
+audio = [f for p, f in AUDIO.items() if (at or '').startswith(p)]
+if not audio:
+    sys.exit('FATAL: audio_encoder_type %r matches neither "beat*" nor "ast*", the two\n'
+             '       branches in their construct_audio_encoder.' % at)
+need['audio (%s)' % at] = audio[0]
+
+missing = []
+for what, rel in sorted(need.items()):
+    p = os.path.join(root, 'pretrained_weights', rel)
+    print('  %-46s %s %s' % (what, 'OK  ' if os.path.exists(p) else 'MISS', rel))
+    if not os.path.exists(p):
+        missing.append(p)
+if missing:
+    sys.exit('FATAL: their config names encoders whose weights are not under\n'
+             '       %s/pretrained_weights/ :\n         %s\n'
+             '       That directory is a symlink to $CODE_DIR/pretrained_weights, so the file\n'
+             '       has to be fetched there -- scripts/prefetch_models.py reports which of\n'
+             '       these it can download and which must come from the official release.'
+             % (root, '\n         '.join(missing)))
+PREFLIGHT
 
 OUT="workdir_pretrain/hgauth_${MODE}"
 mkdir -p "$OUT"
@@ -140,9 +205,12 @@ print('geom   : %s' % c['model_cfg']['geometry_mode'])
 print('anno   : %s' % n['annotations'])"
 echo "START=$(date +%T)"
 
-# run THEIR run.py from THEIR root, with our output dir
+# Run THEIR run.py from THEIR root, with our output dir. srun --chdir is what actually puts
+# the RANKS in $HG_ROOT: the subshell's `cd` sets the cwd of srun itself, and every relative
+# path their code hardcodes (./pretrained_weights/..., ./configs/...) is resolved inside the
+# ranks. The `cd` stays because $CFG_REL is passed relative.
 NOISE="mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($"
-( cd "$HG_ROOT" && srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 \
+( cd "$HG_ROOT" && srun --chdir="$HG_ROOT" python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 \
     --nproc_per_node 4 --master_port $((9800 + IDX)) \
     ./run.py --config "$CFG_REL" --output_dir "$CODE_DIR/$OUT" --checkpointing true 2>&1 ) \
   | { grep -v --line-buffered -E "$NOISE" || true; }

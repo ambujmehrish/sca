@@ -93,6 +93,41 @@ were answering a question that was never open, and the "two defensible readings"
 repeated in commit messages, launcher comments and analysis notes -- should be retracted
 wherever it appears.
 
+## Pretrained encoders their config loads
+
+From `configs/default_model_cfg.json` (`vision_encoder_type: evaclip01_giant`,
+`audio_encoder_type: beats`, `vision_resolution: 224`) resolved through
+`model/general_module.py` and `model/gram.py`. These are the SAME three encoders our runs
+use — the fork is shared, so no row in the table differs in its backbone.
+
+| role | encoder | weight file (relative to their root) | dim |
+|---|---|---|---|
+| vision | **EVA01-CLIP-g-14** (`evaclip01_giant`), 224px, patch 14 | `pretrained_weights/clip/EVA01_CLIP_g_14_psz14_s11B.pt` | 1408 |
+| audio | **BEATs** iter3+ , AudioSet-2M | `pretrained_weights/beats/BEATs_iter3_plus_AS2M.pt` | 768 |
+| text + multimodal fusion | **bert-base-uncased** (`BertForMaskedLM`, cross-attention layers are the ITM reranker) | `pretrained_weights/bert/bert-base-uncased` | 768 |
+
+The whole stack is then initialised from the **VAST foundation checkpoint**
+(`model_step_204994.pt`, `run_cfg.pretrain_dir`), so the encoders above are the architecture,
+not the starting point — VAST's weights overwrite them wherever they overlap.
+
+Subtitles use no separate encoder: `max_subtitle_len: 70` tokens go through the same BERT.
+
+## Three directories their release omits
+
+Not method differences — the published tarball just does not carry them. Each is supplied to
+their tree without editing a line of their code:
+
+| missing | what it is | how it is supplied |
+|---|---|---|
+| `evaluation_tools/` | vendored caption-eval package (pycocoevalcap et al.), imported at module level by `evaluation/evaluation_mm.py` | symlink to ours + `PYTHONPATH` |
+| `pretrained_weights/` | the three encoder checkpoints above, loaded by RELATIVE path from inside model construction | symlink to ours, checked before launch |
+| `datasets/` | the val annotation JSONs their config names (`datasets/annotations/<bench>/descs_ret_test.json`) | rewritten to ours by `make_hypergram_config.py` |
+
+The encoder weights are verified in `hypergram_authors.sh` **before** srun, because their code
+loads them by relative path deep inside model construction: a missing file otherwise appears
+as a traceback on all four ranks after the data pipeline has spun up. `srun --chdir` puts the
+ranks in their root so those relative paths resolve at all.
+
 ## Their repository also implements PMRL
 
 `model/gram.py:93` -- `geometry_mode` accepts `'pmrl'`, `'pmrl_volume'` and `'hybrid_pmrl'`

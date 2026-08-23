@@ -151,3 +151,35 @@ def test_the_load_check_is_skipped_when_the_run_itself_failed():
     i_guard = LAUNCH.index('if [ $rc -ne 0 ]; then')
     i_check = LAUNCH.index('python3 - "$OUT/run.log"')
     assert i_guard < i_check, 'the skip must come before the check it guards'
+
+
+def test_loss_hyperparameters_come_from_their_parser_not_from_us():
+    """model/pmrl.py:51-53 requires tau1/tau2/lambda_itm and no shipped config defines them --
+    utils/args.py:59 copies them into model_cfg only from --flags, so their own runs passed
+    them on the command line. The values are read out of their own argparse defaults, and a
+    missing one is fatal: an invented hyperparameter in a row labelled "authors' released
+    model" is the exact failure this setup exists to prevent."""
+    assert 'def argparse_defaults' in SRC
+    assert 'Do not guess one' in SRC
+    assert 'author_defaults' in SRC
+    for k in ('tau1', 'tau2', 'lambda_itm'):
+        assert k in SRC
+    # and the note must record that they cannot move the number
+    assert 'loss_hyperparameters' in SRC
+    assert 'computes no loss' in SRC
+
+
+def test_the_argparse_reader_refuses_an_absent_default(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('m', 'scripts/make_pmrl_config.py')
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    src = tmp_path / 'args.py'
+    src.write_text("parser.add_argument('--tau1', type=float, default=0.05)\n")
+    assert m.argparse_defaults(str(src), ('tau1',)) == {'tau1': 0.05}
+    try:
+        m.argparse_defaults(str(src), ('tau2',))
+    except SystemExit as e:
+        assert 'Do not guess one' in str(e)
+    else:
+        raise AssertionError('an absent default must be fatal, not defaulted')

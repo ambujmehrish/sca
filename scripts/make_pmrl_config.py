@@ -29,6 +29,7 @@ import argparse
 import collections
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +45,27 @@ BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
 FROZEN_MODEL = ('itm_rerank_num', 'evaluation_type', 'contra_dim', 'vision_encoder_type',
                 'audio_encoder_type', 'vision_resolution', 'max_caption_len',
                 'max_subtitle_len', 'frame_embedding_type')
+
+
+def argparse_defaults(args_py, names):
+    """Read default values straight out of THEIR utils/args.py.
+
+    model/pmrl.py requires tau1, tau2 and lambda_itm, and no config they ship defines them --
+    utils/args.py copies them into model_cfg only when passed as --flags, so their own runs
+    supplied them there. Rather than typing numbers from a paper, the values come from their
+    own parser, and a missing or unparsable one is fatal: an invented hyperparameter in a row
+    labelled "authors' released model" is exactly the thing this whole setup exists to avoid.
+    """
+    src = open(args_py).read()
+    out = {}
+    for n in names:
+        m = re.search(r"add_argument\(\s*['\"]--%s['\"][^)]*default\s*=\s*([0-9.eE+-]+)" % n, src)
+        if not m:
+            sys.exit('FATAL: no argparse default for --%s in %s. model/pmrl.py requires it and\n'
+                     '       no shipped config defines it, so there is no value that is theirs\n'
+                     '       rather than ours. Do not guess one.' % (n, args_py))
+        out[n] = float(m.group(1))
+    return out
 
 
 def main():
@@ -120,6 +142,23 @@ def main():
     # ---- model_type: the one model key this script sets, and the one that fails silently
     cfg['model_cfg']['model_type'] = 'pmrl'
 
+    # ---- tau1 / tau2 / lambda_itm
+    #
+    # model/pmrl.py:51-53 reads these and NO shipped config defines them: utils/args.py:59
+    # copies them into model_cfg only when they appear as --flags on the command line, so
+    # their own runs passed them there. The values are taken from their argparse defaults
+    # (utils/args.py:320-322) rather than chosen by us, and re-read from their source each
+    # time so this tracks their repo instead of freezing a number we typed.
+    #
+    # They cannot affect this row's numbers in any case. Every use is inside a loss:
+    #   pmrl.py:413,416   eigenvalues / tau1
+    #   pmrl.py:422       cross_entropy(... / tau2)
+    #   pmrl.py:476       lambda_itm * loss
+    # Nothing on the scoring path reads them, and mode=testing computes no loss at all.
+    author_defaults = argparse_defaults(os.path.join(root, 'utils/args.py'),
+                                        ('tau1', 'tau2', 'lambda_itm'))
+    cfg['model_cfg'].update(author_defaults)
+
     for k in FROZEN_MODEL:
         if k in before_model and before_model[k] != cfg['model_cfg'].get(k):
             sys.exit('FATAL: model_cfg.%s changed (%r -> %r). Only model_type may be set.'
@@ -140,6 +179,12 @@ def main():
                        'with strict=False, so leaving it would have evaluated a partly random '
                        'model without any error'),
         'benchmark': args.bench,
+        'loss_hyperparameters': (
+            'tau1/tau2/lambda_itm = %s, read from THEIR utils/args.py argparse defaults. '
+            'model/pmrl.py:51-53 requires them and no shipped config defines them (args.py:59 '
+            'copies them only from --flags). Every use is inside a loss term '
+            '(pmrl.py:413,416,422,476); nothing on the scoring path reads them and mode=testing '
+            'computes no loss, so they cannot affect this row.' % author_defaults),
         'log_name': ('supplied because run.py:28 reads run_cfg.log_name for the wandb run '
                      'name and their released default_run_cfg.json omits it. A logging label '
                      'only -- no other code path reads it.'),

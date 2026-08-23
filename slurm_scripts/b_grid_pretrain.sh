@@ -273,11 +273,29 @@ fi
 echo "arm    : $ARM"
 echo "config : $CFG"
 echo "outdir : $OUT"
+# Every line independent, and nothing indexed that an arm is allowed not to have. The
+# previous version read c['model_cfg']['lora_r_vision'] directly, so a non-LoRA arm (H1, the
+# HyperGRAM reproduction) raised KeyError on that line and the block died -- taking the
+# LEARNING RATE line with it. That is the one field H1 exists to verify, and its absence read
+# as a display quirk rather than as the check failing.
 python3 -c "
-import json;c=json.load(open('$CFG'))
-print('batch  : %d  (epochs %d)' % (c['data_cfg']['train'][0]['batch_size'], c['data_cfg']['train'][0]['epoch']))
-print('rank   : %d  (alpha %d)' % (c['model_cfg']['lora_r_vision'], c['model_cfg']['lora_alpha']))
-print('lr     : %s' % c['run_cfg']['learning_rate'])"
+import json
+c = json.load(open('$CFG'))
+m, r, d = c['model_cfg'], c['run_cfg'], c['data_cfg']['train'][0]
+print('model  : %s' % m.get('model_type', 'sca'))
+print('batch  : %d  (epochs %d)' % (d['batch_size'], d['epoch']))
+print('lr     : %s' % r.get('learning_rate'))
+if m.get('use_lora'):
+    print('rank   : %s  (alpha %s)' % (m.get('lora_r_vision'), m.get('lora_alpha')))
+    print('xenc   : freeze_mm=%s r_text=%s xenc_lr=%s top_layers=%s'
+          % (m.get('lora_freeze_multimodal', True), m.get('lora_r_text'),
+             r.get('xenc_lr'), m.get('xenc_train_layers', 0)))
+else:
+    print('rank   : (no adapter -- full fine-tune)')
+for k in ('sca_query_weighting', 'sca_tau_w', 'sca_frame_slots', 'hyp_use_prenorm', 'seed'):
+    v = m.get(k, r.get(k))
+    if v is not None:
+        print('%-7s: %s' % (k[:7], v))"
 echo "START=$(date +%T)"
 
 srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 --nproc_per_node 4 \

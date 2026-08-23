@@ -92,7 +92,7 @@ def test_the_missing_directories_are_supplied_by_symlink_not_by_editing():
     their model code loads by relative path. Both are packaging omissions, not differences in
     method, and the fix must be a symlink rather than a patch: copying files in, or editing
     their paths, would make the run our code under their name."""
-    assert 'ln -s "$CODE_DIR/$name" "$HG_ROOT/$name"' in LAUNCH
+    assert 'ln -s "$src" "$dst"' in LAUNCH, 'the dependency must be linked, not copied'
     for dep in ('evaluation_tools', 'pretrained_weights'):
         assert 'link_dep %s ' % dep in LAUNCH, 'no dependency link for %s' % dep
         # and the dirty check must not then reject the very link it created
@@ -131,11 +131,56 @@ def test_a_failed_link_is_fatal_rather_than_silent():
     """`ln -s ... && echo` swallowed the failure: no link, no message, and the job ran on to
     die inside torchrun instead."""
     assert 'could not link $name' in LAUNCH
-    assert 'ln -s "$CODE_DIR/$name" "$HG_ROOT/$name" || {' in LAUNCH
+    assert 'ln -s "$src" "$dst" || {' in LAUNCH
     for dep in ('evaluation_tools', 'pretrained_weights'):
         call = [l for l in LAUNCH.splitlines() if l.startswith('link_dep %s ' % dep)]
         assert call and call[0].endswith('|| exit 2'), \
             'link_dep %s must abort the job when it fails, got %r' % (dep, call)
+
+
+def _link_dep(tmp_path, name, code_has=True, preexisting=None):
+    """Run the launcher's own link_dep in a sandbox. Extracted rather than reimplemented --
+    a test of a copy of the function proves nothing about the one that runs on the cluster."""
+    import subprocess
+    fn = re.search(r'^link_dep\(\) \{.*?^\}', LAUNCH, re.S | re.M).group(0)
+    code, hg = tmp_path / 'code', tmp_path / 'hg'
+    (code / name).mkdir(parents=True, exist_ok=True) if code_has \
+        else code.mkdir(parents=True, exist_ok=True)
+    hg.mkdir(exist_ok=True)
+    if preexisting is not None:
+        (hg / name).unlink(missing_ok=True)
+        (hg / name).symlink_to(preexisting)
+    r = subprocess.run(['bash', '-c', '%s\nlink_dep %s "a dep"' % (fn, name)],
+                       capture_output=True, text=True,
+                       env={'CODE_DIR': str(code), 'HG_ROOT': str(hg), 'PATH': '/usr/bin:/bin'})
+    return r, hg / name
+
+
+def test_a_dangling_link_is_replaced_rather_than_reported_as_present(tmp_path):
+    """The state that killed job 53767117 four seconds in: `-e` follows the symlink and says
+    absent, `ln` looks at the link itself and says "File exists". The old code's else-branch
+    printed "already present" for exactly this -- which is very likely what the third
+    evaluation_tools attempt did before dying on import."""
+    r, dst = _link_dep(tmp_path, 'dep', preexisting='/nonexistent/place')
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert 'DANGLING' in r.stdout and '/nonexistent/place' in r.stdout, \
+        'the old target must be logged, not silently discarded'
+    assert dst.exists() and dst.resolve() == (tmp_path / 'code' / 'dep')
+
+
+def test_linking_is_idempotent_and_resolution_is_what_is_checked(tmp_path):
+    r, dst = _link_dep(tmp_path, 'dep', preexisting=None)
+    assert r.returncode == 0 and dst.exists()
+    r2, _ = _link_dep(tmp_path, 'dep', preexisting=str(tmp_path / 'code' / 'dep'))
+    assert r2.returncode == 0
+    assert 'already present' in r2.stdout and 'code/dep' in r2.stdout, \
+        'the existing branch must say where it actually resolves to'
+
+
+def test_nothing_to_supply_from_is_fatal(tmp_path):
+    r, _ = _link_dep(tmp_path, 'dep', code_has=False)
+    assert r.returncode == 1
+    assert 'nothing to supply from' in r.stderr
 
 
 def test_the_encoder_weights_are_checked_before_a_node_is_spent():

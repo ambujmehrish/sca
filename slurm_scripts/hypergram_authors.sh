@@ -87,16 +87,30 @@ HG_ROOT="${HYPERGRAM_ROOT:-$WORK_ROOT/hypergram}"
 # code. Copying files in, or patching their paths, would make the run our code under their
 # name -- which is the one thing this job exists to avoid.
 link_dep() {                          # link_dep <dirname> <what it is>
-  local name="$1" what="$2"
-  [ -e "$CODE_DIR/$name" ] || {
-    echo "FATAL: $CODE_DIR/$name missing -- nothing to supply from ($what)" >&2; return 1; }
-  if [ ! -e "$HG_ROOT/$name" ]; then
-    ln -s "$CODE_DIR/$name" "$HG_ROOT/$name" || {
-      echo "FATAL: could not link $name into $HG_ROOT (read-only checkout?)" >&2; return 1; }
-    echo "linked $name -> $CODE_DIR/$name (their repo omits it)"
-  else
-    echo "$name already present in $HG_ROOT"
+  local name="$1" what="$2" dst="$HG_ROOT/$1" src="$CODE_DIR/$1" old
+  [ -e "$src" ] || {
+    echo "FATAL: $src missing -- nothing to supply from ($what)" >&2; return 1; }
+  # A DANGLING symlink is the one state that reads as both absent and present: `-e` follows the
+  # link and says no, `ln` looks at the link itself and says "File exists". It reaches nothing,
+  # so replacing it destroys no data -- but the old target is logged, because a link somebody
+  # put there on purpose is worth knowing about. This is very probably what killed the third
+  # evaluation_tools attempt: the old code printed "already present" and then died on import.
+  if [ -L "$dst" ] && [ ! -e "$dst" ]; then
+    old=$(readlink "$dst")
+    echo "WARNING: $dst was a DANGLING symlink -> $old (reaches nothing); replacing it"
+    rm -f "$dst" || { echo "FATAL: could not remove the dangling $name link" >&2; return 1; }
   fi
+  if [ ! -e "$dst" ]; then
+    ln -s "$src" "$dst" || {
+      echo "FATAL: could not link $name into $HG_ROOT (read-only checkout?)" >&2; return 1; }
+    echo "linked $name -> $src (their repo omits it)"
+  else
+    echo "$name already present in $HG_ROOT -> $(readlink -f "$dst")"
+  fi
+  # Whichever branch ran, the thing must RESOLVE. "It is on disk" was never the property that
+  # mattered; every failure so far has been something that existed and did not work.
+  [ -e "$dst" ] || {
+    echo "FATAL: $dst still does not resolve after linking" >&2; return 1; }
 }
 link_dep evaluation_tools "the vendored caption-eval package" || exit 2
 link_dep pretrained_weights "the encoder checkpoints their configs name" || exit 2

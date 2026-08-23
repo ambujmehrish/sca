@@ -81,3 +81,41 @@ def test_json_output_is_machine_readable_for_the_table_builder(tmp_path):
                        capture_output=True, text=True)
     data = json.loads(r.stdout)
     assert data['vatex']['ret_itm_tvas']['video_r1'] == 89.6
+
+
+HG_SAMPLE = """08/23 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_ret_area_forward========
+08/23 - INFO - __main__ -   {'volume_T2D_r1': 39.1, 'volume_T2D_recall': '39.1/63.8/74.2'}
+08/23 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_ret_area_backard========
+08/23 - INFO - __main__ -   {'forward_r1': 33.2, 'forward_recall': '33.2/62.1/71.4'}
+08/23 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_ret_itm_area========
+08/23 - INFO - __main__ -   {'volume_ITM_T2D_r1': 54.0, 'volume_ITM_T2D_recall': '54.0/74.7/82.0', 'volume_ITM_D2T_r1': 51.9}
+08/23 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_TV========
+08/23 - INFO - __main__ -   {'forward_r1': 42.5, 'forward_recall': '42.5/70.1/80.5'}
+"""
+
+
+def test_hypergrams_key_dialect_is_read_not_reported_as_nan(tmp_path):
+    """HyperGram prints volume_ITM_T2D_r1 where PMRL prints video_r1, and calls the
+    aggregator ret_area_forward rather than ret_itc_*. Reading only one dialect made a
+    COMPLETED HyperGram cell print 'T->V R@1 nan' -- a found result reported as missing,
+    which reads like a failed run and nearly got treated as one."""
+    log = tmp_path / 'run.log'
+    log.write_text(HG_SAMPLE)
+    r = subprocess.run(['python3', 'scripts/parse_authors_eval.py', str(log)],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    reported = [l for l in r.stdout.splitlines() if 'REPORTED' in l][0]
+    assert '54.0' in reported and 'nan' not in reported
+    agg = [l for l in r.stdout.splitlines() if 'aggregator' in l][0]
+    assert '39.1' in agg, 'ret_area_forward is their name for the pre-rerank aggregator'
+    assert '-3.4' in r.stdout, 'tax against cosine_TV 42.5'
+
+
+def test_the_backward_direction_is_not_mistaken_for_the_aggregator(tmp_path):
+    """ret_area_backard (their spelling) is the reverse direction at 33.2; treating it as the
+    aggregator would understate the tax by a point."""
+    log = tmp_path / 'run.log'
+    log.write_text(HG_SAMPLE)
+    r = subprocess.run(['python3', 'scripts/parse_authors_eval.py', str(log)],
+                       capture_output=True, text=True)
+    assert '33.2' not in [l for l in r.stdout.splitlines() if 'aggregator' in l][0]

@@ -28,9 +28,29 @@ import re
 import sys
 
 HEADER = re.compile(r'====\s*evaluation--(?P<task>[^-]+)--(?P<rest>\S*?)_(?P<metric>'
-                    r'ret_itm_\w+|ret_itc_\w+|cosine_[A-Z]{2}|eigenvalue_max|'
-                    r'eigenvector_uniformity)========')
+                    r'ret_itm_\w+|ret_itc_\w+|ret_area_\w+|cosine_[A-Z]{2}|gramian_value|'
+                    r'eigenvalue_max|eigenvector_uniformity)========')
 BENCH = re.compile(r'([a-z0-9]+)_ret')
+
+# The two forks name the same quantities differently. PMRL prints video_r1/txt_r1;
+# HyperGram prints volume_ITM_T2D_r1 (text->video after reranking), volume_ITM_D2T_r1
+# (the reverse) and volume_T2D_r1 (the aggregator). Reading only one dialect made a
+# completed HyperGram cell print "T->V R@1 nan" -- a found result reported as missing.
+CANON = {'video_r1':     ('video_r1', 'volume_ITM_T2D_r1', 'volume_T2D_r1'),
+         'video_recall': ('video_recall', 'volume_ITM_T2D_recall', 'volume_T2D_recall'),
+         'txt_r1':       ('txt_r1', 'volume_ITM_D2T_r1'),
+         'txt_recall':   ('txt_recall', 'volume_ITM_D2T_recall')}
+
+
+def canon(payload):
+    """The payload with both forks' key dialects mapped onto PMRL's names."""
+    out = dict(payload)
+    for want, aliases in CANON.items():
+        for a in aliases:
+            if a in payload:
+                out[want] = payload[a]
+                break
+    return out
 
 
 def parse(path):
@@ -80,8 +100,12 @@ def main():
 
     for bench in sorted(everything):
         met = everything[bench]
-        itm = next((v for k, v in met.items() if k.startswith('ret_itm')), None)
-        itc = next((v for k, v in met.items() if k.startswith('ret_itc')), None)
+        itm = next((canon(v) for k, v in met.items() if k.startswith('ret_itm')), None)
+        # PMRL calls the pre-rerank aggregator ret_itc_*; HyperGram calls it
+        # ret_area_forward (ret_area_backard, their spelling, is the reverse direction
+        # and must not be mistaken for it)
+        itc = next((canon(v) for k, v in met.items()
+                    if k.startswith('ret_itc') or k == 'ret_area_forward'), None)
         print('\n%s' % bench.upper())
         if itm:
             print('  REPORTED  ret_itm  T->V R@1 %5.1f   recall %s'

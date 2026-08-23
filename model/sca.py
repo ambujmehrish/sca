@@ -383,7 +383,27 @@ class SCA(GRAM):
         sim = feat_t32 @ mu_M_all.T / tau
         simT = mu_M @ feat_t_all.T / tau
 
-        condition_feats = self.batch_get(batch, 'condition_feats_va')
+        # WHICH MODALITIES THE RERANKER IS FITTED ON.
+        #
+        # Evaluation reranks with condition_feats_{task}: `vas` for MSR-VTT and VATEX, `va`
+        # for DiDeMo, ActivityNet and AudioCaps (evaluation_mm.py:408). Training here was
+        # hardcoded to `va`, so on the two tvas benchmarks the ITM head is fitted on
+        # video+audio and then applied to video+audio+subtitle -- a combination it never saw.
+        #
+        # This was previously justified by "our training set carries no subtitles at all".
+        # That is false: HyperGram's subtitle guard passes on annotations150k.json, and it
+        # only passes at 100% coverage. Every clip we train on has one.
+        itm_key = str(getattr(self.config, 'itm_condition_key', 'va'))
+        if itm_key not in ('va', 'vas', 'v'):
+            raise ValueError('itm_condition_key=%r: expected one of va, vas, v -- it names the '
+                             'modality set the reranker is trained on, and must be one the '
+                             'batch actually carries.' % itm_key)
+        if itm_key == 'vas' and 'raw_subtitles' not in batch.keys():
+            raise ValueError(
+                'itm_condition_key=vas but this batch has no raw_subtitles. Training the '
+                'reranker on a modality the data does not carry would silently fall back to '
+                'whatever condition_feats_vas builds from nothing.')
+        condition_feats = self.batch_get(batch, 'condition_feats_%s' % itm_key)
         condition_feats_collate = (all_gather_with_grad(condition_feats)
                                    if dist.is_initialized() else condition_feats)
         with torch.no_grad():
@@ -392,27 +412,61 @@ class SCA(GRAM):
             weights_cond2t = F.softmax(simT, dim=1) + 1e-4
             weights_cond2t[:, rank * bs: rank * bs + bs].fill_diagonal_(0)
 
-        condition_feats_neg = []
-        for b in range(bs):
-            neg_idx = torch.multinomial(weights_t2cond[b], 1).item()
-            condition_feats_neg.append(condition_feats_collate[neg_idx])
-        condition_feats_neg = torch.stack(condition_feats_neg, dim=0)
+        # ---- the negatives the reranker is trained to reject
+        #
+        # WHY THIS IS PARAMETERISED. At inference the reranker separates the GT from the
+        # top-50 of a 1000-4000 item gallery. Trained with ONE negative drawn from the full
+        # softmax over an all-gathered batch of ~128, it never sees that regime -- most draws
+        # are easy negatives, and the head is calibrated on a problem it is not asked to
+        # solve. Measured against PMRL's released checkpoint on identical data, our
+        # aggregator leads on 3 of 4 benchmarks while its reranker converts 2-4x better
+        # (MSR-VTT +9.2 against +22.8, VATEX +9.1 against +36.0), so stage 2 is where the
+        # R@1 is going.
+        #
+        #   itm_neg_topk : restrict the draw to the k hardest candidates, so training sees
+        #                  the same part of the distribution inference does. 0 = old behaviour.
+        #   itm_num_neg  : negatives per positive per direction. 1 = old behaviour.
+        #
+        # Both default to the previous behaviour exactly, so an unchanged config is
+        # unchanged arithmetic.
+        topk = int(getattr(self.config, 'itm_neg_topk', 0) or 0)
+        n_neg = int(getattr(self.config, 'itm_num_neg', 1) or 1)
+        if n_neg < 1:
+            raise ValueError('itm_num_neg=%d: at least one negative is required.' % n_neg)
+        pool = weights_t2cond.shape[1]
+        if topk and topk > pool:
+            raise ValueError(
+                'itm_neg_topk=%d exceeds the candidate pool of %d (batch x world_size). The '
+                'negatives cannot be harder than the pool is deep -- raise the batch size or '
+                'lower itm_neg_topk, rather than silently sampling the whole pool.'
+                % (topk, pool))
 
-        text_ids_neg, text_atts_neg = [], []
-        for b in range(bs):
-            neg_idx = torch.multinomial(weights_cond2t[b], 1).item()
-            text_ids_neg.append(input_ids_collate[neg_idx])
-            text_atts_neg.append(attention_mask_collate[neg_idx])
-        text_ids_neg = torch.stack(text_ids_neg, dim=0)
-        text_atts_neg = torch.stack(text_atts_neg, dim=0)
+        def _pick(weights):
+            """-> (bs, n_neg) indices into the gathered pool."""
+            if topk:
+                vals, idx = weights.topk(topk, dim=1)
+                choice = torch.multinomial(vals, n_neg, replacement=n_neg > topk)
+                return idx.gather(1, choice)
+            return torch.multinomial(weights, n_neg, replacement=n_neg > pool)
 
-        input_ids_1 = torch.cat((input_ids, input_ids, text_ids_neg), dim=0)
-        attention_mask_1 = torch.cat((attention_mask, attention_mask, text_atts_neg), dim=0)
-        condition_feats = torch.cat((condition_feats, condition_feats_neg, condition_feats), dim=0)
+        cond_idx = _pick(weights_t2cond)                    # (bs, n_neg)
+        text_idx = _pick(weights_cond2t)
+        condition_feats_neg = torch.cat(
+            [condition_feats_collate[cond_idx[:, j]] for j in range(n_neg)], dim=0)
+        text_ids_neg = torch.cat([input_ids_collate[text_idx[:, j]] for j in range(n_neg)], dim=0)
+        text_atts_neg = torch.cat(
+            [attention_mask_collate[text_idx[:, j]] for j in range(n_neg)], dim=0)
+
+        # [ positive | n_neg blocks of (true text, wrong clip) | n_neg blocks of (wrong text,
+        #   true clip) ] -- the same layout as before, repeated n_neg times on each side.
+        input_ids_1 = torch.cat([input_ids] * (1 + n_neg) + [text_ids_neg], dim=0)
+        attention_mask_1 = torch.cat([attention_mask] * (1 + n_neg) + [text_atts_neg], dim=0)
+        condition_feats = torch.cat(
+            [condition_feats, condition_feats_neg] + [condition_feats] * n_neg, dim=0)
         output = self.multimodal_encoder.bert(input_ids=input_ids_1,
                                               attention_mask=attention_mask_1,
                                               encoder_hidden_states=condition_feats).last_hidden_state
         logits = self.itm_head(output[:, 0].half())
-        ground_truth = torch.zeros(bs * 3).long().to(logits.device)
+        ground_truth = torch.zeros(bs * (1 + 2 * n_neg)).long().to(logits.device)
         ground_truth[:bs] = 1
         return self.itm_ratio * F.cross_entropy(logits, ground_truth)

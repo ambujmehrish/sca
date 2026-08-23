@@ -147,6 +147,7 @@ def test_the_load_check_is_skipped_when_the_run_itself_failed():
     which describes a different problem and hides the real one."""
     assert 'if [ $rc -ne 0 ]; then' in LAUNCH
     assert 'The real error is above this line' in LAUNCH
-    i_guard = LAUNCH.index('the checkpoint-load check is skipped')
-    i_check = LAUNCH.index('the log does not record missing/unexpected keys')
+    # anchored to the invocation, not to prose: the message is also quoted in the comment
+    i_guard = LAUNCH.index('if [ $rc -ne 0 ]; then')
+    i_check = LAUNCH.index('python3 - "$OUT/run.log"')
     assert i_guard < i_check, 'the skip must come before the check it guards'

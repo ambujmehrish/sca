@@ -38,7 +38,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from repro_common import anno_ids                                   # noqa: E402
+from repro_common import anno_ids, farm_dir                                   # noqa: E402
 
 # The extensions their reader accepts, in the order it tries them.
 READ_ORDER = ('', '.wav', '.mp3', '.mkv')
@@ -155,7 +155,7 @@ def main():
                   % (len(ids) - filt))
             rc = 1
             continue
-        out_dir = audio_dir.rstrip('/') + '_mp3link'
+        out_dir = farm_dir(audio_dir)
         made, existing, missing, sample = build_farm(audio_dir, ids, out_dir, args.verify_n)
         print('  farm           : %s' % out_dir)
         print('  linked %d, already present %d, no source audio %d' % (made, existing, missing))

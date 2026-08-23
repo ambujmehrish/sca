@@ -49,6 +49,26 @@ def anno_ids(txt, limit=None):
     return ids
 
 
+def farm_dir(audio_dir):
+    """Where the .mp3 symlink farm for this audio directory lives.
+
+    The name must not contain "wav" ANYWHERE. Their AudioMapper.read does
+
+        wav_file = os.path.join(self.audio_dir, id_ + '.wav')
+        if not os.path.exists(wav_file):
+            wav_file = wav_file.replace('wav', 'mp3')
+
+    and str.replace hits the FIRST occurrence in the whole path. A farm at
+    `audios_wav_mp3link/` therefore becomes `audios_mp3_mp3link/`, the file is never found,
+    and read() returns a ZERO SPECTROGRAM without raising -- every sample would train on
+    silence, and nothing in the log would say so. So `wav` is stripped from the directory
+    name: audios_wav -> audios_mp3link.
+    """
+    parent, base = os.path.split(audio_dir.rstrip('/'))
+    base = base.replace('wav', '').strip('_-') or 'audio'
+    return os.path.join(parent, base + '_mp3link')
+
+
 def resolve_audio_dir(audio_dir, txt, name, sample=200):
     """An audio directory that satisfies the trunk's hardcoded `<id>.mp3` existence filter.
 
@@ -69,7 +89,7 @@ def resolve_audio_dir(audio_dir, txt, name, sample=200):
             return -1
         return sum(1 for i in ids if os.path.exists(os.path.join(d, i + '.mp3')))
 
-    farm = audio_dir.rstrip('/') + '_mp3link'
+    farm = farm_dir(audio_dir)
     cands = [(hits(audio_dir), audio_dir, 'as configured'),
              (hits(farm), farm, 'the .mp3 symlink farm')]
     best, chosen, why = max(cands)

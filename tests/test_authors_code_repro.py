@@ -465,3 +465,22 @@ def test_a_dotted_clip_id_survives_id_derivation(tmp_path):
         'the shim must derive ids the same way the resolver does, or the farm it builds is '\
         'invisible to the check that consumes it'
     assert 'def anno_ids' not in shim
+
+
+def test_the_farm_directory_never_contains_wav(tmp_path):
+    """Their AudioMapper.read does `wav_file.replace('wav', 'mp3')`, and str.replace hits the
+    FIRST occurrence in the whole path. A farm at `audios_wav_mp3link/` becomes
+    `audios_mp3_mp3link/`, the file is never found, and read() returns a ZERO SPECTROGRAM
+    without raising -- training on silence with nothing in the log to say so."""
+    import sys
+    sys.path.insert(0, 'scripts')
+    from repro_common import farm_dir
+    for d in ('/x/vast27m_150k/audios_wav', '/x/MSRVTT_full/audios', '/x/y/wav'):
+        f = farm_dir(d)
+        assert 'wav' not in f, '%s -> %s still contains "wav"' % (d, f)
+        # and the rewrite their reader performs must land on the file, not the directory
+        probe = os.path.join(f, 'someid.wav').replace('wav', 'mp3')
+        assert probe == os.path.join(f, 'someid.mp3'), probe
+    shim = open('scripts/hypergram_audio_shim.py').read()
+    assert 'from repro_common import anno_ids, farm_dir' in shim
+    assert "'_mp3link'" not in shim, 'the shim must not compute the farm path itself'

@@ -103,7 +103,10 @@ else:
     out="workdir/e1_frames/${arm}_${bench}"
     cell_is_done "$out" "$cfg" && { echo "== [$arm/$bench] already done, skip"; continue; }
     mkdir -p "$out"
-    echo "== [$arm/$bench] START $(date +%T)"
+    # echo the config, so which geometry a cell used is readable from the log rather than
+    # only from the hps.json it writes later. Every routing bug so far has been invisible at
+    # run time; the launcher should at least say what it chose.
+    echo "== [$arm/$bench] START $(date +%T)  cfg=$cfg"
     EVAL_CKPT="$ckpt" srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 \
       --nproc_per_node "${SLURM_GPUS_ON_NODE:-4}" \
       --master_port $((9100 + ${SLURM_JOB_ID:-$$} % 90)) \

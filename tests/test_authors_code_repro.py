@@ -118,7 +118,7 @@ def test_the_dependency_link_is_verified_by_importing_not_by_existing():
         'the link is assumed to work rather than checked'
     assert 'does not import from there' in LAUNCH
     assert 'export PYTHONPATH="$HG_ROOT' in LAUNCH, \
-        'their root must be on PYTHONPATH, since sys.path[0] under torchrun is the ranks\\' cwd'
+        "their root must be on PYTHONPATH: sys.path[0] under torchrun is the ranks' cwd"
     # and it must come FIRST, or our modules would shadow theirs
     line = [l for l in LAUNCH.splitlines() if l.startswith('export PYTHONPATH=')][0]
     assert line.index('$HG_ROOT') < line.index('PYTHONPATH:+'), \

@@ -13,60 +13,42 @@
 #SBATCH --array=0-14
 #SBATCH -o ./slurm_scripts/logs/repro_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/repro_%A_%a.out
-# Every competing aggregator, trained and evaluated by us, on all five benchmarks.
+# RETIRED -- do not run. Superseded by slurm_scripts/hypergram_authors.sh.
 #
-# The published table mixes numbers from four evaluation environments, and we have measured
-# that environments differ: the SAME released GRAM checkpoint reads 54.8 in the paper and 52.5
-# here on MSR-VTT, and 83.5 there against 90.0 here on VATEX. Cross-environment differences of
-# one or two points are therefore not interpretable, which is most of the range this field
-# competes in.
+# This launcher evaluated OUR reimplementations of the competing aggregators. Two of those
+# reimplementations are now known not to match the released code:
 #
-# This table removes that. Same VAST foundation checkpoint, same 150k training set, same
-# schedule, same eval data blocks, same 8 frames, same rerank depth 50 -- only the aggregation
-# geometry differs:
+#   hypergram  differs from github.com/uta-smile/HyperGram in six substantive ways -- no
+#              learnable curvature, no curvature learning-rate group, and no scale matching
+#              between the Euclidean and hyperbolic volumes before they are mixed
+#              (experiments/results/HYPERGRAM_STATUS.md)
+#   pmrl       unverified in exactly the same way; their repo implements PMRL too
+#              (geometry_mode pmrl / pmrl_volume / hybrid_pmrl) and ours was never checked
+#              against it
 #
-# MAIN TABLE rows -- methods as their authors proposed them:
-#   pmrl        leading eigenvalue        (lambda_1 of the Gram matrix)
-#   hypergram   hyperbolic Gram           (our reimplementation, see below)
-#   sca         query-weighted centroid   (ours)
-# plus GRAM's released checkpoint, already measured in workdir/e1_zs (released_* cells).
+# Their code is public and is the same VAST/GRAM fork we build on, so every baseline now comes
+# from the authors' implementation rather than ours. Run:
 #
-# APPENDIX row -- not a published method:
-#   gram_lora   Gramian volume + LoRA
+#   sbatch slurm_scripts/hypergram_authors.sh
 #
-# gram_lora is our construction, not something GRAM proposes, so it does not belong in a
-# comparison table: a reader would reasonably ask who claimed it. Its job is the control that
-# separates the two variables our recipe changes at once -- SCA is centroid AND adapter, so
-# volume-plus-adapter is what says whether the gain is the geometry or the LoRA. That is an
-# ablation argument and it belongs in the appendix beside the other ablations.
+# Kept on disk as the record of what was run, and because the gram_lora appendix control is
+# still ours by construction -- if that control is ever wanted, run --array=10-14 knowingly.
+# Nothing from the pmrl or hypergram indices belongs in a table.
 #
-# A difference among the main rows is a difference in the aggregator, which is the
-# algorithmic claim.
-#
-# HYPERGRAM: read experiments/results/HYPERGRAM_STATUS.md before quoting any number here.
-#
-# The default arm for this row is gram_hyp2, which was trained at lr 2e-5 and fell to 37.4.
-# That figure is NOT evidence about HyperGRAM and must not be cited as a reproduction result.
-# 2e-5 came from the HyperAlign trunk, and wave4/ANALYSIS.md had already found exactly that to
-# be the recipe defect for OUR method -- SCA went from 53.5 to 54.9 when moved to 1e-4. The
-# same correction was never applied to the HyperGRAM arm before its number was recorded.
-#
-# H1_hypergram_paper (b_grid --array=41) is the same v2 reading at lr 1e-4, batch 128: the
-# recipe their paper uses. Until it has run there is no HyperGRAM reproduction at all -- not a
-# failed one, an unrun one. Point this row at it once it exists:
-#
-#   SCA_REPRO_HYP_ARM=h1_hypergram_paper sbatch --array=5-9 slurm_scripts/repro_baselines_eval.sh
-#
-# Whatever it reads, the row is OUR REIMPLEMENTATION and never HyperGRAM's performance: their
-# code is not released and the hyperbolic branch admits two readings. Their published numbers
-# stand as cited in the main table.
-#
-#   sbatch --array=0-9 slurm_scripts/repro_baselines_eval.sh      # the MAIN-TABLE rows
-#   sbatch --array=10-14 slurm_scripts/repro_baselines_eval.sh    # gram_lora, appendix only
-#   sbatch slurm_scripts/repro_baselines_eval.sh                  # all 15 cells
-#   sbatch --array=0-4 slurm_scripts/repro_baselines_eval.sh      # pmrl only
-#   SCA_REPRO_HYP_ARM=gram_hyp sbatch --array=5-9 ...             # the v1 reading instead
 set -uo pipefail
+
+# Refuse the superseded rows outright. Keeping the script runnable for gram_lora while it
+# still answers to `sbatch` with no arguments is how a retired baseline quietly reappears in a
+# table months later.
+case "${SLURM_ARRAY_TASK_ID:-${1:-}}" in
+  0|1|2|3|4|5|6|7|8|9)
+    echo "FATAL: indices 0-9 are RETIRED (pmrl, hypergram from OUR reimplementation)." >&2
+    echo "       Those do not match the released code. Use the authors' implementation:" >&2
+    echo "         sbatch slurm_scripts/hypergram_authors.sh" >&2
+    echo "       See experiments/results/HYPERGRAM_STATUS.md." >&2
+    exit 2 ;;
+esac
+
 source "${SCA_ENV_RC:-/leonardo_work/AIFAC_S07_041/sca_env.rc}"
 cd "$CODE_DIR"
 [ -f "$MODELS_DIR/env.sh" ] && source "$MODELS_DIR/env.sh" \

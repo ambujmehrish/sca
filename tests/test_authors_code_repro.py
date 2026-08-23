@@ -62,3 +62,24 @@ def test_all_four_geometries_run_from_one_codebase():
     modes = re.search(r'MODES=\((.*?)\)', LAUNCH).group(1).split()
     assert modes == ['hybrid', 'pmrl', 'pmrl_volume', 'hybrid_pmrl'], modes
     assert '--array=0-3' in LAUNCH
+
+
+def test_the_superseded_reimplementation_rows_are_refused():
+    """repro_baselines_eval.sh evaluated OUR pmrl and hypergram. Both are now known not to
+    match the released code, so those indices must not run at all -- a retired baseline that
+    still answers to `sbatch` is how it reappears in a table months later. gram_lora stays
+    reachable: it is ours by construction and is only ever an appendix control."""
+    import subprocess
+    r = subprocess.run(['bash', 'slurm_scripts/repro_baselines_eval.sh'],
+                       env={'SLURM_ARRAY_TASK_ID': '0', 'PATH': '/usr/bin:/bin'},
+                       capture_output=True, text=True)
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert 'RETIRED' in r.stderr
+    assert 'hypergram_authors.sh' in r.stderr, 'the refusal must name the replacement'
+
+    src = open('slurm_scripts/repro_baselines_eval.sh').read()
+    guard = src.index('are RETIRED')
+    env = src.index('sca_env.rc')
+    assert guard < env, 'the guard must fire before the environment is sourced, or a missing '\
+                        'env masks it'
+    assert 'RETIRED -- do not run' in src.split('\n')[15:25][0] or 'RETIRED' in src[:2000]

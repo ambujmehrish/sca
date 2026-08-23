@@ -25,6 +25,9 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from repro_common import resolve_audio_dir, task_modalities      # noqa: E402
+
 PAPER_CFG = 'configs/pretrain/pretrain_hybrid_vast150k_vatex_val_paper.json'
 
 # What must survive the rewrite untouched. Checked after, not merely intended.
@@ -34,44 +37,6 @@ FROZEN_MODEL = ('curvature_init', 'learn_curvature',
                 'initial_euclidean_weight', 'initial_hyperbolic_weight',
                 'learn_hybrid_weights', 'gradient_clip_hyperbolic')
 FROZEN_TRAIN = ('batch_size', 'epoch', 'task', 'vision_sample_num', 'audio_sample_num')
-
-
-def task_modalities(task):
-    """The modality letters of every retrieval group in a task string like ret%tvas%tv%ta."""
-    return set(''.join(task.split('%')[1:]))
-
-
-def resolve_audio_dir(audio_dir, txt, name):
-    """Return an audio directory that satisfies their hardcoded `<id>.mp3` existence filter.
-
-    Prefers the directory as given; falls back to the `_mp3link` farm built by
-    scripts/hypergram_audio_shim.py. Refuses rather than handing their code a directory that
-    would filter the dataset to nothing -- a 0-batch loader is a crash at best and, for the
-    training block, an empty epoch.
-    """
-    ids = [a[k] for a in json.load(open(txt))
-           for k in ('clip_id', 'video_id', 'image_id', 'id') if k in a][:200]
-    if not ids:
-        sys.exit('FATAL: no ids found in %s' % txt)
-
-    def hits(d):
-        return sum(1 for i in ids if os.path.exists(os.path.join(d, str(i).split('.')[0] + '.mp3')))
-
-    for cand, why in ((audio_dir, 'as configured'),
-                      (audio_dir.rstrip('/') + '_mp3link', 'the .mp3 symlink farm')):
-        if os.path.isdir(cand) and hits(cand) == len(ids):
-            if cand != audio_dir:
-                print('  audio [%s] : using %s (%s)' % (name, cand, why))
-            return cand
-    sys.exit(
-        'FATAL: their data/IndexAnno.py keeps a sample only if "<audio_dir>/<id>.mp3" exists --\n'
-        '       the extension is hardcoded -- and %s satisfies that for %d of %d sampled ids.\n'
-        '       The dataset "%s" would be built EMPTY, which is the 0-batch loader that killed\n'
-        '       the last run. Their READER is extension-agnostic, so build the symlink farm:\n'
-        '         python3 scripts/hypergram_audio_shim.py --build \\\n'
-        '             --pairs %s:%s\n'
-        '       then re-run. Nothing in their code is edited by this.'
-        % (audio_dir, hits(audio_dir), len(ids), name, txt, audio_dir))
 
 
 def sca_train_txt(cfg_path, data_root):

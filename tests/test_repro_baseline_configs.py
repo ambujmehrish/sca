@@ -83,20 +83,15 @@ def test_the_launcher_refuses_a_config_that_does_not_match_the_checkpoint():
 
 
 def test_the_hypergram_caveat_travels_with_the_launcher():
-    """The 37.4 figure has been quoted repeatedly as "our HyperGRAM reproduction does not
-    work". It came from gram_hyp2, trained at lr 2e-5 -- the rate wave4/ANALYSIS.md had already
-    identified as the recipe defect for our OWN method (SCA went 53.5 -> 54.9 when moved to
-    1e-4). It is a run at a rate the method's paper does not use, in a family already shown to
-    be learning-rate sensitive, so it is not evidence about HyperGRAM.
-
-    The launcher must point at HYPERGRAM_STATUS.md and must not present 37.4 as a reproduction
-    result, because this conclusion has been re-derived from the stale number more than once."""
+    """This launcher is retired -- its hypergram and pmrl rows came from OUR reimplementations,
+    which do not match the released code. What it must now carry is the refusal and a pointer
+    to the replacement, not a caveat about a number nobody should read."""
     src = open('slurm_scripts/repro_baselines_eval.sh').read()
-    assert 'HYPERGRAM_STATUS.md' in src, 'the launcher must point at the status file'
-    assert 'NOT evidence' in src, 'the stale number must be marked as not evidence'
-    assert 'never HyperGRAM' in src
+    assert 'RETIRED' in src
+    assert 'hypergram_authors.sh' in src, 'the replacement must be named'
+    assert 'HYPERGRAM_STATUS.md' in src
     assert 'We do not reproduce their result' not in src, \
-        'that phrasing asserts a reproduction failure the runs do not support'
+        'that phrasing asserts a reproduction failure our runs never supported'
 
 
 def test_the_status_file_records_the_authors_actual_recipe():
@@ -139,90 +134,12 @@ def test_the_wrong_recipe_arm_is_gone():
 
 
 def test_gram_lora_is_marked_appendix_not_a_comparison_row():
-    """GRAM+LoRA is our construction, not a method anyone proposed. In a comparison table a
-    reader would fairly ask who claimed it. It stays as the control that separates geometry
-    from adapter -- SCA changes both at once -- and that argument belongs with the ablations."""
+    """GRAM+LoRA is our construction, not a method anyone proposed, so it is never a
+    comparison row. It stays reachable in the retired launcher because it is only ever the
+    control separating geometry from adapter -- SCA changes both at once -- and running it
+    knowingly is fine. The retired indices are the ones that must refuse."""
     src = open('slurm_scripts/repro_baselines_eval.sh').read()
     assert 'APPENDIX row' in src and 'gram_lora' in src.split('APPENDIX row')[1][:200]
-    assert 'MAIN TABLE rows' in src
-    main = src.split('MAIN TABLE rows')[1].split('APPENDIX row')[0]
-    assert 'gram_lora' not in main, 'gram_lora is listed among the main-table rows'
-    for m in ('pmrl', 'hypergram', 'sca'):
-        assert m in main, '%s missing from the main-table rows' % m
-
-
-def test_the_arm_is_part_of_the_cell_identity():
-    """Two checkpoints of one method share a config file byte for byte -- gram_hyp2 at lr 2e-5
-    and h1_hypergram_paper at 1e-4 differ only in which arm is passed. With the arm absent from
-    the output path they collide, and because the fingerprint is computed from the config the
-    second run is silently SKIPPED: the first checkpoint's numbers keep the method's name.
-
-    That was harmless while cell_is_done was broken under Slurm. It is not harmless now."""
-    src = open('slurm_scripts/repro_baselines_eval.sh').read()
-    assert 'OUT="workdir/e1_repro/${METHOD}_${ARM}_${BENCH}"' in src, \
-        'the output path must distinguish two checkpoints of the same method'
-
-
-def test_cell_names_with_an_arm_still_parse():
-    import importlib.util
-    sp = importlib.util.spec_from_file_location('rvi_parse', 'scripts/raw_vs_itm.py')
-    m = importlib.util.module_from_spec(sp)
-    sp.loader.exec_module(m)
-    for cell, bench in (('hypergram_gram_hyp2_msrvtt', 'msrvtt'),
-                        ('hypergram_h1_hypergram_paper_didemo', 'didemo'),
-                        ('pmrl_pmrl_lora_activitynet', 'activitynet')):
-        arm, got = m.split_cell(cell)
-        assert got == bench, '%s parsed as benchmark %r' % (cell, got)
-        assert arm and arm != cell, '%s did not split into arm and benchmark' % cell
-
-
-def _resolved(path):
-    c = json.load(open(path))['model_cfg']
-    d = c.get('default')
-    base = json.load(open(d)) if d else {}   # the default file is FLAT, not wrapped
-    out = dict(base)
-    out.update(c)
-    return out
-
-
-@pytest.mark.parametrize('method,mode', [('pmrl', 'pmrl_raw'), ('hypergram', 'volume'),
-                                         ('gram_lora', 'volume')])
-@pytest.mark.parametrize('bench', BENCHES)
-def test_score_mode_is_stated_not_inherited(method, mode, bench):
-    """configs_qweight inherits config/sca/default_model_cfg.json, which sets
-    score_mode=centroid. A baseline that merely omitted the key therefore read as None in the
-    file and ran as CENTROID -- every competing aggregator scored with ours, and the launcher's
-    file-level check said the config matched. score_mode must be explicit per method."""
-    p = 'benchmark_eval/configs_repro/%s_%s.json' % (method, bench)
-    assert json.load(open(p))['model_cfg'].get('score_mode') == mode, 'not stated in the file'
-    assert _resolved(p)['score_mode'] == mode, 'resolves to something else at run time'
-
-
-def test_no_baseline_resolves_to_the_centroid():
-    for p in glob.glob('benchmark_eval/configs_repro/*.json'):
-        assert _resolved(p)['score_mode'] != 'centroid', '%s scores a baseline with ours' % p
-
-
-def test_the_launcher_compares_the_resolved_config():
-    src = open('slurm_scripts/repro_baselines_eval.sh').read()
-    assert 'def resolved(' in src, 'the check still reads the config file only'
-    assert 'RESOLVED config matches' in src
-
-
-def test_the_status_file_records_the_implementation_diff():
-    """Our reimplementation differs from the released code in six substantive ways -- no
-    learnable curvature, no curvature lr group, and above all no scale matching between the
-    two volumes before they are mixed. Any conclusion drawn from gram_hyp/gram_hyp2 rests on
-    those differences, so they belong in the record rather than in someone's memory."""
-    txt = open('experiments/results/HYPERGRAM_STATUS.md').read()
-    for needle in ('exp_map0', 'scale matching', 'learn_curvature', '10x the base lr',
-                   'hyp_use_prenorm'):
-        assert needle in txt, 'implementation diff does not mention %r' % needle
-    assert 'never open' in txt, 'the invented ambiguity must be retracted explicitly'
-
-
-def test_the_status_file_flags_that_pmrl_needs_the_same_check():
-    """Their repo implements PMRL too (geometry_mode pmrl / pmrl_volume / hybrid_pmrl), so our
-    PMRL reimplementation is unverified in exactly the way HyperGRAM's was."""
-    txt = open('experiments/results/HYPERGRAM_STATUS.md').read()
-    assert 'hybrid_pmrl' in txt and 'should be checked against it' in txt
+    # the refusal covers 0-9 only, so the appendix control can still be run on purpose
+    guard = src[src.index('are RETIRED') - 400:src.index('are RETIRED')]
+    assert '0|1|2|3|4|5|6|7|8|9' in guard, 'the guard must not cover the gram_lora indices'

@@ -31,8 +31,17 @@
 #
 #   sbatch slurm_scripts/hypergram_authors.sh
 #
-# Kept on disk as the record of what was run, and because the gram_lora appendix control is
-# still ours by construction -- if that control is ever wanted, run --array=10-14 knowingly.
+# Kept on disk as the record of what was run. Indices 0-9 refuse to start; 10-14 still work.
+#
+# APPENDIX row -- not a published method, and the reason 10-14 stay reachable:
+#   gram_lora   Gramian volume + LoRA
+#
+# gram_lora is our construction, not something GRAM proposes, so it is never a comparison row
+# -- a reader would fairly ask who claimed it. Its job is the control that separates the two
+# variables our recipe changes together: SCA is centroid AND adapter, so volume-plus-adapter is
+# what says whether the gain is the geometry or the LoRA. That is an ablation argument, it
+# belongs with the ablations, and running it knowingly is fine.
+#
 # Nothing from the pmrl or hypergram indices belongs in a table.
 #
 set -uo pipefail

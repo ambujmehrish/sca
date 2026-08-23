@@ -1,65 +1,56 @@
-% Main table -- zero-shot text-to-video R@1 on five benchmarks.
+% MAIN TABLE -- zero-shot text-to-video R@1 on five benchmarks.
 %
-% SINGLE CONFIGURATION. Exactly ONE SCA row appears here: query-weighted centroid, no frame
-% slots, tau_w = 0.1, LoRA, batch 128, lr 2e-5, 5 epochs. It is evaluated on every benchmark
-% and reported everywhere INCLUDING where it loses. The configuration was chosen by a rule
-% fixed before looking at the transfer numbers -- the simplest setting the ablation supports
-% (Table~\ref{tab:ablation} shows frame slots do not help) -- not by which benchmark any
-% variant happened to win. Other settings appear only as ablation rows, never as alternative
-% claims.
+% SINGLE CONFIGURATION. One SCA row. Query-weighted centroid, no frame slots, tau_w = 0.1,
+% LoRA r8, batch 128, lr 2e-5, 5 epochs (arm T9). Evaluated on every benchmark and reported
+% everywhere, including where it trails. The configuration was fixed before the transfer
+% numbers were seen -- the simplest setting the ablation supports -- not chosen by which
+% benchmark a variant happened to win.
+%
+% n = 3 SEEDS. The SCA row is the mean of three runs of that configuration differing only in
+% run_cfg.seed (t9, s1=51, s2=52), with the sample standard deviation. Per-benchmark seed
+% values, for the appendix:
+%
+%   MSR-VTT     54.8 / 54.7 / 54.4     DiDeMo      51.5 / 51.0 / 51.2
+%   ActivityNet 55.8 / 56.1 / 55.9     VATEX       90.5 / 90.5 / 90.7
+%   AudioCaps   35.2 / 34.5 / 35.2
+%
+% EVERY CELL VERIFIED. scripts/audit_eval_geometry.py compares each result directory's own
+% recorded config against its training arm's, across all eval roots. It found 25 cells scored
+% under a geometry they were never trained with -- t12 given frame slots it never learned, t8
+% and t11 scored at tau_w 0.1 rather than the 0.05 and 0.2 they trained at -- and those were
+% re-run. No cell behind this table was among them, and the audit now exits clean on
+% workdir/e1_frames. That check runs in the harvest, so the table cannot silently drift back.
 %
 % Convention: $^{\S}$ published by the authors; $^{\ast}$ measured by us in one environment.
-% GRAM released its weights, so the same checkpoint appears both ways.
+% GRAM released its weights, so the same checkpoint appears both ways -- and the difference
+% between those two rows IS the environment shift ($-2.3$ MSR-VTT, $-3.5$ DiDeMo, $+6.5$
+% VATEX). That is why $^{\S}$ and $^{\ast}$ rows are not comparable in absolute terms, and why
+% the $^{\ast}$ GRAM row is the honest baseline for SCA.
 %
-% WHAT THIS TABLE CAN AND CANNOT SETTLE. The reported metric is produced by two stages, and
-% the second is a cross-encoder from the VAST foundation checkpoint that GRAM, HyperGRAM, PMRL
-% and SCA all share and none retrains. We measured how much it decides: running it with our
-% adapters switched off entirely moves the numbers below by -0.3, -0.1, -0.2, +0.0, +0.2 --
-% mean -0.1. It is nearly insensitive to the encoders underneath it, and it compresses
-% aggregator differences rather than reflecting them. SCA leads the released GRAM checkpoint
-% by +3.4 to +6.5 R@1 BEFORE reranking and by +0.8 to +3.0 after
-% (Table~\ref{tab:aggregator}). This table is the field's reported metric and belongs here;
-% Table~\ref{tab:aggregator} is where the aggregators are actually compared.
-%
-% NOISE FLOOR, measured rather than assumed. Several cells were evaluated twice on the same
-% checkpoint with the same config (fs_eval was rerun to pick up unfinished arms and re-scored
-% the finished ones). Those are free replicates. On four of five benchmarks both runs agree to
-% the reported digit; on DiDeMo they differ by 0.2. Repeats whose unimodal encoder scores also
-% moved were EXCLUDED -- those arms trained further between the two evals, so they are two
-% checkpoints rather than two runs, and counting them inflated the floor to 0.9.
-%
-% Consequence, applied: SCA reads 51.5 on DiDeMo against HyperGRAM's published 51.3, and the
-% two runs of that exact cell were 51.3 and 51.5. The margin equals the cell's own
-% reproducibility, so it is reported as a tie. An earlier draft of this table bolded it as a
-% win; that claim does not survive its own noise floor.
-%
-% Our HyperGRAM reproduction is NOT a row: v1 reached 35.2 on MSR-VTT against a published
-% 56.6, v2 reached 51.0 at best before collapsing to 37.4, and neither produced transfer
-% numbers (wave4/ANALYSIS.md). HyperGRAM is cited from its paper only.
+% HyperGRAM is cited from its paper. Our reimplementation is not a row here: no code is
+% released, the hyperbolic branch admits two readings, and the arm at the paper's own learning
+% rate is still training. See experiments/results/HYPERGRAM_STATUS.md -- and do not quote the
+% 37.4 from gram_hyp2, which was trained at lr 2e-5.
 \begin{table*}[t]
 \centering
 \caption{Zero-shot text-to-video retrieval, R@1. $^{\S}$ as published; $^{\ast}$ measured by us
 in a single environment. GRAM is the only method here that released weights, so the same
-checkpoint appears as both rows: the difference is a \emph{measured} environment shift
-($-2.3$ on MSR-VTT, $+6.5$ on VATEX), which is why $^{\S}$ and $^{\ast}$ rows are not directly
+checkpoint appears as both rows; their difference is a \emph{measured} environment shift
+($-2.3$ on MSR-VTT, $+6.5$ on VATEX), and $^{\S}$/$^{\ast}$ rows are therefore not directly
 comparable in absolute terms. SCA is a \emph{single configuration} evaluated on all five
-benchmarks and reported everywhere, including where it trails. \textbf{Bold marks the best
-value in each column.} ``--'' not reported. AudioCaps figures for the published rows are the
-tri-modal (T-V-A) numbers from each paper; HyperGRAM does not report AudioCaps. Cells that
-were evaluated twice on one checkpoint disagree by at most $0.2$ R@1 (DiDeMo; every other
-benchmark reproduced exactly), so differences below that are not resolved by this table --
-SCA's DiDeMo score and HyperGRAM's are a tie, not a lead. This is an eval-side floor measured
-on shared checkpoints and is a \emph{lower} bound on the full error bar, which also carries
-seed-to-seed training variance.}
+benchmarks and reported everywhere, including where it trails; $\pm$ is the standard deviation
+over three seeds of that configuration. \textbf{Bold} marks the best value in each column.
+``--'' not reported. AudioCaps figures for published rows are the tri-modal (T-V-A) numbers
+from each paper; HyperGRAM does not report AudioCaps.}
 \label{tab:main}
 \small
-\setlength{\tabcolsep}{6pt}
+\setlength{\tabcolsep}{5pt}
 \begin{tabular}{llccccc}
 \toprule
 Method & Adapter & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps \\
 \midrule
 \multicolumn{7}{l}{\emph{(a) Foundation models}} \\
-ImageBind$^{\S}$        & --      & 36.8 & --   & --   & --   & 9.3 \\
+ImageBind$^{\S}$        & --      & 36.8 & --   & --   & --   & \phantom{0}9.3 \\
 UMT-L (25M)$^{\S}$      & --      & 40.7 & 48.6 & 41.9 & --   & -- \\
 LanguageBind$^{\S}$     & --      & 44.8 & 39.9 & 41.0 & --   & 19.7 \\
 mPLUG-2$^{\S}$          & --      & 47.1 & 45.7 & --   & --   & -- \\
@@ -75,7 +66,34 @@ HyperGRAM$^{\S}$             & full-FT & \textbf{56.6} & 51.3 & 58.2 & 79.9 & --
 PMRL$^{\S}$                  & full-FT & 54.5 & 50.6 & 56.0 & 80.5 & \textbf{36.1} \\
 \midrule
 \multicolumn{7}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
-\textbf{SCA}$^{\ast}$        & LoRA & 54.8 & 51.5 & 55.8 & \textbf{90.5} & 35.2 \\
+\textbf{SCA}$^{\ast}$ & LoRA
+  & 54.6\tiny{$\pm$0.2}
+  & 51.2\tiny{$\pm$0.3}
+  & 55.9\tiny{$\pm$0.2}
+  & \textbf{90.6}\tiny{$\pm$0.1}
+  & 35.0\tiny{$\pm$0.4} \\
 \bottomrule
 \end{tabular}
 \end{table*}
+
+% READING THE TABLE -- what the numbers support, and what they do not.
+%
+% Against the only baseline measurable in our environment (GRAM's released checkpoint, same
+% VAST foundation, same eval protocol), SCA leads on four of five:
+%
+%   MSR-VTT  +2.1   AudioCaps +2.8   VATEX +0.6   DiDeMo +0.5   ActivityNet -0.4
+%
+% MSR-VTT and AudioCaps are 5x and 7x the seed standard deviation. VATEX, DiDeMo and
+% ActivityNet are within two standard deviations and should be described as level. SCA does
+% this with rank-8 adapters against full fine-tuning.
+%
+% Against PUBLISHED numbers SCA does not lead: -2.0 on MSR-VTT and -2.3 on ActivityNet versus
+% HyperGRAM, -1.1 on AudioCaps versus PMRL, and level on DiDeMo (51.2 against 51.3). Those
+% gaps survive the seed error bars and must not be presented as ties. The VATEX column is not
+% evidence either way -- our environment reads the released GRAM checkpoint 6.5 points above
+% its published value there, so a lead over published VATEX numbers is an environment
+% artefact rather than a result.
+%
+% The efficiency claim is separate and is measured twice: full fine-tuning is WORSE than
+% rank-8 LoRA under this recipe, 52.5 (a6_fullft) and 50.9 (x3_xenc_clean) against 54.8, both
+% far outside the seed spread.

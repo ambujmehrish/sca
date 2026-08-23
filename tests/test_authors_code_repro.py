@@ -484,3 +484,22 @@ def test_the_farm_directory_never_contains_wav(tmp_path):
     shim = open('scripts/hypergram_audio_shim.py').read()
     assert 'from repro_common import anno_ids, farm_dir' in shim
     assert "'_mp3link'" not in shim, 'the shim must not compute the farm path itself'
+
+
+def test_their_entry_point_runs_under_a_non_fork_start_method():
+    """Their build_dataloader constructs DataLoader(num_workers=8) without a
+    multiprocessing_context, so workers are forked, and something here refuses to run in a
+    forked child ("This operation is not valid in a forked process"). In a worker that lands
+    inside AudioMapper.read, whose bare `except` prints it and returns None, and
+    IndexAnno.__getitem__ then raises a bare ValueError -- thirteen frames from the cause.
+
+    Our fork reads $GRAM_MP_CTX for exactly this; theirs has no such option. The start method
+    is therefore set in the launching process, leaving their code untouched."""
+    shim = open('scripts/run_with_forkserver.py').read()
+    assert 'set_start_method' in shim and 'GRAM_MP_CTX' in shim
+    assert 'runpy.run_path' in shim, 'their script must be RUN, not imported or edited'
+    assert 'is unavailable here' in shim, 'an impossible start method must be fatal'
+    for launcher in ('slurm_scripts/hypergram_authors.sh', 'slurm_scripts/pmrl_released.sh'):
+        src = open(launcher).read()
+        assert 'run_with_forkserver.py" ./run.py' in src, \
+            '%s still launches ./run.py directly, so its workers are forked' % launcher

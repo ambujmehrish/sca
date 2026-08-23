@@ -232,7 +232,8 @@ echo "START=$(date +%T)"
 NOISE="mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($"
 ( cd "$HG_ROOT" && srun --chdir="$HG_ROOT" python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 \
     --nproc_per_node 4 --master_port $((9800 + IDX)) \
-    ./run.py --config "$CFG_REL" --output_dir "$CODE_DIR/$OUT" --checkpointing true 2>&1 ) \
+    "$CODE_DIR/scripts/run_with_forkserver.py" ./run.py \
+    --config "$CFG_REL" --output_dir "$CODE_DIR/$OUT" --checkpointing true 2>&1 ) \
   | { grep -v --line-buffered -E "$NOISE" || true; }
 rc=${PIPESTATUS[0]}
 echo "EXIT=$rc DONE $(date +%T)"

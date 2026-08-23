@@ -62,7 +62,7 @@ def test_the_missing_vast_module_is_a_stub_that_refuses_to_run():
     assert 'from .vast import VAST' in LAUNCH
     assert 'raise NotImplementedError' in LAUNCH
     assert 'model/vast.py' in LAUNCH
-    stub = LAUNCH[LAUNCH.index("cat > \"$STUB\""):LAUNCH.index('PYEOF\n  echo "wrote $STUB')]
+    stub = LAUNCH[LAUNCH.index('cat > "$STUB_TMP"'):LAUNCH.index('PYEOF\n  mv -f "$STUB_TMP"')]
     assert 'return' not in stub.split('class VAST')[1], 'the stub must raise, never return'
 
 
@@ -79,3 +79,54 @@ def test_the_audio_filter_helper_is_shared_between_both_reproductions():
     assert 'from repro_common import' in SRC
     assert 'from repro_common import' in open('scripts/make_hypergram_config.py').read()
     assert 'def resolve_audio_dir' not in SRC
+
+
+def _link_dep_fn():
+    import re as _re
+    return _re.search(r'^link_dep\(\) \{.*?^\}', LAUNCH, _re.S | _re.M).group(0)
+
+
+def test_concurrent_array_tasks_do_not_corrupt_the_dependency_links(tmp_path):
+    """Five array tasks share one checkout. With a test-then-create `ln -s`, all five saw
+    config/vast absent, all five created it, and the losers found it already resolving to a
+    DIRECTORY -- so ln placed the link INSIDE it, leaving the stray config/pmrl/pmrl that
+    then tripped the dirty-checkout guard. `ln -sfn` converges instead."""
+    import subprocess
+    pm, src = tmp_path / 'pm', tmp_path / 'src'
+    (pm / 'config' / 'pmrl').mkdir(parents=True)
+    src.mkdir()
+    script = '%s\nlink_dep config/vast "%s" t\n' % (_link_dep_fn(), pm / 'config' / 'pmrl')
+    procs = [subprocess.Popen(['bash', '-c', script], env={'PM_ROOT': str(pm),
+                                                           'PATH': '/usr/bin:/bin'},
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+             for _ in range(5)]
+    for p in procs:
+        p.wait()
+    assert (pm / 'config' / 'vast').is_symlink()
+    assert not (pm / 'config' / 'pmrl' / 'pmrl').exists(), \
+        'a racing task descended into the symlink instead of replacing it'
+
+
+def test_a_real_directory_is_never_clobbered_by_the_link(tmp_path):
+    import subprocess
+    pm, src = tmp_path / 'pm', tmp_path / 'src'
+    (pm / 'realdir').mkdir(parents=True)
+    (pm / 'realdir' / 'keepme').write_text('x')
+    src.mkdir()
+    r = subprocess.run(['bash', '-c', '%s\nlink_dep realdir "%s" t\n' % (_link_dep_fn(), src)],
+                       env={'PM_ROOT': str(pm), 'PATH': '/usr/bin:/bin'},
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert (pm / 'realdir' / 'keepme').exists(), 'a real directory was replaced by a symlink'
+
+
+def test_bytecode_caches_do_not_count_as_a_modified_checkout():
+    """__pycache__ appears because we IMPORT their modules to verify the package loads. That
+    is a byproduct of running their code, not an edit to it, and treating it as a local
+    modification made the guard refuse a clean checkout."""
+    assert "':!*__pycache__*'" in LAUNCH
+
+
+def test_the_import_stub_is_installed_atomically():
+    """Five tasks writing the same file directly can interleave into a truncated module."""
+    assert 'STUB_TMP' in LAUNCH and 'mv -f "$STUB_TMP" "$STUB"' in LAUNCH

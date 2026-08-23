@@ -70,22 +70,22 @@ PM_CKPT="${PMRL_CKPT:-$WORK_ROOT/pmrl_weights/model_ckpts/pmrl_base.pt}"
 
 # ---- the three things their release omits. Symlinks and one stub; no edit to their code.
 link_dep() {                          # link_dep <path-in-their-tree> <target> <what it is>
-  local dst="$PM_ROOT/$1" src="$2" what="$3" old
+  local dst="$PM_ROOT/$1" src="$2" what="$3"
   [ -e "$src" ] || {
     echo "FATAL: $src missing -- nothing to supply from ($what)" >&2; return 1; }
-  if [ -L "$dst" ] && [ ! -e "$dst" ]; then
-    old=$(readlink "$dst")
-    echo "WARNING: $dst was a DANGLING symlink -> $old; replacing it"
-    rm -f "$dst" || { echo "FATAL: could not remove the dangling link $dst" >&2; return 1; }
-  fi
-  if [ ! -e "$dst" ]; then
-    ln -s "$src" "$dst" || {
+  # `ln -sfn` rather than a test-then-create. Five array tasks share one checkout, and with a
+  # plain `ln -s` they all saw the link absent, all created it, and the losers found
+  # config/vast already resolving to a DIRECTORY -- so ln put the link INSIDE it, producing
+  # the stray config/pmrl/pmrl. -n treats an existing symlink as a file instead of descending
+  # into it, and -f replaces it, so concurrent tasks converge on the same correct link.
+  if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+    echo "$1 already present as a real path -> $dst"
+  else
+    ln -sfn "$src" "$dst" || {
       echo "FATAL: could not link $1 into $PM_ROOT (read-only checkout?)" >&2; return 1; }
     echo "linked $1 -> $src ($what)"
-  else
-    echo "$1 already present -> $(readlink -f "$dst")"
   fi
-  [ -e "$dst" ] || { echo "FATAL: $dst still does not resolve" >&2; return 1; }
+  [ -e "$dst" ] || { echo "FATAL: $dst does not resolve after linking" >&2; return 1; }
 }
 # Their configs inherit from ./config/vast/, which the release does not ship. config/pmrl
 # carries default_run_cfg.json and default_model_cfg.json under exactly those names, and the
@@ -102,7 +102,10 @@ link_dep datasets "$CODE_DIR/datasets" "annotation files; their repo ships no da
 # which is worse than the ImportError it replaces.
 STUB="$PM_ROOT/model/vast.py"
 if [ ! -f "$STUB" ]; then
-  cat > "$STUB" <<'PYEOF'
+  # written via a per-task temp file and moved into place: five array tasks writing the same
+  # file directly can interleave and leave a truncated module
+  STUB_TMP="$STUB.$$.tmp"
+  cat > "$STUB_TMP" <<'PYEOF'
 """NOT part of the PMRL release.
 
 model/__init__.py does `from .vast import VAST`, but model/vast.py is not shipped, so
@@ -122,6 +125,8 @@ class VAST:
             'only so `from .vast import VAST` resolves. Only model_type "pmrl" can be run '
             'from this checkout. If you need VAST, take it from github.com/TXH-mercury/VAST.')
 PYEOF
+  mv -f "$STUB_TMP" "$STUB" || {
+    echo "FATAL: could not install the import stub at $STUB" >&2; rm -f "$STUB_TMP"; exit 2; }
   echo "wrote $STUB (import stub; raises if instantiated)"
 else
   echo "model/vast.py already present in $PM_ROOT"
@@ -130,9 +135,12 @@ fi
   | tail -3 || { echo "FATAL: their model package still does not import from $PM_ROOT" >&2; exit 2; }
 export PYTHONPATH="$PM_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
+# __pycache__ is produced by importing their modules -- a byproduct of RUNNING their code,
+# not an edit to it. config/pmrl/pmrl is the stray a previous racing launcher could leave.
 DIRTY=$(git -C "$PM_ROOT" status --porcelain \
           -- ':!config/pmrl/finetune_cfg/repro_*' ':!config/vast' ':!pretrained_weights' \
-             ':!datasets' ':!model/vast.py' 2>/dev/null | head -5)
+             ':!datasets' ':!model/vast.py' ':!*__pycache__*' ':!config/pmrl/pmrl' \
+          2>/dev/null | head -5)
 if [ -n "$DIRTY" ]; then
   echo "FATAL: $PM_ROOT has local modifications beyond the generated config and the" >&2
   echo "       supplied dependencies:" >&2

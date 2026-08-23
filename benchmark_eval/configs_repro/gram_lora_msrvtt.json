@@ -14,7 +14,8 @@
   "lora_r_audio": 8,
   "lora_r_text": 8,
   "lora_alpha": 16,
-  "model_type": "gram_lora"
+  "model_type": "gram_lora",
+  "score_mode": "volume"
  },
  "data_cfg": {
   "train": [

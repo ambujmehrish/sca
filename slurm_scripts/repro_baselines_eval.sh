@@ -107,19 +107,33 @@ CFG="benchmark_eval/configs_repro/${METHOD}_${BENCH}.json"
 # no error, and a table that is wrong in a way nobody can see.
 python3 -c "
 import json, sys
-cfg = json.load(open('$CFG'))['model_cfg']
+
+def resolved(path):
+    '''What the MODEL sees: the file merged onto whatever default it inherits.
+
+    Comparing the config FILE was the blind spot. configs_qweight inherits
+    config/sca/default_model_cfg.json, which sets score_mode=centroid, so a baseline that
+    simply omitted the key read as score_mode=None here and as CENTROID at run time -- every
+    baseline scored with SCA's own aggregator, and this check said the config matched.'''
+    c = json.load(open(path))['model_cfg']
+    d = c.get('default')
+    base = json.load(open(d)) if d else {}   # the default file is FLAT, not wrapped
+    out = dict(base); out.update(c)
+    return out
+
+cfg = resolved('$CFG')
 try:
     hps = json.load(open('workdir_pretrain/$ARM/log/hps.json'))['model_cfg']
 except Exception as e:
     sys.exit('FATAL: cannot read workdir_pretrain/$ARM/log/hps.json (%s)' % e)
-want, got = cfg.get('model_type'), hps.get('model_type')
-if want != got:
-    sys.exit('FATAL: $CFG scores model_type=%r but workdir_pretrain/$ARM was trained as %r'
-             % (want, got))
-if cfg.get('score_mode') != hps.get('score_mode'):
-    sys.exit('FATAL: $CFG uses score_mode=%r, the arm trained with %r'
-             % (cfg.get('score_mode'), hps.get('score_mode')))
-print('model_type=%s score_mode=%s -- config matches the checkpoint' % (want, cfg.get('score_mode')))
+for key in ('model_type', 'score_mode', 'use_lora', 'sca_query_weighting', 'sca_frame_slots',
+            'sca_tau_w'):
+    want, got = cfg.get(key), hps.get(key)
+    if (want or None) != (got or None):
+        sys.exit('FATAL: $CFG resolves %s=%r but workdir_pretrain/$ARM trained with %r'
+                 % (key, want, got))
+print('model_type=%s score_mode=%s -- RESOLVED config matches the checkpoint'
+      % (cfg.get('model_type'), cfg.get('score_mode')))
 " || exit 2
 
 # The ARM is part of the identity of a cell, not just the method name. Two different

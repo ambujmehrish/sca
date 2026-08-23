@@ -14,7 +14,8 @@
   "lora_alpha": 16,
   "ret_bidirection_evaluation": true,
   "itm_rerank_num": 50,
-  "model_type": "gram_lora"
+  "model_type": "gram_lora",
+  "score_mode": "volume"
  },
  "data_cfg": {
   "train": [

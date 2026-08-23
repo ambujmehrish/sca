@@ -15,7 +15,8 @@
   "ret_bidirection_evaluation": true,
   "itm_rerank_num": 50,
   "max_caption_len": 70,
-  "model_type": "gram_lora"
+  "model_type": "gram_lora",
+  "score_mode": "volume"
  },
  "data_cfg": {
   "train": [

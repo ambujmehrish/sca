@@ -64,9 +64,11 @@ def test_no_baseline_carries_sca_specific_machinery(method, bench):
 @pytest.mark.parametrize('method', METHODS)
 def test_each_method_declares_the_geometry_that_defines_it(method):
     m = _repro(method, 'msrvtt')['model_cfg']
+    # score_mode is now STATED per method rather than inherited -- 'volume' is GRAM's
+    # geometry and used to be left implicit, which is exactly how it resolved to centroid
     expect = {'pmrl': ('pmrl', 'pmrl_raw'),
-              'hypergram': ('gram_hyp', None),
-              'gram_lora': ('gram_lora', None)}[method]
+              'hypergram': ('gram_hyp', 'volume'),
+              'gram_lora': ('gram_lora', 'volume')}[method]
     assert m.get('model_type') == expect[0], m.get('model_type')
     assert m.get('score_mode') == expect[1], m.get('score_mode')
 
@@ -76,8 +78,8 @@ def test_the_launcher_refuses_a_config_that_does_not_match_the_checkpoint():
     centroid, yields a full set of plausible numbers for a model that was never trained: no
     shape mismatch, no error, and a table wrong in a way nobody can see."""
     src = open('slurm_scripts/repro_baselines_eval.sh').read()
-    assert 'was trained as' in src, 'no model_type cross-check against the arm hps.json'
-    assert "score_mode=%r, the arm trained with" in src, 'no score_mode cross-check'
+    assert 'trained with' in src, 'no cross-check against the arm hps.json'
+    assert "'model_type', 'score_mode'" in src, 'the cross-check must cover both'
 
 
 def test_the_hypergram_caveat_travels_with_the_launcher():
@@ -151,3 +153,36 @@ def test_cell_names_with_an_arm_still_parse():
         arm, got = m.split_cell(cell)
         assert got == bench, '%s parsed as benchmark %r' % (cell, got)
         assert arm and arm != cell, '%s did not split into arm and benchmark' % cell
+
+
+def _resolved(path):
+    c = json.load(open(path))['model_cfg']
+    d = c.get('default')
+    base = json.load(open(d)) if d else {}   # the default file is FLAT, not wrapped
+    out = dict(base)
+    out.update(c)
+    return out
+
+
+@pytest.mark.parametrize('method,mode', [('pmrl', 'pmrl_raw'), ('hypergram', 'volume'),
+                                         ('gram_lora', 'volume')])
+@pytest.mark.parametrize('bench', BENCHES)
+def test_score_mode_is_stated_not_inherited(method, mode, bench):
+    """configs_qweight inherits config/sca/default_model_cfg.json, which sets
+    score_mode=centroid. A baseline that merely omitted the key therefore read as None in the
+    file and ran as CENTROID -- every competing aggregator scored with ours, and the launcher's
+    file-level check said the config matched. score_mode must be explicit per method."""
+    p = 'benchmark_eval/configs_repro/%s_%s.json' % (method, bench)
+    assert json.load(open(p))['model_cfg'].get('score_mode') == mode, 'not stated in the file'
+    assert _resolved(p)['score_mode'] == mode, 'resolves to something else at run time'
+
+
+def test_no_baseline_resolves_to_the_centroid():
+    for p in glob.glob('benchmark_eval/configs_repro/*.json'):
+        assert _resolved(p)['score_mode'] != 'centroid', '%s scores a baseline with ours' % p
+
+
+def test_the_launcher_compares_the_resolved_config():
+    src = open('slurm_scripts/repro_baselines_eval.sh').read()
+    assert 'def resolved(' in src, 'the check still reads the config file only'
+    assert 'RESOLVED config matches' in src

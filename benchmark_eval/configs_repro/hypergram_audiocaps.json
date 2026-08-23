@@ -9,7 +9,8 @@
   "vision_encoder_type": "evaclip01_giant",
   "ret_bidirection_evaluation": true,
   "itm_rerank_num": 50,
-  "model_type": "gram_hyp"
+  "model_type": "gram_hyp",
+  "score_mode": "volume"
  },
  "data_cfg": {
   "train": [

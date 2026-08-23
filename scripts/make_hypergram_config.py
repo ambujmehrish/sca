@@ -20,6 +20,7 @@ substitution is recorded in the generated config for whoever reads the numbers l
 """
 import argparse
 import collections
+import glob
 import json
 import os
 import sys
@@ -33,6 +34,19 @@ FROZEN_MODEL = ('curvature_init', 'learn_curvature',
                 'initial_euclidean_weight', 'initial_hyperbolic_weight',
                 'learn_hybrid_weights', 'gradient_clip_hyperbolic')
 FROZEN_TRAIN = ('batch_size', 'epoch', 'task', 'vision_sample_num', 'audio_sample_num')
+
+
+def sca_train_txt(cfg_path, data_root):
+    """The training annotation file OUR reported row uses, read from its config rather than
+    assumed. This is the thing the substitution has to match."""
+    if not os.path.exists(cfg_path):
+        sys.exit('FATAL: %s not found -- it is what the substituted annotation file is checked '
+                 'against, so there is nothing to verify equality with.' % cfg_path)
+    c = json.load(open(cfg_path))
+    tr = c.get('data_cfg', {}).get('train', [])
+    if not tr or not tr[0].get('txt'):
+        sys.exit('FATAL: %s names no training annotation file.' % cfg_path)
+    return tr[0]['txt'].replace('${DATA_ROOT}', data_root)
 
 
 def main():
@@ -52,7 +66,12 @@ def main():
                          "at HYPERGRAM's recipe -- their implementation, not PMRL's recipe.")
     ap.add_argument('--out', default=None,
                     help='written INSIDE --hypergram_root; default repro_<mode>_ours_paths.json')
-    ap.add_argument('--allow_annotation_mismatch', action='store_true')
+    ap.add_argument('--allow_annotation_mismatch', action='store_true',
+                    help='substitute our annotation file for theirs, AFTER verifying it is the '
+                         'same one --sca_train_config trains on')
+    ap.add_argument('--sca_train_config', default='config/sca/pretrain_cfg/sca_paper.json',
+                    help='the config of OUR reported row; the substituted annotation file must '
+                         'be the one it trains on, or the comparison is unequal both ways')
     args = ap.parse_args()
 
     if not args.data_root:
@@ -71,6 +90,22 @@ def main():
     before = (dict(cfg['run_cfg']), dict(cfg['model_cfg']), dict(cfg['data_cfg']['train'][0]))
 
     # ---- the annotation file, which is the one place their data may not be our data
+    #
+    # There are TWO "equal data" properties here and only one is obtainable. Their
+    # annotations150k_clean.json is the VAST-150k caption pool restricted to the videos THEY
+    # managed to download (their scripts/ writes download_progress.json and drops the
+    # failures); ours is the same pool restricted to the videos WE managed to download.
+    # Neither is canonical, they do not ship theirs, and it would not match our video store
+    # anyway. So:
+    #
+    #   equal to their published training set : unobtainable
+    #   equal to OUR SCA row's training set   : obtainable, and VERIFIED below
+    #
+    # The second is the one the table needs -- a HyperGRAM row trained on a different subset
+    # than the SCA row is exactly the confound the single-configuration rule exists to
+    # prevent. So the substitution is not merely permitted, it is checked against the file
+    # our own paper config trains on, and refused if it is a different file. A substitution
+    # that is unequal in BOTH directions is worth nothing.
     train = cfg['data_cfg']['train'][0]
     theirs = os.path.basename(train['txt'])                 # annotations150k_clean.json
     ours_dir = os.path.join(args.data_root, 'vast27m_150k')
@@ -80,16 +115,31 @@ def main():
         train['txt'] = same_name
         note = 'their annotation file, present in our tree'
     elif args.allow_annotation_mismatch and os.path.exists(fallback):
+        sca = sca_train_txt(args.sca_train_config, args.data_root)
+        if os.path.realpath(sca) != os.path.realpath(fallback):
+            sys.exit('FATAL: the substitute %s is NOT the file our SCA row trains on (%s says\n'
+                     '       %s). Substituting a third training set would leave the row unequal\n'
+                     '       to their published data AND unequal to ours, which is worse than\n'
+                     '       not running it.' % (fallback, args.sca_train_config, sca))
+        st = os.stat(fallback)
         train['txt'] = fallback
-        note = ('SUBSTITUTED annotations150k.json for their %s -- the training sets may '
-                'differ, so this is NOT an equal-data comparison' % theirs)
+        note = ('SUBSTITUTED annotations150k.json for their %s. VERIFIED identical to the file '
+                '%s trains on (%d bytes), so this row is equal-data with our SCA row. It is '
+                'NOT equal-data with their published run: their %s is the caption pool '
+                'restricted to the videos they downloaded, which we do not have. Report as '
+                "\"authors' code, our environment, our 150k subset\" -- never as reproducing "
+                'their published number.'
+                % (theirs, args.sca_train_config, st.st_size, theirs))
     else:
         sys.exit('FATAL: they train on %s; we have only %s.\n'
-                 '       Those may be different subsets of VAST-150k, and swapping one for the\n'
-                 '       other silently makes the comparison unequal in the training data --\n'
-                 '       the exact class of error this reproduction exists to avoid.\n'
-                 '       Fetch their file, or pass --allow_annotation_mismatch to proceed with\n'
-                 '       the substitution recorded in the config.' % (theirs, fallback))
+                 '       Those are different subsets of VAST-150k -- each is the caption pool\n'
+                 '       restricted to the videos that side managed to download -- so swapping\n'
+                 '       one for the other silently makes the comparison unequal in the\n'
+                 '       training data.\n'
+                 '       Passing --allow_annotation_mismatch substitutes ours AFTER checking it\n'
+                 '       is the same file our SCA row trains on, which is the equality the\n'
+                 '       table actually needs. The substitution is recorded in the config.'
+                 % (theirs, fallback))
 
     train['vision'] = os.path.join(ours_dir, 'clips')
     train['audio'] = os.path.join(ours_dir, 'audios_wav')
@@ -100,6 +150,7 @@ def main():
     # using ours keeps the eval split identical to every other row in our table.
     code_dir = os.environ.get('CODE_DIR') or os.path.join(os.path.dirname(
         os.path.abspath(__file__)), '..')
+    val_notes = []
     for d in cfg['data_cfg'].get('val', []):
         name = d.get('name', '')
         if name.startswith('vatex'):
@@ -108,8 +159,30 @@ def main():
         if not os.path.isabs(d['txt']):
             ours = os.path.join(code_dir, d['txt'])
             if not os.path.exists(ours):
-                sys.exit('FATAL: val annotation %s not found at %s -- their repo ships no '
-                         'datasets/ directory, so it has to come from ours.' % (d['txt'], ours))
+                # Same shape as the training annotations: their description list names videos
+                # from THEIR download, and d['vision'] above points at OUR video store, so a
+                # list referencing videos we do not hold makes checkpoint selection meaningless
+                # rather than merely different. Our subset file is the only coherent choice --
+                # but it is a real deviation (save_best picks a different checkpoint), so it is
+                # gated on the same flag and recorded, never swapped in quietly.
+                stem = os.path.basename(ours).replace('.json', '')
+                cands = sorted(glob.glob(os.path.join(os.path.dirname(ours), stem + '_*.json')))
+                if args.allow_annotation_mismatch and len(cands) == 1:
+                    val_notes.append('val %s: SUBSTITUTED %s for their %s (our VATEX subset -- '
+                                     'their list names videos we did not download, and the '
+                                     'vision root is ours). save_best therefore selects on our '
+                                     'subset.' % (name, os.path.basename(cands[0]),
+                                                  os.path.basename(ours)))
+                    d['txt'] = cands[0]
+                    continue
+                sys.exit('FATAL: val annotation %s not found at %s -- their repo ships no\n'
+                         '       datasets/ directory, so it has to come from ours.\n'
+                         '       Sibling candidates: %s\n'
+                         '       With --allow_annotation_mismatch a SINGLE candidate is used '
+                         'and recorded; %s.'
+                         % (d['txt'], ours, cands or 'none',
+                            'none were found' if not cands else
+                            'here there are %d, which is ambiguous' % len(cands)))
             d['txt'] = ours
 
     cfg['run_cfg']['pretrain_dir'] = vast
@@ -132,6 +205,7 @@ def main():
         'source_config': PAPER_CFG,
         'edits': 'dataset and checkpoint paths only; every hyperparameter left as shipped',
         'annotations': note,
+        'val_annotations': val_notes or 'their filenames, present in our tree',
         'geometry_mode': args.geometry_mode,
         'recipe_caveat': (
             'hybrid is HyperGRAM as published. pmrl / pmrl_volume / hybrid_pmrl use THEIR '

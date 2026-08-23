@@ -10,7 +10,11 @@ their checkout must not be edited. A number labelled "authors' code" that came f
 tree or a changed learning rate is worse than no number, because it looks verifiable.
 """
 import json
+import os
+import pathlib
 import re
+
+import pytest
 
 
 SRC = open('scripts/make_hypergram_config.py').read()
@@ -37,8 +41,13 @@ def test_an_annotation_substitution_is_refused_by_default():
     """They train on annotations150k_clean.json and we have annotations150k.json. Swapping one
     for the other without saying so makes the comparison unequal in the training data."""
     assert '--allow_annotation_mismatch' in SRC
-    assert 'NOT an equal-data comparison' in SRC
     assert 'FATAL: they train on' in SRC
+    # and the substitute must be checked against OUR reported row, not merely allowed:
+    # a third training set is unequal to their data AND to ours
+    assert '--sca_train_config' in SRC
+    assert 'is NOT the file our SCA row trains on' in SRC
+    assert 'never as reproducing' in SRC, \
+        'the recorded note must forbid citing the row as their published number'
 
 
 def test_the_launcher_refuses_a_modified_checkout():
@@ -202,3 +211,87 @@ def test_the_ranks_are_placed_in_their_root_explicitly():
     """Every relative path their code hardcodes resolves inside the RANKS, and the subshell's
     `cd` only sets the cwd of srun itself."""
     assert 'srun --chdir="$HG_ROOT"' in LAUNCH
+
+
+HG = '/home/user/uta-smile/hypergram'
+# Their config's val block names datasets/annotations/vatex/descs_ret_test.json; our tree has
+# the _431 subset (the VATEX videos we actually downloaded). The generator substitutes it under
+# the same flag, so the tests need it on disk.
+VATEX_SUBSET = pathlib.Path('datasets/annotations/vatex/descs_ret_test_431.json')
+
+
+@pytest.fixture
+def hypergram_sandbox(tmp_path):
+    """A data root the generator can succeed against, and the real checkout to read from."""
+    if not os.path.isdir(HG + '/configs/pretrain'):
+        pytest.skip('no HyperGram checkout at %s' % HG)
+    data = tmp_path / 'data' / 'vast27m_150k'
+    data.mkdir(parents=True)
+    (data / 'annotations150k.json').write_text('[]')
+    (tmp_path / 'vast').mkdir()
+    made = not VATEX_SUBSET.exists()
+    if made:
+        VATEX_SUBSET.write_text('[]')
+    generated = []
+    yield tmp_path, generated
+    for g in generated:
+        if os.path.exists(g):
+            os.remove(g)
+    if made:
+        VATEX_SUBSET.unlink()
+
+
+def _generate(sandbox, extra=()):
+    """Run the generator end to end against the real checkout, in the sandboxed data root."""
+    import subprocess
+    tmp_path, generated = sandbox
+    out = 'configs/pretrain/repro_pytest_%s.json' % tmp_path.name
+    generated.append(HG + '/' + out)
+    r = subprocess.run(
+        ['python3', 'scripts/make_hypergram_config.py', '--hypergram_root', HG,
+         '--data_root', str(tmp_path / 'data'), '--vast_ckpt_dir', str(tmp_path / 'vast'),
+         '--out', out] + list(extra), capture_output=True, text=True)
+    gen = HG + '/' + out
+    return r, (json.load(open(gen)) if os.path.exists(gen) else None)
+
+
+def test_the_substituted_training_file_is_actually_written_into_the_config(hypergram_sandbox):
+    """The note once said SUBSTITUTED while the config still named THEIR path -- the run
+    would have gone looking for a file that does not exist, with a config claiming otherwise.
+    What the note says and what the config says have to be the same thing."""
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
+    assert r.returncode == 0, r.stdout + r.stderr
+    txt = cfg['data_cfg']['train'][0]['txt']
+    expect = str(hypergram_sandbox[0] / 'data' / 'vast27m_150k' / 'annotations150k.json')
+    assert txt == expect, txt
+    assert 'SUBSTITUTED' in cfg['_repro_note']['annotations']
+
+
+def test_every_data_path_in_the_generated_config_exists(hypergram_sandbox):
+    """A generated config is only useful if their code can actually open what it names."""
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
+    assert r.returncode == 0, r.stdout + r.stderr
+    checked = 0
+    for blk in list(cfg['data_cfg']['train']) + list(cfg['data_cfg'].get('val', [])):
+        for key in ('txt',):
+            assert os.path.exists(blk[key]), '%s %s -> %s does not exist' % (
+                blk.get('name', 'train'), key, blk[key])
+            checked += 1
+    assert checked >= 2, 'nothing was actually checked'
+    assert os.path.isdir(cfg['run_cfg']['pretrain_dir'])
+
+
+def test_the_substitution_is_refused_without_the_flag(hypergram_sandbox):
+    r, cfg = _generate(hypergram_sandbox)
+    assert r.returncode == 1 and cfg is None
+    assert 'they train on annotations150k_clean.json' in r.stdout + r.stderr
+
+
+def test_hyperparameters_survive_the_generation(hypergram_sandbox):
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
+    assert r.returncode == 0
+    assert cfg['run_cfg']['learning_rate'] == 5e-05
+    assert cfg['data_cfg']['train'][0]['epoch'] == 1
+    assert cfg['data_cfg']['train'][0]['task'] == 'ret%tvas%tv%ta'
+    assert cfg['data_cfg']['train'][0]['batch_size'] == 128
+    assert cfg['model_cfg']['learn_curvature'] is True

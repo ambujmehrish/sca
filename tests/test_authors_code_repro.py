@@ -334,8 +334,16 @@ def test_hyperparameters_survive_the_generation(hypergram_sandbox):
 
 
 def _rewrite_annos(sandbox, entries):
+    """Replace the training annotations AND the audio their filter looks for.
+
+    Their IndexAnno keeps a clip only if <audio>/<id>.mp3 exists, so annotations whose ids the
+    audio directory does not cover build an empty dataset -- a different failure from the one
+    under test."""
     tmp_path, _ = sandbox
-    (tmp_path / 'data' / 'vast27m_150k' / 'annotations150k.json').write_text(json.dumps(entries))
+    d = tmp_path / 'data' / 'vast27m_150k'
+    (d / 'annotations150k.json').write_text(json.dumps(entries))
+    for i in _ids(entries):
+        (d / 'audios_wav' / ('%s.mp3' % i)).write_bytes(b'')
 
 
 def test_a_subtitleless_file_is_refused_because_their_code_would_not_complain(hypergram_sandbox):
@@ -376,3 +384,64 @@ def test_the_task_parser_reads_every_retrieval_group(hypergram_sandbox):
     assert m.task_modalities('ret%tv%ta') == set('tva')
     assert 's' not in m.task_modalities('ret%tv%ta'), \
         'our own arms run three modalities; the check must not fire on them'
+
+
+def test_a_partly_covered_audio_farm_is_accepted_not_rejected(tmp_path):
+    """Both forks filter audio-less clips out ON PURPOSE -- ours on .wav, theirs on .mp3 -- so
+    a farm covering 91% of ids is the correct state, and the 9% are dropped identically on
+    both sides. An earlier version demanded full coverage and rejected a working farm."""
+    import sys
+    sys.path.insert(0, 'scripts')
+    from repro_common import resolve_audio_dir
+    audio, farm = tmp_path / 'audios', tmp_path / 'audios_mp3link'
+    audio.mkdir(); farm.mkdir()
+    entries = [{'clip_id': 'a%d' % i} for i in range(10)]
+    (tmp_path / 'anno.json').write_text(json.dumps(entries))
+    for i in range(9):                                   # 9 of 10 have audio
+        (audio / ('a%d.wav' % i)).write_bytes(b'')
+        (farm / ('a%d.mp3' % i)).symlink_to(audio / ('a%d.wav' % i))
+    got = resolve_audio_dir(str(audio), str(tmp_path / 'anno.json'), 'finetune_area')
+    assert got == str(farm)
+
+
+def test_an_empty_audio_dir_is_still_fatal(tmp_path):
+    """The bar is 'the dataset is not empty', and zero coverage still fails it."""
+    import subprocess
+    src = ('import sys; sys.path.insert(0, "scripts")\n'
+           'from repro_common import resolve_audio_dir\n'
+           'resolve_audio_dir(%r, %r, "finetune_area")\n'
+           % (str(tmp_path / 'audios'), str(tmp_path / 'anno.json')))
+    (tmp_path / 'audios').mkdir()
+    (tmp_path / 'anno.json').write_text(json.dumps([{'clip_id': 'a%d' % i} for i in range(4)]))
+    r = subprocess.run(['python3', '-c', src], capture_output=True, text=True)
+    assert r.returncode == 1
+    assert 'would be built' in r.stdout + r.stderr
+
+
+def test_the_subtitle_task_can_be_dropped_deliberately_and_is_recorded(hypergram_sandbox):
+    """Our VAST-150k annotations may carry no subtitles, and their frozen task asks for them.
+    Silently, model/gram.py falls to hybrid_volume3 and the row claims a 4-modality method it
+    never ran. Dropping `s` explicitly is the matched comparison -- our SCA arms train
+    ret%tv%ta -- but it is not their published task, so it must be recorded."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('m', 'scripts/make_hypergram_config.py')
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    assert m.drop_subtitle('ret%tvas%tv%ta') == 'ret%tva%tv%ta', \
+        'the joint group must stay joint, only losing the subtitle modality'
+
+    _rewrite_annos(hypergram_sandbox, [{'clip_id': 'v', 'desc': 'c'}] * 4)
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch', '--drop_subtitle_task'])
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert cfg['data_cfg']['train'][0]['task'] == 'ret%tva%tv%ta'
+    note = cfg['_repro_note']['subtitle_task']
+    assert 'DELIBERATELY' in note and 'hybrid_volume3' in note
+    assert 'subtitle task dropped' in note, 'the note must say how to label the row'
+
+
+def test_without_the_flag_a_subtitleless_file_still_refuses(hypergram_sandbox):
+    """The flag is the only way past; the default stays a refusal."""
+    _rewrite_annos(hypergram_sandbox, [{'clip_id': 'v', 'desc': 'c'}] * 4)
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
+    assert r.returncode == 1 and cfg is None
+    assert '--drop_subtitle_task does exactly that' in r.stdout + r.stderr

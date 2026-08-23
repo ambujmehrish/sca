@@ -50,23 +50,35 @@ def resolve_audio_dir(audio_dir, txt, name, sample=200):
     ids = anno_ids(txt, limit=sample)
 
     def hits(d):
+        if not os.path.isdir(d):
+            return -1
         return sum(1 for i in ids if os.path.exists(os.path.join(d, i + '.mp3')))
 
-    for cand, why in ((audio_dir, 'as configured'),
-                      (audio_dir.rstrip('/') + '_mp3link', 'the .mp3 symlink farm')):
-        if os.path.isdir(cand) and hits(cand) == len(ids):
-            if cand != audio_dir:
-                print('  audio [%s] : using %s (%s)' % (name, cand, why))
-            return cand
-    sys.exit(
-        'FATAL: their data/IndexAnno.py keeps a sample only if "<audio_dir>/<id>.mp3" exists --\n'
-        '       the extension is hardcoded -- and %s satisfies that for %d of %d sampled ids.\n'
-        '       The dataset "%s" would be built EMPTY. Their READER is extension-agnostic, so\n'
-        '       build the symlink farm:\n'
-        '         python3 scripts/hypergram_audio_shim.py --build \\\n'
-        '             --pairs %s:%s\n'
-        '       then re-run. Nothing in their code is edited by this.'
-        % (audio_dir, hits(audio_dir), len(ids), name, txt, audio_dir))
+    farm = audio_dir.rstrip('/') + '_mp3link'
+    cands = [(hits(audio_dir), audio_dir, 'as configured'),
+             (hits(farm), farm, 'the .mp3 symlink farm')]
+    best, chosen, why = max(cands)
+
+    # The right bar is "the dataset is not empty", NOT "every id has audio". Both forks filter
+    # audio-less clips out on purpose -- ours on `.wav`, theirs on `.mp3` -- so a farm covering
+    # 91% of ids is the CORRECT state, not a broken one, and the 9% are dropped identically on
+    # both sides. Demanding full coverage here rejected a farm that was working.
+    if best <= 0:
+        sys.exit(
+            'FATAL: their data/IndexAnno.py keeps a sample only if "<audio_dir>/<id>.mp3"\n'
+            '       exists -- the extension is hardcoded -- and neither\n'
+            '         %s\n'
+            '       nor %s\n'
+            '       satisfies that for ANY of %d sampled ids. The dataset "%s" would be built\n'
+            '       EMPTY. Their READER is extension-agnostic, so build the symlink farm:\n'
+            '         python3 scripts/hypergram_audio_shim.py --build \\\n'
+            '             --pairs %s:%s\n'
+            '       then re-run. Nothing in their code is edited by this.'
+            % (audio_dir, farm, len(ids), name, txt, audio_dir))
+
+    print('  audio [%s] : %s (%s) -- %d/%d sampled ids have audio (%.1f%%)'
+          % (name, chosen, why, best, len(ids), 100.0 * best / len(ids)))
+    return chosen
 
 
 def expand(obj, data_root, work_root=None):

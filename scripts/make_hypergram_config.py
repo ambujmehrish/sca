@@ -39,6 +39,22 @@ FROZEN_MODEL = ('curvature_init', 'learn_curvature',
 FROZEN_TRAIN = ('batch_size', 'epoch', 'task', 'vision_sample_num', 'audio_sample_num')
 
 
+def drop_subtitle(task):
+    """Their task minus the subtitle modality, keeping the structure otherwise.
+
+    ret%tvas%tv%ta -> ret%tva%tv%ta : the joint group loses `s` and stays joint, the pairwise
+    groups are untouched. This is their recipe at three modalities, not a different recipe.
+    """
+    groups = task.split('%')
+    head, out, seen = groups[0], [], set()
+    for g in groups[1:]:
+        g2 = g.replace('s', '')
+        if len(g2) > 1 and g2 not in seen:
+            seen.add(g2)
+            out.append(g2)
+    return '%'.join([head] + out)
+
+
 def sca_train_txt(cfg_path, data_root):
     """The training annotation file OUR reported row uses, read from its config rather than
     assumed. This is the thing the substitution has to match."""
@@ -72,6 +88,10 @@ def main():
     ap.add_argument('--allow_annotation_mismatch', action='store_true',
                     help='substitute our annotation file for theirs, AFTER verifying it is the '
                          'same one --sca_train_config trains on')
+    ap.add_argument('--drop_subtitle_task', action='store_true',
+                    help='if the training annotations carry no subtitles, rewrite their task '
+                         'to drop the `s` modality rather than letting model/gram.py fall back '
+                         'to hybrid_volume3 silently. Recorded in the generated config.')
     ap.add_argument('--val_from_theirs', dest='val_from_sca', action='store_false',
                     help='keep their VATEX val block instead of ours. Default is ours, so '
                          'save_best selects on the same signal for every row of the table.')
@@ -160,13 +180,28 @@ def main():
     # number would be published under their name having never run their method. Measured here
     # rather than assumed, and reported as a fraction because a file where only some entries
     # carry subtitles is a third state that neither branch describes.
-    sub_frac = None
+    sub_frac, sub_note = None, 'their task as shipped; subtitles present'
     if 's' in task_modalities(train.get('task', '')):
         annos = json.load(open(train['txt']))
         if isinstance(annos, list) and annos:
             n = sum(1 for a in annos if isinstance(a, dict) and a.get('subtitle'))
             sub_frac = n / float(len(annos))
-        if not sub_frac:
+        if not sub_frac and args.drop_subtitle_task:
+            # Deliberate, explicit, and recorded. Our own SCA arms train ret%tv%ta, so a
+            # three-modality HyperGRAM is the MATCHED comparison rather than a crippled one --
+            # but it is not the task they published, and the row has to say so.
+            old_task = train['task']
+            train['task'] = drop_subtitle(old_task)
+            sub_note = ('their task %s -> %s: our VAST-150k annotations carry no `subtitle` '
+                        'field, so the subtitle modality was dropped DELIBERATELY. Left in, '
+                        'model/gram.py would have fallen back to hybrid_volume3 silently and '
+                        'the row would claim a 4-modality method it never ran. Report as '
+                        '"HyperGRAM, subtitle task dropped (our annotations carry none)". Our '
+                        'SCA arms train ret%%tv%%ta, so this is the matched comparison.'
+                        % (old_task, train['task']))
+            print('  task     : %s -> %s (no subtitles in our annotations)'
+                  % (old_task, train['task']))
+        elif not sub_frac:
             sys.exit('FATAL: their task %r requires subtitles (the `s` in tvas) and %s has\n'
                      '       none. Their model/gram.py does NOT fail on this -- it falls back\n'
                      '       to the 3-modality hybrid_volume3 and trains happily, so the run\n'
@@ -174,8 +209,25 @@ def main():
                      '       never run their 4-modality method.\n'
                      '       Either supply subtitles, or change the task deliberately and\n'
                      '       label the row as the 3-modality variant -- but do not let this\n'
-                     '       pass silently.' % (train.get('task'), train['txt']))
-        if sub_frac < 1.0:
+                     '       pass silently.\n'
+                     '       --drop_subtitle_task does exactly that: rewrites %s to %s and\n'
+                     '       records it. Our SCA arms train ret%%tv%%ta, so that is the matched\n'
+                     '       comparison, not a handicap.'
+                     % (train.get('task'), train['txt'], train.get('task'),
+                        drop_subtitle(train.get('task', ''))))
+        elif sub_frac < 1.0 and args.drop_subtitle_task:
+            # Partial coverage is unusable for the reason below, and dropping `s` is the same
+            # deliberate answer it is at zero coverage.
+            old_task = train['task']
+            train['task'] = drop_subtitle(old_task)
+            sub_note = ('their task %s -> %s: only %.1f%% of entries carry a subtitle, and '
+                        'their collate picks the batch arity from the first sample alone, so '
+                        'partial coverage is incoherent rather than merely degraded. Subtitle '
+                        'modality dropped DELIBERATELY; report as "HyperGRAM, subtitle task '
+                        'dropped".' % (old_task, train['task'], 100 * sub_frac))
+            print('  task     : %s -> %s (subtitles cover only %.1f%%)'
+                  % (old_task, train['task'], 100 * sub_frac))
+        elif sub_frac < 1.0:
             # data/IndexAnno.py::annoindexedcollate decides whether the batch carries
             # raw_subtitles from `data[0] is None` -- THE FIRST SAMPLE ONLY. With partial
             # coverage the arity flips batch to batch depending on which sample landed first,
@@ -185,8 +237,9 @@ def main():
                      '       decides the batch arity from the FIRST sample alone. Partial\n'
                      '       coverage means the Gramian silently changes rank between batches\n'
                      '       and subtitle-less samples reach the tokenizer as None.\n'
-                     '       Use a fully-covered annotation file, or drop `s` from the task\n'
-                     '       deliberately and label the row as the 3-modality variant.'
+                     '       Use a fully-covered annotation file, or pass\n'
+                     '       --drop_subtitle_task to drop `s` deliberately and label the row\n'
+                     '       as the 3-modality variant.'
                      % (100 * sub_frac, os.path.basename(train['txt'])))
 
     # Their repo ships no datasets/ directory, so the annotation JSONs its val block names
@@ -283,6 +336,8 @@ def main():
 
     # ---- nothing but paths may have moved
     after = (cfg['run_cfg'], cfg['model_cfg'], cfg['data_cfg']['train'][0])
+    if args.drop_subtitle_task and before[2].get('task') != after[2].get('task'):
+        before[2]['task'] = drop_subtitle(before[2]['task'])   # the one intended change
     for keys, b, a, what in ((FROZEN_RUN, before[0], after[0], 'run_cfg'),
                              (FROZEN_MODEL, before[1], after[1], 'model_cfg'),
                              (FROZEN_TRAIN, before[2], after[2], 'train block')):
@@ -297,6 +352,7 @@ def main():
         'annotations': note,
         'val_annotations': val_notes or 'their filenames, present in our tree',
         'subtitle_coverage': sub_frac,
+        'subtitle_task': sub_note,
         'validation': val_source,
         'geometry_mode': args.geometry_mode,
         'recipe_caveat': (

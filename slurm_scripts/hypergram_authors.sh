@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=240G
 #SBATCH --job-name=hgauth
-#SBATCH --array=0-3
+#SBATCH --array=0
 #SBATCH -o ./slurm_scripts/logs/hgauth_%A_%a.out
 #SBATCH -e ./slurm_scripts/logs/hgauth_%A_%a.out
 # The baselines, run from the AUTHORS' code rather than our reimplementation of it.
@@ -22,17 +22,22 @@
 # from our reimplementation are therefore not evidence about their method, and the 37.4 that
 # circulated as "our HyperGRAM reproduction does not work" is retracted.
 #
-# Their repo also implements PMRL, so all four geometries come from one codebase:
+# ONLY index 0 (hybrid = HyperGRAM as published) is run by default.
 #
 #   0  hybrid        HyperGRAM as published (their paper config, unchanged)
-#   1  pmrl          their PMRL
-#   2  pmrl_volume   their PMRL volume variant
-#   3  hybrid_pmrl   their PMRL with hybrid-space SVD
+#   1  pmrl          their PMRL reimplementation      -- NOT USED, see below
+#   2  pmrl_volume   their PMRL volume variant        -- NOT USED
+#   3  hybrid_pmrl   their PMRL with hybrid-space SVD -- NOT USED
 #
-# RECIPE CAVEAT that must travel with rows 1-3. Only the hybrid config ships with the repo, so
-# the pmrl* modes inherit HyperGRAM's recipe: lr 5e-05, one epoch, task ret%tvas%tv%ta, PMRL
-# defaults lambda1 1.0 / lambda2 0.1 / tau 0.07. They are THEIR IMPLEMENTATION AT HYPERGRAM'S
-# RECIPE, never PMRL's published setup, and must be labelled that way.
+# PMRL DOES NOT COME FROM HERE. The PMRL authors release their trained weights
+# (huggingface.co/xhLiu/PMRL, model_ckpts/pmrl_base.pt) and their code
+# (github.com/Xiaohao-Liu/PMRL), so the PMRL row is their released checkpoint evaluated in our
+# environment -- exactly how the GRAM row is produced. That is strictly stronger than indices
+# 1-3, which would be HyperGram's PMRL reimplementation at HYPERGRAM's recipe (no PMRL config
+# ships with their repo), a row that would have to carry a caveat in every table it appeared
+# in. The indices remain reachable with `sbatch --array=1` for a deliberate ablation, and if
+# one is ever run it must be labelled "HyperGram's PMRL implementation at HyperGRAM's recipe",
+# never as PMRL.
 #
 # Nothing here edits their code. scripts/make_hypergram_config.py rewrites dataset and
 # checkpoint paths only, then asserts that learning rate, epochs, batch, task and every

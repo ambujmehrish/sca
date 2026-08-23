@@ -59,18 +59,23 @@ def test_the_launcher_refuses_a_modified_checkout():
 
 
 def test_the_pmrl_recipe_caveat_is_carried_into_the_generated_config():
-    """No PMRL config ships with their repo, so pmrl* modes inherit HyperGRAM's recipe. That
-    is their implementation at another paper's hyperparameters, and the distinction has to
-    survive into whatever reads the config later."""
+    """The pmrl* modes are not used -- PMRL comes from its authors' released checkpoint -- but
+    they stay reachable by `sbatch --array=1`, and no PMRL config ships with their repo, so
+    such a run would inherit HyperGRAM's recipe. The distinction has to survive into whatever
+    reads the config later, or a deliberate ablation becomes a mislabelled baseline."""
     assert 'recipe_caveat' in SRC
     assert "never as PMRL's published setup" in SRC
-    assert 'RECIPE CAVEAT' in LAUNCH
+    assert 'PMRL DOES NOT COME FROM HERE' in LAUNCH
+    assert 'xhLiu/PMRL' in LAUNCH, 'the launcher must name where PMRL actually comes from'
 
 
-def test_all_four_geometries_run_from_one_codebase():
+def test_only_hypergram_is_run_by_default():
+    """PMRL has released weights, so running HyperGram's reimplementation of it would produce
+    a weaker row carrying a permanent caveat. The modes stay in the table for a deliberate
+    ablation; the default array is HyperGRAM alone."""
     modes = re.search(r'MODES=\((.*?)\)', LAUNCH).group(1).split()
     assert modes == ['hybrid', 'pmrl', 'pmrl_volume', 'hybrid_pmrl'], modes
-    assert '--array=0-3' in LAUNCH
+    assert '#SBATCH --array=0' in LAUNCH and '--array=0-3' not in LAUNCH
 
 
 def test_the_superseded_reimplementation_rows_are_refused():
@@ -217,31 +222,59 @@ HG = '/home/user/uta-smile/hypergram'
 # Their config's val block names datasets/annotations/vatex/descs_ret_test.json; our tree has
 # the _431 subset (the VATEX videos we actually downloaded). The generator substitutes it under
 # the same flag, so the tests need it on disk.
-VATEX_SUBSET = pathlib.Path('datasets/annotations/vatex/descs_ret_test_431.json')
+SCA_CFG = 'config/sca/pretrain_cfg/sca_paper.json'
+
+
+def _ids(entries):
+    return [e['clip_id'] if 'clip_id' in e else e['video_id'] for e in entries]
 
 
 @pytest.fixture
 def hypergram_sandbox(tmp_path):
-    """A data root the generator can succeed against, and the real checkout to read from."""
+    """A data root the generator can succeed against, and the real checkout to read from.
+
+    Builds the three things their code insists on and ours does not: a fully subtitled
+    training file, val annotations at the paths OUR config names (their repo ships no
+    datasets/), and audio directories populated with `<id>.mp3` -- their IndexAnno keeps a
+    sample only if that exact name exists, so without it every dataset builds EMPTY.
+    """
     if not os.path.isdir(HG + '/configs/pretrain'):
         pytest.skip('no HyperGram checkout at %s' % HG)
-    data = tmp_path / 'data' / 'vast27m_150k'
-    data.mkdir(parents=True)
-    # their frozen task is ret%tvas -- the `s` requires every entry to carry a subtitle
-    (data / 'annotations150k.json').write_text(json.dumps(
-        [{'clip_id': 'v%d' % i, 'desc': 'a caption', 'subtitle': 'a subtitle'}
-         for i in range(4)]))
+    root = tmp_path / 'data'
+    entries = [{'clip_id': 'v%d' % i, 'desc': 'a caption', 'subtitle': 'a subtitle'}
+               for i in range(4)]
+    train_dir = root / 'vast27m_150k'
+    train_dir.mkdir(parents=True)
+    (train_dir / 'annotations150k.json').write_text(json.dumps(entries))
     (tmp_path / 'vast').mkdir()
-    made = not VATEX_SUBSET.exists()
-    if made:
-        VATEX_SUBSET.write_text('[]')
+
+    def populate_audio(d, ids):
+        d.mkdir(parents=True, exist_ok=True)
+        for i in ids:
+            (d / ('%s.mp3' % i)).write_bytes(b'')
+
+    populate_audio(train_dir / 'audios_wav', _ids(entries))
+
+    # whatever val blocks OUR config names, at the paths it names them
+    made = []
+    sca_val = json.load(open(SCA_CFG))['data_cfg']['val']
+    val_entries = [{'video_id': 'm%d' % i, 'desc': 'c', 'subtitle': 's'} for i in range(4)]
+    for d in sca_val:
+        txt = pathlib.Path(d['txt'])
+        if not txt.exists():
+            txt.parent.mkdir(parents=True, exist_ok=True)
+            txt.write_text(json.dumps(val_entries))
+            made.append(txt)
+        populate_audio(pathlib.Path(d['audio'].replace('${DATA_ROOT}', str(root))),
+                       _ids(val_entries))
+
     generated = []
     yield tmp_path, generated
     for g in generated:
         if os.path.exists(g):
             os.remove(g)
-    if made:
-        VATEX_SUBSET.unlink()
+    for txt in made:
+        txt.unlink()
 
 
 def _generate(sandbox, extra=()):

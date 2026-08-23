@@ -41,6 +41,39 @@ def task_modalities(task):
     return set(''.join(task.split('%')[1:]))
 
 
+def resolve_audio_dir(audio_dir, txt, name):
+    """Return an audio directory that satisfies their hardcoded `<id>.mp3` existence filter.
+
+    Prefers the directory as given; falls back to the `_mp3link` farm built by
+    scripts/hypergram_audio_shim.py. Refuses rather than handing their code a directory that
+    would filter the dataset to nothing -- a 0-batch loader is a crash at best and, for the
+    training block, an empty epoch.
+    """
+    ids = [a[k] for a in json.load(open(txt))
+           for k in ('clip_id', 'video_id', 'image_id', 'id') if k in a][:200]
+    if not ids:
+        sys.exit('FATAL: no ids found in %s' % txt)
+
+    def hits(d):
+        return sum(1 for i in ids if os.path.exists(os.path.join(d, str(i).split('.')[0] + '.mp3')))
+
+    for cand, why in ((audio_dir, 'as configured'),
+                      (audio_dir.rstrip('/') + '_mp3link', 'the .mp3 symlink farm')):
+        if os.path.isdir(cand) and hits(cand) == len(ids):
+            if cand != audio_dir:
+                print('  audio [%s] : using %s (%s)' % (name, cand, why))
+            return cand
+    sys.exit(
+        'FATAL: their data/IndexAnno.py keeps a sample only if "<audio_dir>/<id>.mp3" exists --\n'
+        '       the extension is hardcoded -- and %s satisfies that for %d of %d sampled ids.\n'
+        '       The dataset "%s" would be built EMPTY, which is the 0-batch loader that killed\n'
+        '       the last run. Their READER is extension-agnostic, so build the symlink farm:\n'
+        '         python3 scripts/hypergram_audio_shim.py --build \\\n'
+        '             --pairs %s:%s\n'
+        '       then re-run. Nothing in their code is edited by this.'
+        % (audio_dir, hits(audio_dir), len(ids), name, txt, audio_dir))
+
+
 def sca_train_txt(cfg_path, data_root):
     """The training annotation file OUR reported row uses, read from its config rather than
     assumed. This is the thing the substitution has to match."""
@@ -74,6 +107,9 @@ def main():
     ap.add_argument('--allow_annotation_mismatch', action='store_true',
                     help='substitute our annotation file for theirs, AFTER verifying it is the '
                          'same one --sca_train_config trains on')
+    ap.add_argument('--val_from_theirs', dest='val_from_sca', action='store_false',
+                    help='keep their VATEX val block instead of ours. Default is ours, so '
+                         'save_best selects on the same signal for every row of the table.')
     ap.add_argument('--sca_train_config', default='config/sca/pretrain_cfg/sca_paper.json',
                     help='the config of OUR reported row; the substituted annotation file must '
                          'be the one it trains on, or the comparison is unequal both ways')
@@ -194,6 +230,34 @@ def main():
     # using ours keeps the eval split identical to every other row in our table.
     code_dir = os.environ.get('CODE_DIR') or os.path.join(os.path.dirname(
         os.path.abspath(__file__)), '..')
+    # ---- validation comes from OUR config, not theirs
+    #
+    # Their block validates on VATEX; every SCA arm validates on MSR-VTT. save_best then
+    # selects each method's reported checkpoint on a different signal, which is a confound in
+    # the comparison rather than a property of either method. Taking our val block wholesale
+    # makes train, val and test identical across every row of the table.
+    #
+    # This IS a deviation from their shipped config and is recorded as one. It touches no
+    # training hyperparameter: learning rate, epochs, batch, task and every geometry parameter
+    # remain frozen and are re-checked below.
+    if args.val_from_sca:
+        sca_cfg = json.load(open(args.sca_train_config))
+        sca_val = sca_cfg.get('data_cfg', {}).get('val')
+        if not sca_val:
+            sys.exit('FATAL: %s has no val block to copy.' % args.sca_train_config)
+        cfg['data_cfg']['val'] = json.loads(
+            json.dumps(sca_val).replace('${DATA_ROOT}', args.data_root)
+                               .replace('${WORK_ROOT}', os.environ.get('WORK_ROOT', '')))
+        val_source = ('OUR val block, copied from %s (%s), replacing their %s -- so train, val '
+                      'and test are identical across every row. DEVIATION from their shipped '
+                      'config, recorded here.'
+                      % (args.sca_train_config,
+                         ', '.join(d.get('name', '?') for d in sca_val),
+                         'vatex_ret'))
+        print('  val block : %s' % val_source)
+    else:
+        val_source = 'THEIR val block as shipped'
+
     val_notes = []
     for d in cfg['data_cfg'].get('val', []):
         name = d.get('name', '')
@@ -229,6 +293,23 @@ def main():
                             'here there are %d, which is ambiguous' % len(cands)))
             d['txt'] = ours
 
+    # ---- their .mp3-only existence filter, which silently empties a dataset
+    #
+    # data/IndexAnno.py builds the sample list with
+    #     os.path.exists(os.path.join(d_cfg['audio'], f"{video_id}.mp3"))
+    # for every dataset name it knows -- the extension is hardcoded. Our audio is .wav, so the
+    # filter drops every sample and the dataset comes out EMPTY: that is what produced
+    # "val_loader: ret%tva--vatex_ret has 0 batches" and the torch.cat on an empty list. Their
+    # READER is extension-agnostic (tries id, .wav, .mp3, .mkv and decodes by header), so the
+    # fix is a farm of .mp3 symlinks -- scripts/hypergram_audio_shim.py -- not a code edit.
+    #
+    # Checked here for train AND val, because the val block failed first only by accident of
+    # first_eval: the training block is filtered by the same code.
+    for blk in [train] + list(cfg['data_cfg'].get('val', [])):
+        if 'audio' not in blk:
+            continue
+        blk['audio'] = resolve_audio_dir(blk['audio'], blk['txt'], blk.get('name', 'train'))
+
     cfg['run_cfg']['pretrain_dir'] = vast
     cfg['run_cfg']['output_dir'] = 'output_repro_%s' % args.geometry_mode
     # geometry_mode is the ONE hyperparameter this script is allowed to set, because it names
@@ -251,6 +332,7 @@ def main():
         'annotations': note,
         'val_annotations': val_notes or 'their filenames, present in our tree',
         'subtitle_coverage': sub_frac,
+        'validation': val_source,
         'geometry_mode': args.geometry_mode,
         'recipe_caveat': (
             'hybrid is HyperGRAM as published. pmrl / pmrl_volume / hybrid_pmrl use THEIR '

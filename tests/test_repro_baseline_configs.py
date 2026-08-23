@@ -207,3 +207,22 @@ def test_the_launcher_compares_the_resolved_config():
     src = open('slurm_scripts/repro_baselines_eval.sh').read()
     assert 'def resolved(' in src, 'the check still reads the config file only'
     assert 'RESOLVED config matches' in src
+
+
+def test_the_status_file_records_the_implementation_diff():
+    """Our reimplementation differs from the released code in six substantive ways -- no
+    learnable curvature, no curvature lr group, and above all no scale matching between the
+    two volumes before they are mixed. Any conclusion drawn from gram_hyp/gram_hyp2 rests on
+    those differences, so they belong in the record rather than in someone's memory."""
+    txt = open('experiments/results/HYPERGRAM_STATUS.md').read()
+    for needle in ('exp_map0', 'scale matching', 'learn_curvature', '10x the base lr',
+                   'hyp_use_prenorm'):
+        assert needle in txt, 'implementation diff does not mention %r' % needle
+    assert 'never open' in txt, 'the invented ambiguity must be retracted explicitly'
+
+
+def test_the_status_file_flags_that_pmrl_needs_the_same_check():
+    """Their repo implements PMRL too (geometry_mode pmrl / pmrl_volume / hybrid_pmrl), so our
+    PMRL reimplementation is unverified in exactly the way HyperGRAM's was."""
+    txt = open('experiments/results/HYPERGRAM_STATUS.md').read()
+    assert 'hybrid_pmrl' in txt and 'should be checked against it' in txt

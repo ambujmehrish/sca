@@ -65,3 +65,37 @@ messages, in launcher comments, and in advice about the paper. It came from a ru
 learning rate, the wrong epoch count and the wrong task mix, using our own reimplementation of
 a method whose code was public the whole time. Anything written before 2026-08-23 citing 37.4,
 51.0 or 35.2 as HyperGRAM's reproduced performance is wrong for that reason.
+
+## Our reimplementation vs theirs — line-by-line
+
+Read after cloning their repo. Every row is a substantive difference, not a style choice, and
+several change the objective materially. `model/baselines.py::GRAMHyp` and
+`utils/volume.py::volume_computation_lorentz` are ours; `utils/hyperbolic_volume.py` and
+`model/gram.py` are theirs.
+
+| | ours (`gram_hyp`) | theirs |
+|---|---|---|
+| hyperbolic map | `pi(x) = [sqrt(1+\|\|x\|\|^2), x]` inline, fixed unit curvature | `exp_map0(v, curv)` onto the hyperboloid, then `lorentz_inner` |
+| curvature | **none** — hard-wired to 1 | `nn.Parameter`, `curvature_init 1.0`, `learn_curvature true`, optionally per modality |
+| curvature lr | n/a | **its own optimizer group at 10x the base lr** (`build_optimizer.py:60`) |
+| scale matching | **none** — the two volumes are mixed raw | hyperbolic volume rescaled to the Euclidean mean before mixing: `scale = euc.mean()/hyp.mean()`, detached, clamped [0.001, 10] |
+| mixing weights | one `alpha`, used as `alpha*V_euc + (1-alpha)*V_hyp`, clamped [0,1] | two independent parameters `euclidean_weight`, `hyperbolic_weight`, not tied to sum to 1 |
+| feature source | `hyp_use_prenorm` switches between pre-normalisation projections and normalised features | one feature set, no such switch |
+
+The scale-matching row is the one most likely to dominate. Mixing a Euclidean and a Lorentzian
+volume without normalising their magnitudes lets whichever branch is numerically larger decide
+the loss, and the learnable weight then has to fight the scale gap rather than express a
+preference. Their code removes that before the weights ever apply.
+
+The last row is worth stating plainly: `hyp_use_prenorm` was introduced to resolve an
+ambiguity we believed existed in their paper. Their code has no such switch. Both v1 and v2
+were answering a question that was never open, and the "two defensible readings" framing --
+repeated in commit messages, launcher comments and analysis notes -- should be retracted
+wherever it appears.
+
+## Their repository also implements PMRL
+
+`model/gram.py:93` -- `geometry_mode` accepts `'pmrl'`, `'pmrl_volume'` and `'hybrid_pmrl'`
+alongside `'euclidean'`, `'hyperbolic'` and `'hybrid'`. So a PMRL row can be produced from
+their code as well, and our `model/baselines.py` PMRL should be checked against it before the
+reproduction row is trusted -- the same way this one was.

@@ -532,3 +532,11 @@ def test_the_shim_refuses_when_no_script_is_present(tmp_path):
                        cwd=str(tmp_path), capture_output=True, text=True)
     assert r.returncode == 1
     assert 'no existing .py file' in r.stdout + r.stderr
+
+
+def test_output_is_unbuffered_so_a_running_job_can_be_watched():
+    """Their stdout is a pipe here (the noise filter), so python block-buffers it and a live
+    job shows nothing to `tail` for many minutes while 4-8KB accumulates -- indistinguishable
+    from a hang, which is the state we spent the afternoon trying to tell apart."""
+    for launcher in ('slurm_scripts/hypergram_authors.sh', 'slurm_scripts/pmrl_released.sh'):
+        assert 'PYTHONUNBUFFERED=1' in open(launcher).read(), launcher

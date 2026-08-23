@@ -55,7 +55,11 @@ source "${SCA_ENV_RC:-/leonardo_work/AIFAC_S07_041/sca_env.rc}"
 cd "$CODE_DIR"
 [ -f "$MODELS_DIR/env.sh" ] && source "$MODELS_DIR/env.sh" \
   || { echo "FATAL: $MODELS_DIR/env.sh not found -- run scripts/prefetch_models.py first" >&2; exit 1; }
-export WANDB_MODE=offline GRAM_MP_CTX=forkserver
+# PYTHONUNBUFFERED: their stdout is a PIPE here (the noise filter), so python block-
+# buffers it and a running job looks dead -- `tail` shows nothing for many minutes
+# while 4-8KB accumulates. Unbuffered output is the difference between monitoring a
+# run and guessing at it.
+export WANDB_MODE=offline GRAM_MP_CTX=forkserver PYTHONUNBUFFERED=1
 HELPER="${CODE_DIR:-.}/scripts/cell_done.sh"
 [ -f "$HELPER" ] || HELPER="$(dirname "$0")/../scripts/cell_done.sh"
 # shellcheck source=/dev/null

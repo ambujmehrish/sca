@@ -25,12 +25,23 @@
 # schedule, same eval data blocks, same 8 frames, same rerank depth 50 -- only the aggregation
 # geometry differs:
 #
-#   gram_lora   Gramian volume            (the k+1-dimensional parallelotope)
+# MAIN TABLE rows -- methods as their authors proposed them:
 #   pmrl        leading eigenvalue        (lambda_1 of the Gram matrix)
-#   hypergram   hyperbolic Gram           (our reimplementation, see the caveat below)
+#   hypergram   hyperbolic Gram           (our reimplementation, see below)
 #   sca         query-weighted centroid   (ours)
+# plus GRAM's released checkpoint, already measured in workdir/e1_zs (released_* cells).
 #
-# A difference here is a difference in the aggregator, which is the algorithmic claim.
+# APPENDIX row -- not a published method:
+#   gram_lora   Gramian volume + LoRA
+#
+# gram_lora is our construction, not something GRAM proposes, so it does not belong in a
+# comparison table: a reader would reasonably ask who claimed it. Its job is the control that
+# separates the two variables our recipe changes at once -- SCA is centroid AND adapter, so
+# volume-plus-adapter is what says whether the gain is the geometry or the LoRA. That is an
+# ablation argument and it belongs in the appendix beside the other ablations.
+#
+# A difference among the main rows is a difference in the aggregator, which is the
+# algorithmic claim.
 #
 # HYPERGRAM: read experiments/results/HYPERGRAM_STATUS.md before quoting any number here.
 #
@@ -50,6 +61,8 @@
 # code is not released and the hyperbolic branch admits two readings. Their published numbers
 # stand as cited in the main table.
 #
+#   sbatch --array=0-9 slurm_scripts/repro_baselines_eval.sh      # the MAIN-TABLE rows
+#   sbatch --array=10-14 slurm_scripts/repro_baselines_eval.sh    # gram_lora, appendix only
 #   sbatch slurm_scripts/repro_baselines_eval.sh                  # all 15 cells
 #   sbatch --array=0-4 slurm_scripts/repro_baselines_eval.sh      # pmrl only
 #   SCA_REPRO_HYP_ARM=gram_hyp sbatch --array=5-9 ...             # the v1 reading instead

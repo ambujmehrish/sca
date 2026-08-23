@@ -113,3 +113,16 @@ def test_the_corrected_arm_differs_from_the_collapsed_one_only_in_the_recipe():
     assert b['run_cfg']['learning_rate'] == 1e-4, b['run_cfg']['learning_rate']
     assert b['data_cfg']['train'][0]['batch_size'] == 128
     assert b['run_cfg']['valid_freq'] == 10, 'a collapse must be locatable, not inferred'
+
+
+def test_gram_lora_is_marked_appendix_not_a_comparison_row():
+    """GRAM+LoRA is our construction, not a method anyone proposed. In a comparison table a
+    reader would fairly ask who claimed it. It stays as the control that separates geometry
+    from adapter -- SCA changes both at once -- and that argument belongs with the ablations."""
+    src = open('slurm_scripts/repro_baselines_eval.sh').read()
+    assert 'APPENDIX row' in src and 'gram_lora' in src.split('APPENDIX row')[1][:200]
+    assert 'MAIN TABLE rows' in src
+    main = src.split('MAIN TABLE rows')[1].split('APPENDIX row')[0]
+    assert 'gram_lora' not in main, 'gram_lora is listed among the main-table rows'
+    for m in ('pmrl', 'hypergram', 'sca'):
+        assert m in main, '%s missing from the main-table rows' % m

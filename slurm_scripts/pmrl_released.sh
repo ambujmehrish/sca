@@ -173,6 +173,15 @@ echo "EXIT=$rc DONE $(date +%T)"
 # utils/build_model.py loads with strict=False and only LOGS the mismatch, so a checkpoint that
 # does not fit the model produces numbers rather than an error. Read its own log back and
 # refuse the result if the released weights did not actually land in the model.
+#
+# Only when the run itself SUCCEEDED. A failed run has no keys to check either, and reporting
+# "the log does not record missing/unexpected keys" on top of a crash buries the actual error
+# under a message about a different problem.
+if [ $rc -ne 0 ]; then
+  echo "[$BENCH] their run.py exited $rc -- the checkpoint-load check is skipped because the" >&2
+  echo "        run did not get far enough to produce one. The real error is above this line." >&2
+  exit $rc
+fi
 python3 - "$OUT/run.log" <<'PYEOF'
 import re, sys
 log = open(sys.argv[1], errors='replace').read()

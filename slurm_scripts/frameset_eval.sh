@@ -78,12 +78,22 @@ try:
     m = json.load(open('workdir_pretrain/$arm/log/hps.json'))['model_cfg']
 except Exception as e:
     sys.exit('NOHPS %s' % e)
-if m.get('sca_frame_slots'):        print('configs_frames')
-elif m.get('sca_query_weighting'):  print('configs_qweight')
-else:                               print('configs_e1')
+# tau_w is a property of the ARM, and configs_frames hardcodes 0.1. t8 (0.05) and t11 (0.2)
+# were therefore both scored at 0.1: the tau sweep only ever varied the TRAINING tau while
+# the eval tau stayed fixed, which is not the ablation it was reported as.
+tau = m.get('sca_tau_w', 0.1)
+if m.get('sca_frame_slots'):
+    suffix = {0.05: '_tau005', 0.2: '_tau02'}.get(tau, '')
+    print('configs_frames' + suffix)
+elif m.get('sca_query_weighting'):
+    if tau != 0.1:
+        sys.exit('NOCFG: no configs_qweight variant at tau_w=%s' % tau)
+    print('configs_qweight')
+else:
+    print('configs_e1')
 " 2>/dev/null)
     case "$cfgdir" in
-      configs_frames|configs_qweight|configs_e1) ;;
+      configs_frames|configs_frames_tau005|configs_frames_tau02|configs_qweight|configs_e1) ;;
       *) echo "== [$arm/$bench] SKIP: cannot read workdir_pretrain/$arm/log/hps.json --" >&2
          echo "   refusing to guess the scoring geometry from the arm name." >&2
          rc_all=2; continue ;;

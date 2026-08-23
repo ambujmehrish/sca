@@ -1,0 +1,58 @@
+{
+ "run_cfg": {
+  "default": "./config/sca/default_run_cfg.json",
+  "mode": "testing",
+  "checkpoint": "${EVAL_CKPT}"
+ },
+ "model_cfg": {
+  "default": "./config/sca/default_model_cfg.json",
+  "vision_encoder_type": "evaclip01_giant",
+  "s_star_path": "${SCA_CACHE_ROOT}/s_star_150k.pt",
+  "use_lora": true,
+  "lora_r_vision": 8,
+  "lora_r_audio": 8,
+  "lora_r_text": 8,
+  "lora_alpha": 16,
+  "ret_bidirection_evaluation": true,
+  "itm_rerank_num": 50,
+  "max_caption_len": 70,
+  "sca_frame_slots": true,
+  "sca_query_weighting": true,
+  "sca_tau_w": 0.05,
+  "dump_frame_feats": true
+ },
+ "data_cfg": {
+  "train": [
+   {
+    "type": "annoindexed",
+    "training": false,
+    "name": "activitynet_ret",
+    "txt": "datasets/annotations/activitynet/descs_ret_test.json",
+    "vision": "${DATA_ROOT}/ActivityNet/videos/Activity_Videos",
+    "audio": "${DATA_ROOT}/ActivityNet/audios",
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 8,
+    "audio_sample_num": 2,
+    "task": "ret%tva",
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ],
+  "val": [
+   {
+    "type": "annoindexed",
+    "training": false,
+    "name": "activitynet_ret",
+    "txt": "datasets/annotations/activitynet/descs_ret_test.json",
+    "vision": "${DATA_ROOT}/ActivityNet/videos/Activity_Videos",
+    "audio": "${DATA_ROOT}/ActivityNet/audios",
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 8,
+    "audio_sample_num": 2,
+    "task": "ret%tva",
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ]
+ }
+}

@@ -60,22 +60,10 @@
 #   sbatch --array=19-29 slurm_scripts/b_grid_pretrain.sh  # G1-G10: capacity, lr, objective
 #   sbatch --array=30-32 slurm_scripts/b_grid_pretrain.sh  # X3-X5: cross-encoder, done properly
 #   sbatch --array=33-40 slurm_scripts/b_grid_pretrain.sh  # X6-X13: HOW MUCH to move it
-#   sbatch --array=41 slurm_scripts/b_grid_pretrain.sh     # H1: HyperGRAM at ITS OWN recipe
-#
-# H1 is the HyperGRAM reproduction at the learning rate its own paper uses. See
-# experiments/results/HYPERGRAM_STATUS.md before quoting any reproduction number.
-#
-# gram_hyp2 was trained at lr 2e-5 and collapsed to 37.4, and that figure has been repeatedly
-# cited as "our HyperGRAM reproduction does not work". It is not evidence. 2e-5 came from the
-# HyperAlign trunk, and wave4/ANALYSIS.md had already identified exactly that as the recipe
-# defect for OUR method -- moving SCA to 1e-4 took it from 53.5 to 54.9. The same correction
-# was never applied to the HyperGRAM arm before its number was recorded, so the collapse is a
-# run at a rate the method's paper does not use, in a family already shown to be
-# learning-rate sensitive.
-#
-# H1 = gram_hyp2 at lr 1e-4, batch 128, differing in those two keys and nothing else, with ten
-# validations so a collapse is located rather than inferred. Until it runs we have no
-# HyperGRAM reproduction at all -- not a failed one, an unrun one.
+#   (no HyperGRAM arm here: their code is released, so the reproduction runs THEIR repo
+#    with THEIR config -- see experiments/results/HYPERGRAM_STATUS.md. H1 was removed because
+#    it claimed their recipe while carrying GRAM's: lr 1e-4 not 5e-5, 5 epochs not 1, and
+#    without the subtitle task theirs trains.)
 #
 # X6-X13 attack the term the reported metric actually turns on. R@1 factors as candidate
 # recall times the reranker's accuracy on those candidates, and the second is the small one:
@@ -242,11 +230,11 @@ source "$HELPER" || { echo "FATAL: cannot source $HELPER" >&2; exit 2; }
 command -v claim_outdir >/dev/null || {
   echo "FATAL: sourced $HELPER but claim_outdir is not defined." >&2; exit 2; }
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6 X6_xenc_1ep_lr2e5 X7_xenc_1ep_lr5e6 X8_xenclr_1e6 X9_xenclr_2e6 X10_xenclr_5e7 X11_xenc_top2 X12_xenc_top4 X13_xenclr_2e6_itm05 H1_hypergram_paper)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6 X6_xenc_1ep_lr2e5 X7_xenc_1ep_lr5e6 X8_xenclr_1e6 X9_xenclr_2e6 X10_xenclr_5e7 X11_xenc_top2 X12_xenc_top4 X13_xenclr_2e6_itm05)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"
-[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-41)" >&2; exit 2; }
+[ -n "$ARM" ] || { echo "FATAL: index $IDX out of range (0-40)" >&2; exit 2; }
 
 CFG="config/sca/ablations/${ARM}.json"
 [ -f "$CFG" ] || { echo "FATAL: $CFG not found" >&2; exit 2; }

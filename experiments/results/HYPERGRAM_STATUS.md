@@ -1,56 +1,67 @@
-# HyperGRAM reproduction — current status
+# HyperGRAM reproduction — status
 
-**Read this before quoting any HyperGRAM reproduction number.** This question has been
-re-litigated repeatedly from stale records; this file is the single place the answer lives.
+**Their code IS released: https://github.com/uta-smile/HyperGram** (cloned read-only at
+`/home/user/uta-smile/hypergram`). Everything written before 2026-08-23 assumed it was not,
+including the claim that the method "admits two readings" — that ambiguity does not exist any
+more, and no argument should be built on it.
 
-## The three arms, and which recipe each used
+## Their actual recipe (`configs/pretrain/pretrain_hybrid_vast150k_vatex_val_paper.json`)
 
-| arm | hyperbolic branch consumes | lr | batch | MSR-VTT ITM best / final |
+| key | their value |
+|---|---|
+| `learning_rate` | **5e-05** |
+| `train_epoch` / `epoch` | **1** |
+| `batch_size` | 128 |
+| `task` | **`ret%tvas%tv%ta`** (includes the subtitle task) |
+| `vision_sample_num` | 2 |
+| `audio_sample_num` | 1 |
+| `valid_freq` | 20 |
+| `first_eval` / `save_best` | true / true |
+| `grad_norm` | 1.0 |
+| `fp16` | true |
+| `pretrain_dir` | `pretrained_models/pretrain_vast` |
+
+Model side: `geometry_mode: hybrid`, `curvature_init: 1.0`, `learn_curvature: true`,
+`initial_euclidean_weight: 0.5`, `initial_hyperbolic_weight: 0.5`,
+`learn_hybrid_weights: true`, `gradient_clip_hyperbolic: 1.0`, `max_subtitle_len: 70`.
+
+One detail that could not have been guessed: `utils/build_optimizer.py:60` puts every
+parameter whose name contains `curvature` in its own group at **10x the base learning rate**
+(`curvature_lr = model_cfg.get('curvature_lr', learning_rate * 10)`).
+
+Their geometry is `utils/hyperbolic_volume.py` — Lorentz model, `exp_map0`, `lorentz_inner`,
+and `hybrid_volume{2,3,4,5}` mixing a Euclidean and a hyperbolic Gramian volume by the
+learnable weights above.
+
+## Every arm we ran was at the wrong recipe
+
+| arm | lr | epochs | task | verdict |
 |---|---|---|---|---|
-| `gram_hyp` (v1) | pre-normalisation projections | 2e-5 | 256 | 35.2 / 35.2 |
-| `gram_hyp2` (v2) | the L2-normalised features GRAM uses | **2e-5** | 256 | 51.0 / **37.4** |
-| `gram_hyp_paper` (v3) | same as v2 | **1e-4** | 128 | **NEVER TRAINED** |
+| `gram_hyp` (v1) | 2e-5 | 5 | `ret%tv%ta` | wrong on all three |
+| `gram_hyp2` (v2) | 2e-5 | 5 | `ret%tv%ta` | wrong on all three |
+| `H1_hypergram_paper` | 1e-4 | 5 | `ret%tv%ta` | wrong on all three — **cancelled** |
 
-## Why the 37.4 must not be quoted
+H1 was built from GRAM's recipe on the assumption that HyperGRAM followed it. It does not:
+5e-5 rather than 1e-4, one epoch rather than five (5859 steps against ~1170), and it trains
+the subtitle task ours omits. **No number from any of these three arms is evidence about
+HyperGRAM**, and the 37.4 in particular must never be cited.
 
-`gram_hyp2` was trained at **lr 2e-5**. That rate was inherited from the HyperAlign trunk, and
-`wave4/ANALYSIS.md` §1 identified it as the recipe defect for *our own* method: "The recipe gap
-was the LEARNING RATE: our 2e-5 was inherited from HyperAlign, but GRAM's published 54.8 was
-trained at 1e-4." Moving SCA to 1e-4 took it from 53.5 to 54.9.
+## What to do instead
 
-The same correction was never applied to the HyperGRAM arm before its number was recorded. So
-`gram_hyp2`'s 51.0 → 37.4 collapse is a run at a learning rate the method's own paper does not
-use, against a baseline family we had already shown to be learning-rate sensitive. It is not
-evidence about HyperGRAM and must not be cited as such — not as a table row, not as an appendix
-number, and not as grounds for saying the reproduction "does not work".
+Do not reimplement. Run **their** code with **their** config on our data — a real
+reproduction rather than our reading of their paper. Their repository is the same VAST/GRAM
+codebase we forked (`configs/`, `model/`, `evaluation/`, `run.py`, `utils/`), takes the same
+VAST foundation checkpoint, and trains on the same 150k subset, so it should be close to
+drop-in.
 
-`config/baselines/pretrain_cfg/gram_hyp_paper.json` is v2 at lr 1e-4, batch 128 — the published
-recipe. It differs from `gram_hyp2_pretrain.json` in exactly those two keys and nothing else.
-
-## What is true right now
-
-- We have **no valid HyperGRAM reproduction**. Not a failed one — an unrun one.
-- The published numbers (MSR-VTT 56.6, DiDeMo 51.3, ActivityNet 58.2, VATEX 79.9) are what the
-  main table cites, and that stays correct regardless of how `gram_hyp_paper` turns out.
-- Their code is not released and the method admits two readings of the hyperbolic branch. v1
-  and v2 implement both; v3 is v2 at the right recipe.
-
-## What would change this
-
-Train `gram_hyp_paper` and evaluate it on all five benchmarks:
-
-    sbatch --array=41 slurm_scripts/b_grid_pretrain.sh          # train
-    SCA_REPRO_HYP_ARM=gram_hyp_paper sbatch --array=5-9 slurm_scripts/repro_baselines_eval.sh
-
-Then, and only then, is there a reproduction number worth discussing. If it lands near 56.6 the
-same-environment table gains a real HyperGRAM row. If it collapses again at the *correct*
-recipe, that is a finding about reproducibility that can be stated honestly — but it cannot be
-stated from `gram_hyp2`.
+Whatever it produces is then labelled "HyperGRAM (authors' code, our environment)" — a far
+stronger row than any reimplementation, and the only version that can be defended if a
+reviewer knows the paper.
 
 ## Record of the error
 
-The 37.4 figure was quoted repeatedly as "our HyperGRAM reproduction does not work", including
-in commit messages and in `slurm_scripts/repro_baselines_eval.sh`. Every one of those citations
-rests on a run at the wrong learning rate. The launcher comment has been corrected. Anything
-written before 2026-08-23 that cites 37.4 or 51.0 as HyperGRAM's reproduced performance is
-wrong for this reason.
+The figure 37.4 was cited repeatedly as "our HyperGRAM reproduction does not work" — in commit
+messages, in launcher comments, and in advice about the paper. It came from a run at the wrong
+learning rate, the wrong epoch count and the wrong task mix, using our own reimplementation of
+a method whose code was public the whole time. Anything written before 2026-08-23 citing 37.4,
+51.0 or 35.2 as HyperGRAM's reproduced performance is wrong for that reason.

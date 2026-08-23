@@ -99,22 +99,43 @@ def test_the_hypergram_caveat_travels_with_the_launcher():
         'that phrasing asserts a reproduction failure the runs do not support'
 
 
-def test_the_status_file_exists_and_states_the_recipe_defect():
-    """A record that keeps being re-litigated from stale numbers needs one place to live."""
+def test_the_status_file_records_the_authors_actual_recipe():
+    """Their code is public (github.com/uta-smile/HyperGram), so the recipe is not a matter of
+    reading their paper: lr 5e-5, ONE epoch, task ret%tvas%tv%ta, and a curvature parameter
+    group at 10x the base lr. Every arm we ran missed all three of the first ones. The status
+    file has to carry those values, because the wrong ones were re-derived more than once."""
     txt = open('experiments/results/HYPERGRAM_STATUS.md').read()
-    assert 'NEVER TRAINED' in txt, 'the status of the corrected arm must be explicit'
-    assert '2e-5' in txt and '1e-4' in txt, 'the recipe difference is the whole point'
-    assert 'gram_hyp_paper' in txt
+    assert 'uta-smile/HyperGram' in txt, 'the released code must be named'
+    assert '5e-05' in txt or '5e-5' in txt, "their learning rate must be recorded"
+    assert 'ret%tvas%tv%ta' in txt, 'their task mix includes subtitles and ours does not'
+    assert '10x the base learning rate' in txt, 'the curvature lr group is not guessable'
+    assert 'must never be cited' in txt, 'the stale 37.4 must be marked unusable'
 
 
-def test_the_corrected_arm_differs_from_the_collapsed_one_only_in_the_recipe():
-    a = json.load(open('config/baselines/pretrain_cfg/gram_hyp2_pretrain.json'))
-    b = json.load(open('config/sca/ablations/H1_hypergram_paper.json'))
-    assert a['model_cfg'] == b['model_cfg'], \
-        'H1 must be the SAME hyperbolic reading as gram_hyp2 -- only the recipe may differ'
-    assert b['run_cfg']['learning_rate'] == 1e-4, b['run_cfg']['learning_rate']
-    assert b['data_cfg']['train'][0]['batch_size'] == 128
-    assert b['run_cfg']['valid_freq'] == 10, 'a collapse must be locatable, not inferred'
+def test_no_shipped_config_claims_to_be_hypergrams_recipe():
+    """H1 was named _paper while matching GRAM's recipe rather than HyperGRAM's. A config that
+    claims a paper's setup and does not have it is worse than an unnamed one."""
+    import glob
+    for p in glob.glob('config/sca/ablations/*hypergram*.json'):
+        c = json.load(open(p))
+        lr = c['run_cfg'].get('learning_rate')
+        ep = c['data_cfg']['train'][0].get('epoch')
+        task = c['data_cfg']['train'][0].get('task')
+        assert (lr, ep, task) == (5e-05, 1, 'ret%tvas%tv%ta'), (
+            '%s claims HyperGRAM but has lr=%s epoch=%s task=%s; theirs is 5e-05 / 1 / '
+            'ret%%tvas%%tv%%ta' % (p, lr, ep, task))
+
+
+def test_the_wrong_recipe_arm_is_gone():
+    """H1 was gram_hyp2 at GRAM's learning rate, built while we believed HyperGRAM's code was
+    unavailable. It is: lr 5e-5, one epoch, and a task mix including subtitles. Keeping an arm
+    that claims their recipe and carries GRAM's is how the 37.4 became quotable in the first
+    place."""
+    import os
+    assert not os.path.exists('config/sca/ablations/H1_hypergram_paper.json')
+    src = open('slurm_scripts/b_grid_pretrain.sh').read()
+    assert 'H1_hypergram_paper' not in src.split('ARMS=(')[1].split(')')[0]
+
 
 
 def test_gram_lora_is_marked_appendix_not_a_comparison_row():

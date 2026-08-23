@@ -58,6 +58,9 @@ run score_fusion "Candidate recall@k (the ceiling) and the fusion-weight sweep" 
              [ ${#f[@]} -gt 0 ] || { echo "no rerank dumps under workdir/e1_fusion"; exit 3; }
              python3 scripts/sweep_score_fusion.py "${f[@]}"'
 
+run main_table "The main table, generated from measured cells (MISSING where unmeasured)" \
+    python3 scripts/build_main_table.py --out experiments/results/tables_final/table1_main_all.tex
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

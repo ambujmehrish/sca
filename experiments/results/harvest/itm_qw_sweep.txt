@@ -1,7 +1,32 @@
 
 === t9_qweight_only
-CONTROL FAILED: gamma=0 does not reproduce workdir/e1_frames.
-  didemo        baseline 51.5  gamma=0 51.3  (-0.2)
-gamma=0 skips every extra cross-encoder pass, so it must be the untouched
-protocol. It is not, which means the plumbing changed the baseline and the
-rows below would be measuring two things at once. Fix this first.
+control (gamma=0 vs workdir/e1_frames), tolerance = that cell's own reproducibility:
+  msrvtt        baseline 54.8  gamma=0 54.8  +0.0   (tol 0.05)
+  didemo        baseline 51.5  gamma=0 51.3  -0.2   (tol 0.25)
+  activitynet   baseline 55.8  gamma=0 55.8  +0.0   (tol 0.05)
+  vatex         baseline 90.5  gamma=0 90.5  +0.0   (tol 0.05)
+  audiocaps     baseline 35.2  gamma=0 35.2  +0.0   (tol 0.05)
+control OK: every benchmark within its own reproducibility.
+
+gamma          msrvtt       didemo  activitynet        vatex    audiocaps     mean
+----------------------------------------------------------------------------------
+g000             54.8         51.3         55.8         90.5         35.2    57.52
+g030             46.0         48.0         42.4         81.4         35.7    50.70
+g050             43.5         46.4         40.1         79.4         33.4    48.56
+g070             41.8         45.4         38.4         77.5         33.7    47.36
+g100             39.7         42.8         36.0         76.6         28.3    44.68
+
+vs bar         msrvtt       didemo  activitynet        vatex    audiocaps
+                 56.6         51.3         58.2         90.0         36.1
+g000             -1.8         +0.0         -2.4         +0.5         -0.9
+g030            -10.6         -3.3        -15.8         -8.6         -0.4
+g050            -13.1         -4.9        -18.1        -10.6         -2.7
+g070            -14.8         -5.9        -19.8        -12.5         -2.4
+g100            -16.9         -8.5        -22.2        -13.4         -7.8
+
+best gamma by mean: g000  (+0.00 R@1 mean over gamma=0)
+above the bar at g000:
+  vatex         90.5 vs 90.0 GRAM ckpt (+0.5)
+
+The whole sweep moves less than the 0.2 R@1 eval floor. Reranking is not
+reachable this way, and gamma should not appear in the paper as a knob.

@@ -128,9 +128,14 @@ def main():
     ap.add_argument('--pairs', nargs='+', required=True,
                     help='ANNOTATION_JSON:AUDIO_DIR pairs to survey or build')
     ap.add_argument('--build', action='store_true', help='create <audio_dir>_mp3link farms')
+    ap.add_argument('--report', action='store_true',
+                    help='survey only, changing nothing (the default; accepted so that the '
+                         'documented command works as written)')
     ap.add_argument('--verify_n', type=int, default=3,
                     help='how many farm entries to actually decode (0 disables -- do not)')
     args = ap.parse_args()
+    if args.report and args.build:
+        sys.exit('FATAL: --report and --build ask for opposite things; pass one.')
 
     rc = 0
     for pair in args.pairs:

@@ -32,14 +32,23 @@
 #
 # A difference here is a difference in the aggregator, which is the algorithmic claim.
 #
-# HYPERGRAM CAVEAT, which must travel with the number. Their code is not released and their
-# method admits two readings; we implemented both. v1 (hyperbolic branch on pre-normalisation
-# features) reached 35.2 on MSR-VTT. v2 (the reading their experiments section states, "only
-# changes the inner product computation") peaked at 51.0 and fell to 37.4 by the final step,
-# against their published 56.6. We do not reproduce their result, and this row must be
-# labelled as our reimplementation, never as HyperGRAM's performance. Their published numbers
-# stand as cited. Presenting a 37.4 reimplementation as a beaten baseline would be the kind of
-# claim a reviewer who knows the paper will destroy, and would deserve it.
+# HYPERGRAM: read experiments/results/HYPERGRAM_STATUS.md before quoting any number here.
+#
+# The default arm for this row is gram_hyp2, which was trained at lr 2e-5 and fell to 37.4.
+# That figure is NOT evidence about HyperGRAM and must not be cited as a reproduction result.
+# 2e-5 came from the HyperAlign trunk, and wave4/ANALYSIS.md had already found exactly that to
+# be the recipe defect for OUR method -- SCA went from 53.5 to 54.9 when moved to 1e-4. The
+# same correction was never applied to the HyperGRAM arm before its number was recorded.
+#
+# H1_hypergram_paper (b_grid --array=41) is the same v2 reading at lr 1e-4, batch 128: the
+# recipe their paper uses. Until it has run there is no HyperGRAM reproduction at all -- not a
+# failed one, an unrun one. Point this row at it once it exists:
+#
+#   SCA_REPRO_HYP_ARM=h1_hypergram_paper sbatch --array=5-9 slurm_scripts/repro_baselines_eval.sh
+#
+# Whatever it reads, the row is OUR REIMPLEMENTATION and never HyperGRAM's performance: their
+# code is not released and the hyperbolic branch admits two readings. Their published numbers
+# stand as cited in the main table.
 #
 #   sbatch slurm_scripts/repro_baselines_eval.sh                  # all 15 cells
 #   sbatch --array=0-4 slurm_scripts/repro_baselines_eval.sh      # pmrl only

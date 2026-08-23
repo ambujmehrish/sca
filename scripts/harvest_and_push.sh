@@ -58,6 +58,9 @@ run score_fusion "Candidate recall@k (the ceiling) and the fusion-weight sweep" 
              [ ${#f[@]} -gt 0 ] || { echo "no rerank dumps under workdir/e1_fusion"; exit 3; }
              python3 scripts/sweep_score_fusion.py "${f[@]}"'
 
+run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
+    python3 scripts/audit_eval_geometry.py
+
 run training_gaps "Completeness, step continuity, cross-arm uniformity, config drift" \
     python3 scripts/audit_training_gaps.py --workdir_root workdir_pretrain
 

@@ -81,9 +81,35 @@ def test_the_launcher_refuses_a_config_that_does_not_match_the_checkpoint():
 
 
 def test_the_hypergram_caveat_travels_with_the_launcher():
-    """Our HyperGRAM reimplementation reaches 37.4 against their published 56.6. That row is
-    our reimplementation, never HyperGRAM's performance, and the launcher has to say so where
-    whoever runs it will read it."""
+    """The 37.4 figure has been quoted repeatedly as "our HyperGRAM reproduction does not
+    work". It came from gram_hyp2, trained at lr 2e-5 -- the rate wave4/ANALYSIS.md had already
+    identified as the recipe defect for our OWN method (SCA went 53.5 -> 54.9 when moved to
+    1e-4). It is a run at a rate the method's paper does not use, in a family already shown to
+    be learning-rate sensitive, so it is not evidence about HyperGRAM.
+
+    The launcher must point at HYPERGRAM_STATUS.md and must not present 37.4 as a reproduction
+    result, because this conclusion has been re-derived from the stale number more than once."""
     src = open('slurm_scripts/repro_baselines_eval.sh').read()
-    assert 'never as HyperGRAM' in src
-    assert '37.4' in src and '56.6' in src, 'the size of the reproduction gap must be stated'
+    assert 'HYPERGRAM_STATUS.md' in src, 'the launcher must point at the status file'
+    assert 'NOT evidence' in src, 'the stale number must be marked as not evidence'
+    assert 'never HyperGRAM' in src
+    assert 'We do not reproduce their result' not in src, \
+        'that phrasing asserts a reproduction failure the runs do not support'
+
+
+def test_the_status_file_exists_and_states_the_recipe_defect():
+    """A record that keeps being re-litigated from stale numbers needs one place to live."""
+    txt = open('experiments/results/HYPERGRAM_STATUS.md').read()
+    assert 'NEVER TRAINED' in txt, 'the status of the corrected arm must be explicit'
+    assert '2e-5' in txt and '1e-4' in txt, 'the recipe difference is the whole point'
+    assert 'gram_hyp_paper' in txt
+
+
+def test_the_corrected_arm_differs_from_the_collapsed_one_only_in_the_recipe():
+    a = json.load(open('config/baselines/pretrain_cfg/gram_hyp2_pretrain.json'))
+    b = json.load(open('config/sca/ablations/H1_hypergram_paper.json'))
+    assert a['model_cfg'] == b['model_cfg'], \
+        'H1 must be the SAME hyperbolic reading as gram_hyp2 -- only the recipe may differ'
+    assert b['run_cfg']['learning_rate'] == 1e-4, b['run_cfg']['learning_rate']
+    assert b['data_cfg']['train'][0]['batch_size'] == 128
+    assert b['run_cfg']['valid_freq'] == 10, 'a collapse must be locatable, not inferred'

@@ -10,6 +10,8 @@ sca_audiocaps          train  ret%tva              704         0      2  audioca
 sca_audiocaps          val    ret%tva              704         0      2  audiocaps_tva_annotation.json
 sca_didemo             train  ret%tva             1003         0      2  descs_ret_test.json
 sca_didemo             val    ret%tva             1003         0      2  descs_ret_test.json
+sca_msrvtt             train  ret%tvas            1000 762 (subtitle)      3  descs_ret_test.json
+sca_msrvtt             val    ret%tvas            1000 762 (subtitle)      3  descs_ret_test.json
 sca_vatex              train  ret%tvas             431 431 (subtitle)      3  descs_ret_test_431.json
 sca_vatex              val    ret%tvas             431 431 (subtitle)      3  descs_ret_test_431.json
 

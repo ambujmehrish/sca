@@ -144,6 +144,14 @@ t8_frameset_tau005         1776:54.5  3553:54.8  5330:54.9
                              peak 54.9 at step 5330 (100% of the run), final 54.9, drop +0.0
 t9_qweight_only            1776:54.3  3553:54.8  5330:54.8
                              peak 54.8 at step 3553 (67% of the run), final 54.8, drop +0.0
+x10_xenclr_5e7             531:53.4  1063:54.9  1595:54.7  2127:54.5  2659:54.5  3191:55.0  3723:54.7  4255:54.8  4787:54.7  5319:54.6
+                             peak 55.0 at step 3191 (60% of the run), final 54.6, drop -0.4
+x11_xenc_top2              531:52.5  1063:54.0  1595:54.4  2127:54.2  2659:54.2  3191:54.9  3723:54.3  4255:53.9  4787:54.7  5319:54.3
+                             peak 54.9 at step 3191 (60% of the run), final 54.3, drop -0.6
+x12_xenc_top4              531:53.0  1063:53.8  1595:54.3  2127:54.7  2659:54.1  3191:54.7  3723:54.4  4255:53.9  4787:54.5  5319:54.3
+                             peak 54.7 at step 2127 (40% of the run), final 54.3, drop -0.4
+x13_xenclr_2e6_itm05       531:54.3  1063:54.5  1595:55.1  2127:54.3  2659:53.8  3191:53.5  3723:53.0  4255:53.2  4787:52.9  5319:52.9
+                             peak 55.1 at step 1595 (30% of the run), final 52.9, drop -2.2
 x1_xenc_full               264:52.6  529:45.8  794:50.3  1059:48.7  1324:40.7  1589:40.3  1854:43.7  2119:49.5  2384:49.8  2649:49.2
                              peak 52.6 at step 264 (10% of the run), final 49.2, drop -3.4
 x1_xenc_full_lr2e5         264:52.0  529:53.7  794:53.1  1059:52.4  1324:45.5  1589:44.7  1854:45.0  2119:45.0  2384:46.2  2649:45.7
@@ -158,6 +166,14 @@ x4_xenc_clean_lr1e5        1776:51.2  3553:50.6  5330:51.1
                              peak 51.2 at step 1776 (33% of the run), final 51.1, drop -0.1
 x5_xenc_clean_lr5e6        1776:52.6  3553:51.1  5330:51.4
                              peak 52.6 at step 1776 (33% of the run), final 51.4, drop -1.2
+x6_xenc_1ep_lr2e5          104:54.5  209:54.2  314:53.3  419:52.8  524:53.1  629:53.0  734:52.8  839:52.7  944:52.9  1049:52.8
+                             peak 54.5 at step 104 (10% of the run), final 52.8, drop -1.7
+x7_xenc_1ep_lr5e6          104:53.1  209:54.5  314:54.9  419:54.4  524:54.1  629:54.1  734:54.8  839:55.1  944:54.7  1049:54.8
+                             peak 55.1 at step 839 (80% of the run), final 54.8, drop -0.3
+x8_xenclr_1e6              531:54.1  1063:54.5  1595:54.6  2127:54.6  2659:53.9  3191:53.8  3723:53.6  4255:53.7  4787:53.8  5319:53.8
+                             peak 54.6 at step 1595 (30% of the run), final 53.8, drop -0.8
+x9_xenclr_2e6              531:54.2  1063:54.8  1595:54.6  2127:53.7  2659:53.8  3191:53.3  3723:53.4  4255:53.3  4787:53.2  5319:53.3
+                             peak 54.8 at step 1063 (20% of the run), final 53.3, drop -1.5
 
 PEAKED IN THE FIRST HALF -- these decayed for the rest of training:
   gram_hyp2                  peak at 40% of the run, then -13.6
@@ -169,18 +185,23 @@ PEAKED IN THE FIRST HALF -- these decayed for the rest of training:
   gram_masked                peak at 20% of the run, then -3.8
   x1_xenc_full               peak at 10% of the run, then -3.4
   gram_lora                  peak at 30% of the run, then -3.2
+  x13_xenclr_2e6_itm05       peak at 30% of the run, then -2.2
+  x6_xenc_1ep_lr2e5          peak at 10% of the run, then -1.7
   gram_s52                   peak at 20% of the run, then -1.6
   gram                       peak at 20% of the run, then -1.5
+  x9_xenclr_2e6              peak at 20% of the run, then -1.5
   x5_xenc_clean_lr5e6        peak at 33% of the run, then -1.2
   gram_s51                   peak at 20% of the run, then -1.0
   a6_fullft                  peak at 30% of the run, then -0.9
   g3_r64_qw                  peak at 33% of the run, then -0.9
+  x8_xenclr_1e6              peak at 30% of the run, then -0.8
   pmrl_lora                  peak at 50% of the run, then -0.6
   g6_lambda0                 peak at 33% of the run, then -0.6
   e1_bs128_ep1               peak at 50% of the run, then -0.5
   g4_lr5e5                   peak at 33% of the run, then -0.5
   x3_xenc_clean_lr2e5        peak at 33% of the run, then -0.5
   g2_r32_qw                  peak at 33% of the run, then -0.4
+  x12_xenc_top4              peak at 40% of the run, then -0.4
   g1_r16_qw                  peak at 33% of the run, then -0.4
   t1_s52                     peak at 40% of the run, then -0.3
   a8_lam0                    peak at 40% of the run, then -0.3

@@ -74,6 +74,10 @@ t6_frameset                  128    5    2e-05    5330~     5319     10      1  
 t7_frameset_4f                64    5    2e-05   10674~    10670      3      1  annotations150k.json
 t8_frameset_tau005           128    5    2e-05    5334~     5330      3      1  annotations150k.json
 t9_qweight_only              128    5    2e-05    5334~     5330      3      1  annotations150k.json
+x10_xenclr_5e7               128    5    2e-05    5330~     5319     10      1  annotations150k.json
+x11_xenc_top2                128    5    2e-05    5330~     5319     10      1  annotations150k.json
+x12_xenc_top4                128    5    2e-05    5330~     5319     10      1  annotations150k.json
+x13_xenclr_2e6_itm05         128    5    2e-05    5330~     5319     10      1  annotations150k.json
 x1_xenc_full                 256    5   0.0001    2660~     2649     10      1  annotations150k.json
 x1_xenc_full_lr2e5           256    5    2e-05    2660~     2649     10      1  annotations150k.json
 x2_xenc_r64                  256    5   0.0001    2660~     2649     10      1  annotations150k.json
@@ -81,16 +85,20 @@ x2_xenc_r64_lr2e5            256    5    2e-05    2660~     2649     10      1  
 x3_xenc_clean_lr2e5          128    5    2e-05    5334~     5330      3      1  annotations150k.json
 x4_xenc_clean_lr1e5          128    5    1e-05    5334~     5330      3      1  annotations150k.json
 x5_xenc_clean_lr5e6          128    5    5e-06    5334~     5330      3      1  annotations150k.json
+x6_xenc_1ep_lr2e5            128    1    2e-05    1060~     1049     10      1  annotations150k.json
+x7_xenc_1ep_lr5e6            128    1    5e-06    1060~     1049     10      1  annotations150k.json
+x8_xenclr_1e6                128    5    2e-05    5330~     5319     10      1  annotations150k.json
+x9_xenclr_2e6                128    5    2e-05    5330~     5319     10      1  annotations150k.json
 
 BATCH_SIZE DIFFERS ACROSS ARMS -- these are not comparable as they stand:
   256            48 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+42 more)
-  128            26 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, g10_mask0 (+20 more)
+  128            34 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, g10_mask0 (+28 more)
   512             3 arm(s): b3_bs512_r8, b4_bs512_r32, b6_bs512_xenc
   64              2 arm(s): t13_qw_8frames, t7_frameset_4f
 
 EPOCH DIFFERS ACROSS ARMS -- these are not comparable as they stand:
-  5              77 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+71 more)
-  1               1 arm(s): e1_bs128_ep1
+  5              83 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+77 more)
+  1               3 arm(s): e1_bs128_ep1, x6_xenc_1ep_lr2e5, x7_xenc_1ep_lr5e6
   2               1 arm(s): e2_bs128_ep2
 
 COULD NOT BE VERIFIED -- these checks did not run, which is not the same as

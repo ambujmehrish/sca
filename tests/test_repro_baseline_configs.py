@@ -126,3 +126,28 @@ def test_gram_lora_is_marked_appendix_not_a_comparison_row():
     assert 'gram_lora' not in main, 'gram_lora is listed among the main-table rows'
     for m in ('pmrl', 'hypergram', 'sca'):
         assert m in main, '%s missing from the main-table rows' % m
+
+
+def test_the_arm_is_part_of_the_cell_identity():
+    """Two checkpoints of one method share a config file byte for byte -- gram_hyp2 at lr 2e-5
+    and h1_hypergram_paper at 1e-4 differ only in which arm is passed. With the arm absent from
+    the output path they collide, and because the fingerprint is computed from the config the
+    second run is silently SKIPPED: the first checkpoint's numbers keep the method's name.
+
+    That was harmless while cell_is_done was broken under Slurm. It is not harmless now."""
+    src = open('slurm_scripts/repro_baselines_eval.sh').read()
+    assert 'OUT="workdir/e1_repro/${METHOD}_${ARM}_${BENCH}"' in src, \
+        'the output path must distinguish two checkpoints of the same method'
+
+
+def test_cell_names_with_an_arm_still_parse():
+    import importlib.util
+    sp = importlib.util.spec_from_file_location('rvi_parse', 'scripts/raw_vs_itm.py')
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+    for cell, bench in (('hypergram_gram_hyp2_msrvtt', 'msrvtt'),
+                        ('hypergram_h1_hypergram_paper_didemo', 'didemo'),
+                        ('pmrl_pmrl_lora_activitynet', 'activitynet')):
+        arm, got = m.split_cell(cell)
+        assert got == bench, '%s parsed as benchmark %r' % (cell, got)
+        assert arm and arm != cell, '%s did not split into arm and benchmark' % cell

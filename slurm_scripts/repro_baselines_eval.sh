@@ -122,7 +122,13 @@ if cfg.get('score_mode') != hps.get('score_mode'):
 print('model_type=%s score_mode=%s -- config matches the checkpoint' % (want, cfg.get('score_mode')))
 " || exit 2
 
-OUT="workdir/e1_repro/${METHOD}_${BENCH}"
+# The ARM is part of the identity of a cell, not just the method name. Two different
+# checkpoints of the same method -- gram_hyp2 at lr 2e-5 and h1_hypergram_paper at 1e-4 --
+# would otherwise write to one directory, and since the config file is byte-identical between
+# them the .done fingerprint matches too. The second run is then SKIPPED and the first
+# checkpoint's numbers stand under the method's name forever. cell_is_done only started
+# working recently, so this would have been a silent no-op before and is a live hazard now.
+OUT="workdir/e1_repro/${METHOD}_${ARM}_${BENCH}"
 cell_is_done "$OUT" "$CFG" && { echo "== [$METHOD/$BENCH] already done, skip"; exit 0; }
 mkdir -p "$OUT"
 claim_outdir "$OUT" || exit 2

@@ -227,7 +227,10 @@ def hypergram_sandbox(tmp_path):
         pytest.skip('no HyperGram checkout at %s' % HG)
     data = tmp_path / 'data' / 'vast27m_150k'
     data.mkdir(parents=True)
-    (data / 'annotations150k.json').write_text('[]')
+    # their frozen task is ret%tvas -- the `s` requires every entry to carry a subtitle
+    (data / 'annotations150k.json').write_text(json.dumps(
+        [{'clip_id': 'v%d' % i, 'desc': 'a caption', 'subtitle': 'a subtitle'}
+         for i in range(4)]))
     (tmp_path / 'vast').mkdir()
     made = not VATEX_SUBSET.exists()
     if made:
@@ -295,3 +298,48 @@ def test_hyperparameters_survive_the_generation(hypergram_sandbox):
     assert cfg['data_cfg']['train'][0]['task'] == 'ret%tvas%tv%ta'
     assert cfg['data_cfg']['train'][0]['batch_size'] == 128
     assert cfg['model_cfg']['learn_curvature'] is True
+
+
+def _rewrite_annos(sandbox, entries):
+    tmp_path, _ = sandbox
+    (tmp_path / 'data' / 'vast27m_150k' / 'annotations150k.json').write_text(json.dumps(entries))
+
+
+def test_a_subtitleless_file_is_refused_because_their_code_would_not_complain(hypergram_sandbox):
+    """model/gram.py picks the Gramian arity with `if "raw_subtitles" in batch.keys()`, so an
+    annotation file with no subtitle field turns their published 4-modality method into a
+    3-modality one and trains to completion. The number would carry their name having never
+    run their method -- the failure mode that produces a wrong table rather than a crash."""
+    _rewrite_annos(hypergram_sandbox, [{'clip_id': 'v', 'desc': 'c'}] * 4)
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
+    assert r.returncode == 1 and cfg is None
+    out = r.stdout + r.stderr
+    assert 'requires subtitles' in out and 'hybrid_volume3' in out
+
+
+def test_partial_subtitle_coverage_is_refused(hypergram_sandbox):
+    """annoindexedcollate keeps or drops raw_subtitles based on `data[0] is None` -- the FIRST
+    sample of the batch. Partial coverage therefore flips the volume rank between batches and
+    hands None to the tokenizer for the rest."""
+    _rewrite_annos(hypergram_sandbox,
+                   [{'clip_id': 'a', 'desc': 'c', 'subtitle': 's'}, {'clip_id': 'b', 'desc': 'c'}])
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
+    assert r.returncode == 1 and cfg is None
+    assert 'FIRST sample alone' in r.stdout + r.stderr
+
+
+def test_full_subtitle_coverage_is_recorded(hypergram_sandbox):
+    r, cfg = _generate(hypergram_sandbox, ['--allow_annotation_mismatch'])
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert cfg['_repro_note']['subtitle_coverage'] == 1.0
+
+
+def test_the_task_parser_reads_every_retrieval_group(hypergram_sandbox):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('m', 'scripts/make_hypergram_config.py')
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    assert m.task_modalities('ret%tvas%tv%ta') == set('tvas')
+    assert m.task_modalities('ret%tv%ta') == set('tva')
+    assert 's' not in m.task_modalities('ret%tv%ta'), \
+        'our own arms run three modalities; the check must not fire on them'

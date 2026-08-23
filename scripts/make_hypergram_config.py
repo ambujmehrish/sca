@@ -36,6 +36,11 @@ FROZEN_MODEL = ('curvature_init', 'learn_curvature',
 FROZEN_TRAIN = ('batch_size', 'epoch', 'task', 'vision_sample_num', 'audio_sample_num')
 
 
+def task_modalities(task):
+    """The modality letters of every retrieval group in a task string like ret%tvas%tv%ta."""
+    return set(''.join(task.split('%')[1:]))
+
+
 def sca_train_txt(cfg_path, data_root):
     """The training annotation file OUR reported row uses, read from its config rather than
     assumed. This is the thing the substitution has to match."""
@@ -144,6 +149,45 @@ def main():
     train['vision'] = os.path.join(ours_dir, 'clips')
     train['audio'] = os.path.join(ours_dir, 'audios_wav')
 
+    # ---- does the training data actually carry what their task asks for?
+    #
+    # Their frozen task is ret%tvas%tv%ta -- `tvas` is text-vision-audio-SUBTITLE, and
+    # model/gram.py picks the Gramian arity at runtime with `if "raw_subtitles" in
+    # batch.keys()`: hybrid_volume4(t,v,a,s) when subtitles are present, hybrid_volume3(t,v,a)
+    # when they are not. There is no error in the second case. So an annotation file without a
+    # `subtitle` field silently turns their 4-modality method into a 3-modality one, and the
+    # number would be published under their name having never run their method. Measured here
+    # rather than assumed, and reported as a fraction because a file where only some entries
+    # carry subtitles is a third state that neither branch describes.
+    sub_frac = None
+    if 's' in task_modalities(train.get('task', '')):
+        annos = json.load(open(train['txt']))
+        if isinstance(annos, list) and annos:
+            n = sum(1 for a in annos if isinstance(a, dict) and a.get('subtitle'))
+            sub_frac = n / float(len(annos))
+        if not sub_frac:
+            sys.exit('FATAL: their task %r requires subtitles (the `s` in tvas) and %s has\n'
+                     '       none. Their model/gram.py does NOT fail on this -- it falls back\n'
+                     '       to the 3-modality hybrid_volume3 and trains happily, so the run\n'
+                     '       would finish and the number would be labelled HyperGRAM having\n'
+                     '       never run their 4-modality method.\n'
+                     '       Either supply subtitles, or change the task deliberately and\n'
+                     '       label the row as the 3-modality variant -- but do not let this\n'
+                     '       pass silently.' % (train.get('task'), train['txt']))
+        if sub_frac < 1.0:
+            # data/IndexAnno.py::annoindexedcollate decides whether the batch carries
+            # raw_subtitles from `data[0] is None` -- THE FIRST SAMPLE ONLY. With partial
+            # coverage the arity flips batch to batch depending on which sample landed first,
+            # and every other subtitle-less sample in a batch that kept the key reaches the
+            # tokenizer as None. This is not a degraded run, it is an incoherent one.
+            sys.exit('FATAL: only %.1f%% of %s entries carry a subtitle, and their collate\n'
+                     '       decides the batch arity from the FIRST sample alone. Partial\n'
+                     '       coverage means the Gramian silently changes rank between batches\n'
+                     '       and subtitle-less samples reach the tokenizer as None.\n'
+                     '       Use a fully-covered annotation file, or drop `s` from the task\n'
+                     '       deliberately and label the row as the 3-modality variant.'
+                     % (100 * sub_frac, os.path.basename(train['txt'])))
+
     # Their repo ships no datasets/ directory, so the annotation JSONs its val block names
     # (datasets/annotations/<bench>/descs_ret_test.json) resolve nowhere inside their tree.
     # Point them at ours: these are the same VAST-family annotation files both forks read, and
@@ -206,6 +250,7 @@ def main():
         'edits': 'dataset and checkpoint paths only; every hyperparameter left as shipped',
         'annotations': note,
         'val_annotations': val_notes or 'their filenames, present in our tree',
+        'subtitle_coverage': sub_frac,
         'geometry_mode': args.geometry_mode,
         'recipe_caveat': (
             'hybrid is HyperGRAM as published. pmrl / pmrl_volume / hybrid_pmrl use THEIR '

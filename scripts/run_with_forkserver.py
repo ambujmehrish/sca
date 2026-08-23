@@ -27,9 +27,26 @@ import runpy
 import sys
 
 
+def find_script(argv):
+    """The target script, wherever it sits in argv.
+
+    `torch.distributed.launch` without --use-env PREPENDS `--local-rank=N` to the script's
+    arguments, so the script is NOT argv[1]:
+
+        run_with_forkserver.py --local-rank=0 ./run.py --config ...
+
+    Their run.py reads that rank through utils/args.py, so it has to be passed along rather
+    than swallowed. Returns (script, args_for_it) with the rank preserved in order.
+    """
+    for i, a in enumerate(argv):
+        if a.endswith('.py') and os.path.exists(a):
+            return a, argv[:i] + argv[i + 1:]
+    return None, argv
+
+
 def main():
     if len(sys.argv) < 2:
-        sys.exit('usage: run_with_forkserver.py <script.py> [args...]')
+        sys.exit('usage: run_with_forkserver.py [--local-rank=N] <script.py> [args...]')
 
     method = os.environ.get('GRAM_MP_CTX', 'forkserver')
     if method not in multiprocessing.get_all_start_methods():
@@ -42,13 +59,17 @@ def main():
     if got != method:
         sys.exit('FATAL: asked for start method %r, got %r.' % (method, got))
 
-    script = sys.argv[1]
-    if not os.path.exists(script):
-        sys.exit('FATAL: %s not found (cwd is %s)' % (script, os.getcwd()))
-    print('[run_with_forkserver] start method %s, running %s' % (got, script), flush=True)
+    script, rest = find_script(sys.argv[1:])
+    if script is None:
+        sys.exit('FATAL: no existing .py file among %r (cwd is %s). torch.distributed.launch\n'
+                 '       prepends --local-rank=N, so the script is not necessarily the first\n'
+                 '       argument.' % (sys.argv[1:], os.getcwd()))
+    print('[run_with_forkserver] start method %s, running %s %s'
+          % (got, script, ' '.join(rest)), flush=True)
 
-    # Their run.py reads sys.argv through utils/args.py, and expects argv[0] to be itself.
-    sys.argv = [script] + sys.argv[2:]
+    # Their run.py reads sys.argv through utils/args.py and expects argv[0] to be itself.
+    # --local-rank stays in the arguments: their code needs it.
+    sys.argv = [script] + rest
     runpy.run_path(script, run_name='__main__')
 
 

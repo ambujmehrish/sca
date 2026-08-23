@@ -497,9 +497,38 @@ def test_their_entry_point_runs_under_a_non_fork_start_method():
     is therefore set in the launching process, leaving their code untouched."""
     shim = open('scripts/run_with_forkserver.py').read()
     assert 'set_start_method' in shim and 'GRAM_MP_CTX' in shim
+    assert 'local-rank' in shim, \
+        'torch.distributed.launch PREPENDS --local-rank=N, so the script is not argv[1]' 
     assert 'runpy.run_path' in shim, 'their script must be RUN, not imported or edited'
     assert 'is unavailable here' in shim, 'an impossible start method must be fatal'
     for launcher in ('slurm_scripts/hypergram_authors.sh', 'slurm_scripts/pmrl_released.sh'):
         src = open(launcher).read()
         assert 'run_with_forkserver.py" ./run.py' in src, \
             '%s still launches ./run.py directly, so its workers are forked' % launcher
+
+
+def test_the_shim_finds_the_script_past_the_injected_local_rank(tmp_path):
+    """`torch.distributed.launch` without --use-env prepends --local-rank=N to the script's
+    arguments, so argv[1] is the rank, not the script. Their utils/args.py declares
+    --local-rank and needs it, so it must be passed through rather than dropped."""
+    import subprocess
+    victim = tmp_path / 'victim.py'
+    victim.write_text('import sys, json; print(json.dumps(sys.argv))\n')
+    shim = os.path.abspath('scripts/run_with_forkserver.py')
+    r = subprocess.run(
+        ['python3', shim, '--local-rank=0', './victim.py', '--config', 'c.json'],
+        cwd=str(tmp_path), capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout + r.stderr
+    argv = json.loads(r.stdout.strip().splitlines()[-1])
+    assert argv[0] == './victim.py', argv
+    assert '--local-rank=0' in argv, 'their args parser declares --local-rank and needs it'
+    assert '--config' in argv and 'c.json' in argv
+
+
+def test_the_shim_refuses_when_no_script_is_present(tmp_path):
+    import subprocess
+    shim = os.path.abspath('scripts/run_with_forkserver.py')
+    r = subprocess.run(['python3', shim, '--local-rank=0', '--config', 'c.json'],
+                       cwd=str(tmp_path), capture_output=True, text=True)
+    assert r.returncode == 1
+    assert 'no existing .py file' in r.stdout + r.stderr

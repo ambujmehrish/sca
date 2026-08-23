@@ -83,3 +83,26 @@ def test_the_superseded_reimplementation_rows_are_refused():
     assert guard < env, 'the guard must fire before the environment is sourced, or a missing '\
                         'env masks it'
     assert 'RETIRED -- do not run' in src.split('\n')[15:25][0] or 'RETIRED' in src[:2000]
+
+
+def test_the_missing_vendored_package_is_supplied_by_symlink_not_by_editing():
+    """Their repo ships no evaluation_tools/ -- the caption-eval package both forks inherit
+    from VAST -- and evaluation/evaluation_mm.py imports it at module level, so their code
+    does not import at all without it. That is a packaging omission, not a difference in
+    method, and the fix must be a symlink rather than a patch: copying files in, or editing
+    their imports, would make the run our code under their name."""
+    assert 'ln -s "$CODE_DIR/evaluation_tools"' in LAUNCH
+    assert 'packaging omission on' in LAUNCH
+    # and the dirty check must not then reject the very link it created
+    assert "':!evaluation_tools'" in LAUNCH, \
+        'the dirty check would refuse the checkout it just linked into'
+
+
+def test_val_annotations_come_from_our_tree_with_a_loud_failure_if_absent():
+    """Their val block names datasets/annotations/<bench>/... and they ship no datasets/
+    directory, so those paths resolve nowhere in their tree. Ours supplies them -- the same
+    VAST-family files -- which also keeps the eval split identical to every other row in our
+    table. If one is missing the generator must say so rather than hand their code a path that
+    does not exist."""
+    assert 'their repo ships no' in SRC
+    assert 'val annotation' in SRC and 'FATAL' in SRC

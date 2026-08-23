@@ -94,12 +94,23 @@ def main():
     train['vision'] = os.path.join(ours_dir, 'clips')
     train['audio'] = os.path.join(ours_dir, 'audios_wav')
 
+    # Their repo ships no datasets/ directory, so the annotation JSONs its val block names
+    # (datasets/annotations/<bench>/descs_ret_test.json) resolve nowhere inside their tree.
+    # Point them at ours: these are the same VAST-family annotation files both forks read, and
+    # using ours keeps the eval split identical to every other row in our table.
+    code_dir = os.environ.get('CODE_DIR') or os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), '..')
     for d in cfg['data_cfg'].get('val', []):
         name = d.get('name', '')
         if name.startswith('vatex'):
             d['vision'] = os.path.join(args.data_root, 'VATEX/videos')
             d['audio'] = os.path.join(args.data_root, 'VATEX/audios')
-        d['txt'] = os.path.join(root, d['txt']) if not os.path.isabs(d['txt']) else d['txt']
+        if not os.path.isabs(d['txt']):
+            ours = os.path.join(code_dir, d['txt'])
+            if not os.path.exists(ours):
+                sys.exit('FATAL: val annotation %s not found at %s -- their repo ships no '
+                         'datasets/ directory, so it has to come from ours.' % (d['txt'], ours))
+            d['txt'] = ours
 
     cfg['run_cfg']['pretrain_dir'] = vast
     cfg['run_cfg']['output_dir'] = 'output_repro_%s' % args.geometry_mode

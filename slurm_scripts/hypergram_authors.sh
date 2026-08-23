@@ -72,9 +72,21 @@ HG_ROOT="${HYPERGRAM_ROOT:-$WORK_ROOT/hypergram}"
   echo "    \"$HG_ROOT\"" >&2
   echo "  (or set HYPERGRAM_ROOT)" >&2; exit 2; }
 
-# Their repo must be pristine. A local edit would make this our code again under their name,
-# which is the whole thing this job exists to avoid.
-DIRTY=$(git -C "$HG_ROOT" status --porcelain -- ':!configs/pretrain/repro_*' 2>/dev/null | head -5)
+# Their repo omits evaluation_tools/, the vendored caption-eval package (pycocoevalcap and
+# friends) that both forks inherit from VAST. evaluation/evaluation_mm.py imports it at module
+# level, so their code will not import at all without it -- this is a packaging omission on
+# their side, not a difference in method. Supplying ours as a SYMLINK adds a missing dependency
+# without editing a line of their code.
+if [ ! -e "$HG_ROOT/evaluation_tools" ]; then
+  ln -s "$CODE_DIR/evaluation_tools" "$HG_ROOT/evaluation_tools" \
+    && echo "linked evaluation_tools -> $CODE_DIR/evaluation_tools (their repo omits it)"
+fi
+
+# Their repo must otherwise be pristine. A local edit would make this our code again under
+# their name, which is the whole thing this job exists to avoid. The two exclusions are the
+# configs we generate and the dependency symlink above -- neither is a change to their method.
+DIRTY=$(git -C "$HG_ROOT" status --porcelain \
+          -- ':!configs/pretrain/repro_*' ':!evaluation_tools' 2>/dev/null | head -5)
 if [ -n "$DIRTY" ]; then
   echo "FATAL: $HG_ROOT has local modifications outside the generated configs:" >&2
   echo "$DIRTY" >&2

@@ -55,15 +55,27 @@ def load_cfg(path):
         return None
 
 
-def arm_of(cell):
-    """'t9_qweight_only_didemo' -> 't9_qweight_only'; also strips a gamma/rate segment."""
+def arm_of(cell, pretrain_root=None):
+    """'t9_qweight_only_didemo' -> 't9_qweight_only'; strips a gamma/rate segment only if it
+    is really one.
+
+    The suffix rule alone is wrong: 'b2_bs128_r32_msrvtt' ends in '_r32', which matches
+    r<digits> exactly as a missing-rate suffix does, so the arm came back as 'b2_bs128' and
+    twenty-odd cells were reported unverifiable when their arms were on disk all along. An
+    audit that quietly stops checking things is worse than one that fails.
+
+    So the full head wins whenever a training arm exists for it, and the suffix is stripped
+    only when it does not.
+    """
     for b in BENCHES:
         if cell.endswith('_' + b):
             head = cell[:-(len(b) + 1)]
-            # '<arm>_g030' / '<arm>_r50' -> '<arm>'
+            if pretrain_root and os.path.isdir(os.path.join(pretrain_root, head)):
+                return head
             arm, _, tail = head.rpartition('_')
             if arm and len(tail) in (3, 4) and tail[0] in 'gr' and tail[1:].isdigit():
-                return arm
+                if not pretrain_root or os.path.isdir(os.path.join(pretrain_root, arm)):
+                    return arm
             return head
     return None
 
@@ -91,7 +103,7 @@ def main():
             if not os.path.isdir(d):
                 continue
             cell = os.path.basename(d)
-            arm = arm_of(cell)
+            arm = arm_of(cell, pre)
             eval_hps = load_cfg(os.path.join(d, 'log', 'hps.json'))
             if eval_hps is None or arm is None:
                 unknown.append((rootname, cell, 'no log/hps.json' if eval_hps is None

@@ -10,7 +10,10 @@ ran, any other value means the file records a failure rather than a result.
 | [raw_vs_itm_frames](raw_vs_itm_frames.txt) | 0 | Query-weighted / frame-set arms (workdir/e1_frames), pivots |
 | [raw_vs_itm_itmfrozen](raw_vs_itm_itmfrozen.txt) | 0 | Reranker on FROZEN weights (workdir/e1_itmfrozen), pivots |
 | [itm_frozen_delta](itm_frozen_delta.txt) | 4 | Frozen-reranker vs adapted, paired per cell, with the stage-1 check |
+| [raw_vs_itm_repro](raw_vs_itm_repro.txt) | 0 | Same-environment baselines (workdir/e1_repro): PMRL, HyperGRAM*, GRAM-LoRA |
+| [raw_vs_itm_missing](raw_vs_itm_missing.txt) | 2 | Missing-modality sweep (workdir/e1_missing), pivots |
 | [score_fusion](score_fusion.txt) | 0 | Candidate recall@k (the ceiling) and the fusion-weight sweep |
+| [eval_geometry](eval_geometry.txt) | 4 | Was every cell scored with the geometry its arm was TRAINED with? |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |
 | [training_curve](training_curve.txt) | 0 | Where each arm peaks during training (overtraining check) |

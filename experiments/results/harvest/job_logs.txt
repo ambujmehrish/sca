@@ -51,6 +51,23 @@ Next (no GPU needed):
   python3 scripts/sweep_score_fusion.py workdir/e1_fusion/*/dumps/rerank_*.pt
 EXIT=0 DONE 14:28:29
 
+===== slurm_scripts/logs/b_grid_53740391_41.out
+[h264 @ 0x55f0ceb2bd80] mmco: unref short failure
+[h264 @ 0x55f0ceb2bd80] mmco: unref short failure
+[h264 @ 0x55f0ceb2bd80] mmco: unref short failure
+[h264 @ 0x55d508776140] mmco: unref short failure
+[h264 @ 0x55d508776140] mmco: unref short failure
+ 39%|███▉      | 2090/5335 [1:19:00<1:38:48,  1.83s/it][h264 @ 0x555edbb9d480] mmco: unref short failure
+[h264 @ 0x555edbb9d480] mmco: unref short failure
+ 39%|███▉      | 2091/5335 [1:19:02<1:38:50,  1.83s/it][h264 @ 0x55f0d21bd840] mmco: unref short failure
+[h264 @ 0x55f0d21bd840] mmco: unref short failure
+[h264 @ 0x55f0d21bd840] mmco: unref short failure
+[h264 @ 0x55f0d21bd840] mmco: unref short failure
+[h264 @ 0x55f0d3699040] mmco: unref short failure
+[h264 @ 0x55f0d281ef00] mmco: unref short failure
+[h264 @ 0x55f0d281ef00] mmco: unref short failure
+[h264 @ 0x557d9a963b80] mmco: unref short failure
+
 ===== slurm_scripts/logs/b_grid_53630244_37.out
 [h264 @ 0x5620f1336ac0] mmco: unref short failure
 [h264 @ 0x5620eba735c0] mmco: unref short failure
@@ -67,23 +84,6 @@ EXIT=0 DONE 14:28:29
 [1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260822_225430-zc4rzbt6[0m
 [1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260822_225430-zc4rzbt6/logs[0m
 EXIT=0 DONE 01:56:41
-
-===== slurm_scripts/logs/b_grid_53630244_35.out
-[h264 @ 0x5599e96bac80] mmco: unref short failure
-[h264 @ 0x5599e96bac80] mmco: unref short failure
-[h264 @ 0x5626635fce40] mmco: unref short failure
-[h264 @ 0x55f88f261b00] mmco: unref short failure
-[h264 @ 0x55f88f261b00] mmco: unref short failure
-[h264 @ 0x55f89057aac0] mmco: unref short failure
-[h264 @ 0x55cea8e048c0] mmco: unref short failure
-[h264 @ 0x55cea8e048c0] mmco: unref short failure
-[h264 @ 0x56266388f400] mmco: unref short failure
-[h264 @ 0x56266388f400] mmco: unref short failure
-[1;34mwandb[0m: 
-[1;34mwandb[0m: You can sync this run to the cloud by running:
-[1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260822_225430-bfv90hwr[0m
-[1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260822_225430-bfv90hwr/logs[0m
-EXIT=0 DONE 01:56:37
 
 ===== slurm_scripts/logs/e1_zs_53265198.out
 08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========

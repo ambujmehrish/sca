@@ -94,7 +94,16 @@ def main():
             sys.exit('FATAL: vision directory %s does not exist for %s.'
                      % (d['vision'], d.get('name')))
     cfg['data_cfg']['val'] = val
-    cfg['data_cfg']['train'] = json.loads(json.dumps(val))   # testing mode never builds it
+    # Testing mode never BUILDS the train loader, but their run.py:25-44 reads the train
+    # block for wandb metadata before the mode branch: train[0]['name'], ['batch_size'],
+    # ['epoch'] and ['vision_sample_num'], plus val[0]['vision_sample_num']. A val-block copy
+    # carries all of those except 'epoch', and the miss is a KeyError on every rank -- which
+    # is exactly how the first hgeval attempt died. PMRL's run.py reads none of these, which
+    # is why the same substitution worked there unmodified.
+    train_stub = json.loads(json.dumps(val))
+    for d in train_stub:
+        d.setdefault('epoch', 0)     # wandb display only; nothing trains in testing mode
+    cfg['data_cfg']['train'] = train_stub
 
     cfg['run_cfg']['mode'] = 'testing'
     cfg['run_cfg']['checkpoint'] = os.path.abspath(args.checkpoint)

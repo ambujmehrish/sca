@@ -585,3 +585,25 @@ def test_the_eval_launcher_runs_their_code_unmodified():
     assert 'run_with_forkserver.py" ./run.py' in HGEVAL
     assert 'has local modifications' in HGEVAL
     assert 'parse_authors_eval.py' in HGEVAL, 'the row should be parsed, not read by eye'
+
+
+def test_the_eval_train_stub_satisfies_every_prebranch_read_in_their_run_py():
+    """Their run.py builds a wandb metadata dict BEFORE the mode branch, reading keys from
+    data_cfg.train[0] and val[0]. The eval config substitutes a val-block copy for the train
+    block, and a val block carries no 'epoch' -- KeyError on every rank, which is how the
+    first hgeval attempt died. The keys are extracted from THEIR source, not listed from
+    memory: asserting from memory is the mistake this test exists to not repeat."""
+    if not os.path.isdir(HG):
+        pytest.skip('no HyperGram checkout')
+    src = open(HG + '/run.py').read()
+    body = src[src.index('def main('):src.index("if args.run_cfg.mode == 'training'")]
+    reads = re.findall(r"data_cfg\.(?:train|val)\[0\]\['([a-z_]+)'\]", body)
+    assert reads, 'their run.py changed shape; re-derive this test'
+    gen = open('scripts/make_hypergram_eval_config.py').read()
+    # a val block natively carries name/batch_size/vision_sample_num; whatever else their
+    # pre-branch code reads must be defaulted into the stub
+    val_native = {'name', 'batch_size', 'vision_sample_num', 'audio_sample_num', 'task'}
+    for key in set(reads) - val_native:
+        assert "setdefault('%s'" % key in gen, \
+            'their run.py reads train[0][%r] before the mode branch and the stub does not '\
+            'supply it' % key

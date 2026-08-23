@@ -540,3 +540,48 @@ def test_output_is_unbuffered_so_a_running_job_can_be_watched():
     from a hang, which is the state we spent the afternoon trying to tell apart."""
     for launcher in ('slurm_scripts/hypergram_authors.sh', 'slurm_scripts/pmrl_released.sh'):
         assert 'PYTHONUNBUFFERED=1' in open(launcher).read(), launcher
+
+
+HGEVAL = open('slurm_scripts/hypergram_eval.sh').read()
+HGEVAL_SRC = open('scripts/make_hypergram_eval_config.py').read()
+
+
+def test_the_hypergram_row_comes_from_the_itm_selected_checkpoint():
+    """Their save_best writes two: one selected on the aggregator, one on ret_itm_area. The
+    table reports ret_itm, so the row must come from the ITM one -- and the other must be
+    labelled rather than quietly usable as if it were the same thing."""
+    assert 'best_ret%tvas--msrvtt_ret_ret_itm_area.pt' in HGEVAL
+    assert 'selected by the AGGREGATOR' in HGEVAL_SRC
+    assert 'Analysis only' in HGEVAL_SRC
+    assert 'checkpoint_selection' in HGEVAL_SRC, 'which checkpoint must survive into the config'
+
+
+def test_the_geometry_is_frozen_through_the_eval_rewrite():
+    """geometry_mode is what makes this HyperGRAM rather than GRAM."""
+    frozen = re.search(r'FROZEN_MODEL = \((.*?)\)', HGEVAL_SRC, re.S).group(1)
+    assert 'geometry_mode' in frozen and 'learn_curvature' in frozen
+    assert 'what makes this' in HGEVAL_SRC
+
+
+def test_the_foundation_checkpoint_cannot_shadow_the_trained_one():
+    """pretrain_dir loads the VAST foundation weights; leaving it set alongside an explicit
+    checkpoint invites exactly the ambiguity this row cannot carry."""
+    assert "cfg['run_cfg']['pretrain_dir'] = ''" in HGEVAL_SRC
+
+
+def test_the_eval_protocol_is_ours_for_this_row_too():
+    assert 'benchmark_eval/configs_e1/gram_%s.json' in HGEVAL_SRC
+    assert 'every other row' in HGEVAL_SRC
+
+
+def test_a_missing_trained_checkpoint_lists_what_is_available():
+    """The three files differ only by a long suffix; a bare 'not found' would send you
+    guessing at which one you meant."""
+    assert 'no trained checkpoint at' in HGEVAL
+    assert 'Available:' in HGEVAL
+
+
+def test_the_eval_launcher_runs_their_code_unmodified():
+    assert 'run_with_forkserver.py" ./run.py' in HGEVAL
+    assert 'has local modifications' in HGEVAL
+    assert 'parse_authors_eval.py' in HGEVAL, 'the row should be parsed, not read by eye'

@@ -47,6 +47,12 @@ run raw_vs_itm_itmfrozen "Reranker on FROZEN weights (workdir/e1_itmfrozen), piv
 run itm_frozen_delta "Frozen-reranker vs adapted, paired per cell, with the stage-1 check" \
     python3 scripts/itm_frozen_delta.py
 
+run raw_vs_itm_repro "Same-environment baselines (workdir/e1_repro): PMRL, HyperGRAM*, GRAM-LoRA" \
+    python3 scripts/raw_vs_itm.py --root workdir/e1_repro --pivot
+
+run raw_vs_itm_missing "Missing-modality sweep (workdir/e1_missing), pivots" \
+    python3 scripts/raw_vs_itm.py --root workdir/e1_missing --pivot
+
 run score_fusion "Candidate recall@k (the ceiling) and the fusion-weight sweep" \
     bash -c 'shopt -s nullglob; f=(workdir/e1_fusion/*/dumps/rerank_*.pt);
              [ ${#f[@]} -gt 0 ] || { echo "no rerank dumps under workdir/e1_fusion"; exit 3; }

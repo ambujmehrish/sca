@@ -290,6 +290,13 @@ def main():
         sca_cells = mcells('SCA', tuple(sca_cols), tuple(sca_sd))
     out.append('\\textbf{SCA} (ours) & LoRA & %s & \\cmark & %s \\\\'
                % (params_str('sca_t9'), sca_cells))
+    # the full-FT control: T9's exact recipe with use_lora=false (arm f1_t9_fullft), one
+    # run. Printed only once its cell exists -- an absent optional row is silence, not a
+    # MISSING, because the LoRA row above is the reported configuration either way.
+    fullft = cell_metrics(os.path.join(ROOT, 'workdir/e1_frames', 'f1_t9_fullft_%s' % b))
+    if fullft:
+        out.append('SCA, full-FT (same recipe) & full-FT & %s & \\cmark & %s \\\\'
+                   % (params_str('sca_fullft'), ' & '.join('%.1f' % v for v in fullft)))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')
     out.append('\\end{table}')

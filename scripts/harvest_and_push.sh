@@ -87,6 +87,9 @@ run loss_ablation_table "Table 4: T9 with one objective component removed at a t
 run gain_table "The aggregation-gain table: the abstract's headline numbers, in the paper" \
     python3 scripts/build_gain_table.py
 
+run significance "Seed CIs, exact sign tests, and the eval noise floor" \
+    python3 scripts/significance.py
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

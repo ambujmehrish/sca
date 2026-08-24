@@ -6,7 +6,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == gram_activitynet.pt
    texts 4917   clips 4917   modalities 2   mean present 2.00
    per-modality R@1 : m0   3.2  m1  33.2   -> best single modality 33.2
-   uniform centroid :  23.4/ 48.6/ 61.2      tax vs best single modality -9.8
+   uniform centroid :  23.4/ 48.6/ 61.2      gain vs best single modality -9.8
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     33.1/ 62.6/ 75.1              +9.6       -0.1
    0.020     33.0/ 62.5/ 75.0              +9.6       -0.2
@@ -20,7 +20,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == gram_audiocaps.pt
    texts 704   clips 704   modalities 2   mean present 2.00
    per-modality R@1 : m0  25.3  m1  12.8   -> best single modality 25.3
-   uniform centroid :  27.3/ 59.5/ 74.4      tax vs best single modality +2.0
+   uniform centroid :  27.3/ 59.5/ 74.4      gain vs best single modality +2.0
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     19.0/ 49.4/ 64.5              -8.2       -6.2
    0.020     20.6/ 51.7/ 66.8              -6.7       -4.7
@@ -34,7 +34,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == gram_didemo.pt
    texts 1003   clips 1003   modalities 2   mean present 2.00
    per-modality R@1 : m0   4.6  m1  30.5   -> best single modality 30.5
-   uniform centroid :  26.3/ 48.8/ 60.1      tax vs best single modality -4.2
+   uniform centroid :  26.3/ 48.8/ 60.1      gain vs best single modality -4.2
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     30.3/ 55.4/ 65.3              +4.0       -0.2
    0.020     30.4/ 55.3/ 65.3              +4.1       -0.1
@@ -48,7 +48,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == gram_lora_activitynet.pt
    texts 4917   clips 4917   modalities 2   mean present 2.00
    per-modality R@1 : m0   3.4  m1  37.9   -> best single modality 37.9
-   uniform centroid :  26.9/ 53.0/ 65.9      tax vs best single modality -11.0
+   uniform centroid :  26.9/ 53.0/ 65.9      gain vs best single modality -11.0
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     37.8/ 65.8/ 78.0             +11.0       -0.1
    0.020     37.8/ 65.8/ 78.0             +10.9       -0.1
@@ -62,7 +62,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == gram_lora_audiocaps.pt
    texts 704   clips 704   modalities 2   mean present 2.00
    per-modality R@1 : m0  27.1  m1  13.2   -> best single modality 27.1
-   uniform centroid :  29.8/ 58.5/ 72.3      tax vs best single modality +2.7
+   uniform centroid :  29.8/ 58.5/ 72.3      gain vs best single modality +2.7
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     15.5/ 42.9/ 57.5             -14.3      -11.6
    0.020     16.8/ 45.6/ 60.7             -13.1      -10.4
@@ -76,7 +76,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == gram_lora_didemo.pt
    texts 1003   clips 1003   modalities 2   mean present 2.00
    per-modality R@1 : m0   5.5  m1  35.5   -> best single modality 35.5
-   uniform centroid :  27.9/ 55.0/ 65.0      tax vs best single modality -7.6
+   uniform centroid :  27.9/ 55.0/ 65.0      gain vs best single modality -7.6
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     35.7/ 62.2/ 70.4              +7.8       +0.2
    0.020     35.5/ 62.2/ 70.5              +7.6       +0.0
@@ -90,7 +90,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == sca_t1_activitynet.pt
    texts 4917   clips 4917   modalities 2   mean present 2.00
    per-modality R@1 : m0   3.0  m1  35.9   -> best single modality 35.9
-   uniform centroid :  29.8/ 57.6/ 69.0      tax vs best single modality -6.1
+   uniform centroid :  29.8/ 57.6/ 69.0      gain vs best single modality -6.1
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     34.7/ 63.6/ 75.7              +4.9       -1.2
    0.020     34.4/ 63.0/ 75.1              +4.5       -1.5
@@ -104,7 +104,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == sca_t1_audiocaps.pt
    texts 704   clips 704   modalities 2   mean present 2.00
    per-modality R@1 : m0  28.4  m1  13.1   -> best single modality 28.4
-   uniform centroid :  28.4/ 58.1/ 70.5      tax vs best single modality +0.0
+   uniform centroid :  28.4/ 58.1/ 70.5      gain vs best single modality +0.0
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     22.2/ 53.4/ 67.5              -6.2       -6.2
    0.020     23.9/ 54.8/ 68.8              -4.5       -4.5
@@ -118,7 +118,7 @@ $ bash -c shopt -s nullglob; f=(results/e4_transfer/feats/*.pt);
 == sca_t1_didemo.pt
    texts 1003   clips 1003   modalities 2   mean present 2.00
    per-modality R@1 : m0   4.2  m1  35.3   -> best single modality 35.3
-   uniform centroid :  28.7/ 55.6/ 64.7      tax vs best single modality -6.6
+   uniform centroid :  28.7/ 55.6/ 64.7      gain vs best single modality -6.6
    tau      R@1/R@5/R@10             vs uniform vs best 1-mod
    0.010     32.1/ 57.4/ 66.8              +3.4       -3.2
    0.020     32.9/ 56.2/ 66.1              +4.2       -2.4

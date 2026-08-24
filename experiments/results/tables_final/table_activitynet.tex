@@ -3,17 +3,17 @@
 %% SCA seeds (t2v_r1/t2v_r10/v2t_r1/v2t_r10 per seed): [[55.8, 56.1, 55.9], [87.0, 87.5, 87.1], [48.2, 48.4, 48.2], [76.8, 76.3, 76.7]]
 \begin{table}[t]
 \centering
-\caption{Zero-shot retrieval on ActivityNet. $\S$: numbers as published (reference only; not comparable across environments). $\star$: the authors' released checkpoint evaluated in our environment on our protocol. $\dagger$: trained from the authors' unmodified code at their published recipe (no checkpoint is released). SCA is one configuration over three seeds ($\pm$ sd on R@1). HyperGRAM's release does not run the audio-anchor benchmark and its paper reports no AudioCaps number.}
+\caption{Zero-shot retrieval on ActivityNet. $\S$: published numbers (reference only). $\star$: authors' released checkpoint, evaluated on our protocol. $\dagger$: trained from the authors' released code at their recipe. SCA: three seeds, $\pm$ sd on R@1.}
 \label{tab:activitynet}
 \small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{llccccc}
+\begin{tabular}{llcccccc}
 \toprule
- & & & \multicolumn{2}{c}{Text $\rightarrow$ Video} & \multicolumn{2}{c}{Video $\rightarrow$ Text} \\
-\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Method & Adapter & Mask & R@1 & R@10 & R@1 & R@10 \\
+ & & & & \multicolumn{2}{c}{Text $\rightarrow$ Video} & \multicolumn{2}{c}{Video $\rightarrow$ Text} \\
+\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+Method & Adapter & Params & Mask & R@1 & R@10 & R@1 & R@10 \\
 \midrule
-\multicolumn{7}{l}{\emph{(a) Foundation models}} \\
+\multicolumn{8}{l}{\emph{(a) Foundation models}} \\
 ImageBind$^{\S}$ & -- & \xmark & -- & -- & -- & -- \\
 UMT-L (25M)$^{\S}$ & -- & \xmark & 41.9 & -- & -- & -- \\
 LanguageBind$^{\S}$ & -- & \xmark & 41.0 & 80.0 & 39.1 & 81.1 \\
@@ -21,18 +21,15 @@ mPLUG-2$^{\S}$ & -- & \xmark & -- & -- & -- & -- \\
 VideoPrism-b$^{\S}$ & -- & \xmark & 49.6 & -- & 47.9 & -- \\
 VAST (27M)$^{\S}$ & full-FT & \xmark & 51.4 & 83.6 & -- & -- \\
 \midrule
-\multicolumn{7}{l}{\emph{(b) Gramian-volume alignment}} \\
-GRAM$^{\S}$ & full-FT & \xmark & 59.0 & 91.1 & 50.4 & 85.8 \\
-HyperGRAM$^{\S}$ & full-FT & \xmark & 58.2 & -- & 51.8 & -- \\
-GRAM$^{\star}$ (released ckpt) & full-FT & \xmark & \textbf{56.3} & 87.0 & 47.8 & 81.2 \\
-HyperGRAM$^{\dagger}$ (authors' code) & full-FT & \xmark & 53.7 & 86.2 & 48.1 & 83.0 \\
+\multicolumn{8}{l}{\emph{(b) Gramian-volume alignment}} \\
+GRAM$^{\star}$ & full-FT & 1.4B & \xmark & \textbf{56.3} & 87.0 & 47.8 & 81.2 \\
+HyperGRAM$^{\dagger}$ & full-FT & 1.4B & \xmark & 53.7 & 86.2 & 48.1 & 83.0 \\
 \midrule
-\multicolumn{7}{l}{\emph{(c) Leading-eigenvalue alignment}} \\
-PMRL$^{\S}$ & full-FT & \xmark & 56.0 & -- & 49.6 & -- \\
-PMRL$^{\star}$ (released ckpt) & full-FT & \xmark & 54.1 & 85.3 & \textbf{48.6} & \textbf{84.1} \\
+\multicolumn{8}{l}{\emph{(c) Leading-eigenvalue alignment}} \\
+PMRL$^{\star}$ & full-FT & 1.4B & \xmark & 54.1 & 85.3 & \textbf{48.6} & \textbf{84.1} \\
 \midrule
-\multicolumn{7}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
-\textbf{SCA} (ours) & LoRA & \cmark & 55.9\tiny{$\pm$0.2} & \textbf{87.2} & 48.3\tiny{$\pm$0.1} & 76.6 \\
+\multicolumn{8}{l}{\emph{(d) Spherical centroid alignment (ours)}} \\
+\textbf{SCA} (ours) & LoRA & 4.8M & \cmark & 55.9\tiny{$\pm$0.2} & \textbf{87.2} & 48.3\tiny{$\pm$0.1} & 76.6 \\
 \bottomrule
 \end{tabular}
 \end{table}

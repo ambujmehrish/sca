@@ -13,10 +13,13 @@ ran, any other value means the file records a failure rather than a result.
 | [raw_vs_itm_repro](raw_vs_itm_repro.txt) | 2 | RETIRED reimplementation baselines (workdir/e1_repro) -- superseded by the two below |
 | [pmrl_released](pmrl_released.txt) | 0 | PMRL from the authors' RELEASED checkpoint, our protocol (workdir/pmrl_released) |
 | [hypergram_authors](hypergram_authors.txt) | 0 | HyperGRAM trained from the authors' code at their recipe, our protocol (workdir/hgeval) |
-| [raw_vs_itm_missing](raw_vs_itm_missing.txt) | 2 | Missing-modality sweep (workdir/e1_missing), pivots |
+| [raw_vs_itm_missing](raw_vs_itm_missing.txt) | 0 | Missing-modality sweep (workdir/e1_missing), pivots |
 | [score_fusion](score_fusion.txt) | 0 | Candidate recall@k (the ceiling) and the fusion-weight sweep |
 | [main_table](main_table.txt) | 1 | The main table, generated from measured cells (MISSING where unmeasured) |
-| [paper_tables](paper_tables.txt) | 1 | Per-benchmark paper tables (both directions, R@1/R@10, sectioned by geometry) |
+| [paper_tables](paper_tables.txt) | 0 | Per-benchmark paper tables (both directions, R@1/R@10, sectioned by geometry) |
+| [transfer_table](transfer_table.txt) | 0 | Table 2: the four transfer benchmarks side by side (T->V R@1/R@10) |
+| [missing_table](missing_table.txt) | 1 | Table 3: R@1 under test-time missing modalities, per benchmark |
+| [loss_ablation_table](loss_ablation_table.txt) | 1 | Table 4: T9 with one objective component removed at a time |
 | [eval_geometry](eval_geometry.txt) | 0 | Was every cell scored with the geometry its arm was TRAINED with? |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |

@@ -34,6 +34,7 @@ b5_bs128_xenc                128    5    2e-05    5330~     5319     10      1  
 b6_bs512_xenc                512    5    2e-05  UNKNOWN        -      0      0  annotations150k.json
 e1_bs128_ep1                 128    1    2e-05    1060~     1049     10      1  annotations150k.json
 e2_bs128_ep2                 128    2    2e-05    2130~     2119     10      1  annotations150k.json
+f1_t9_fullft                 128    5    2e-05    5334~     5330      3      1  annotations150k.json
 g10_mask0                    128    5    2e-05    5334~     5330      3      1  annotations150k.json
 g1_r16_qw                    128    5    2e-05    5334~     5330      3      1  annotations150k.json
 g2_r32_qw                    128    5    2e-05    5334~     5330      3      1  annotations150k.json
@@ -95,12 +96,12 @@ x9_xenclr_2e6                128    5    2e-05    5330~     5319     10      1  
 
 BATCH_SIZE DIFFERS ACROSS ARMS -- these are not comparable as they stand:
   256            43 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+37 more)
-  128            42 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, g10_mask0 (+36 more)
+  128            43 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, f1_t9_fullft (+37 more)
   512             3 arm(s): b3_bs512_r8, b4_bs512_r32, b6_bs512_xenc
   64              2 arm(s): t13_qw_8frames, t7_frameset_4f
 
 EPOCH DIFFERS ACROSS ARMS -- these are not comparable as they stand:
-  5              82 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+76 more)
+  5              83 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+77 more)
   1               7 arm(s): e1_bs128_ep1, hgauth_hybrid, hgauth_hybrid_pmrl, hgauth_pmrl, hgauth_pmrl_volume, x6_xenc_1ep_lr2e5 (+1 more)
   2               1 arm(s): e2_bs128_ep2
 

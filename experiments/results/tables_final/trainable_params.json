@@ -1,0 +1,22 @@
+{
+ "gram_released": {
+  "method": "all floating tensors in checkpoint (full-FT)",
+  "source": "/leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt",
+  "trainable": 1396646248
+ },
+ "hypergram_trained": {
+  "method": "all floating tensors in checkpoint (full-FT)",
+  "source": "workdir_pretrain/hgauth_hybrid/ckpt/best_ret%tvas--msrvtt_ret_ret_itm_area.pt",
+  "trainable": 1397367147
+ },
+ "pmrl_released": {
+  "method": "all floating tensors in checkpoint (full-FT)",
+  "source": "/leonardo_work/AIFAC_S07_041/pmrl_weights/model_ckpts/pmrl_base.pt",
+  "trainable": 1396646248
+ },
+ "sca_t9": {
+  "method": "optimizer state (exp_avg)",
+  "source": "workdir_pretrain/t9_qweight_only/ckpt/optimizer_step_5330.pt",
+  "trainable": 4763650
+ }
+}

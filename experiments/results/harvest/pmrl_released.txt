@@ -7,28 +7,28 @@ ACTIVITYNET
   REPORTED  ret_itm  T->V R@1  54.1   recall 54.1/78.1/85.3
             (V->T R@1 48.6, not the reported direction)
   aggregator ret_itc T->V R@1  30.0
-  best single pathway cosine_TV 39.8  ->  aggregation tax -9.8
+  best single pathway cosine_TV 39.8  ->  aggregation gain -9.8
 
 AUDIOCAPS
   REPORTED  ret_itm  T->V R@1  34.4   recall 34.4/64.5/76.3
             (V->T R@1 35.5, not the reported direction)
   aggregator ret_itc T->V R@1  33.4
-  best single pathway cosine_TA 32.0  ->  aggregation tax +1.4
+  best single pathway cosine_TA 32.0  ->  aggregation gain +1.4
 
 DIDEMO
   REPORTED  ret_itm  T->V R@1  52.5   recall 52.5/74.5/79.9
             (V->T R@1 49.3, not the reported direction)
   aggregator ret_itc T->V R@1  28.7
-  best single pathway cosine_TV 38.3  ->  aggregation tax -9.6
+  best single pathway cosine_TV 38.3  ->  aggregation gain -9.6
 
 MSRVTT
   REPORTED  ret_itm  T->V R@1  54.3   recall 54.3/73.0/79.5
             (V->T R@1 52.9, not the reported direction)
   aggregator ret_itc T->V R@1  31.5
-  best single pathway cosine_TV 43.7  ->  aggregation tax -12.2
+  best single pathway cosine_TV 43.7  ->  aggregation gain -12.2
 
 VATEX
   REPORTED  ret_itm  T->V R@1  89.6   recall 89.6/97.9/98.8
             (V->T R@1 87.0, not the reported direction)
   aggregator ret_itc T->V R@1  53.6
-  best single pathway cosine_TV 81.2  ->  aggregation tax -27.6
+  best single pathway cosine_TV 81.2  ->  aggregation gain -27.6

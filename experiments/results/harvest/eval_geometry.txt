@@ -1,25 +1,28 @@
 $ python3 scripts/audit_eval_geometry.py
 
-checked 193 cell(s) across 6 root(s); 18 could not be verified
+checked 213 cell(s) across 7 root(s); 77 could not be verified
 
-NOT VERIFIED (18) -- absence of a mismatch here is not evidence of one:
+NOT VERIFIED (77) -- absence of a mismatch here is not evidence of one:
   e1_frames        r3_itm_top50_n4_msrvtt             no log/hps.json
   e1_fusion        released_activitynet               no training arm at workdir_pretrain/released
   e1_fusion        released_audiocaps                 no training arm at workdir_pretrain/released
   e1_fusion        released_didemo                    no training arm at workdir_pretrain/released
   e1_fusion        released_msrvtt                    no training arm at workdir_pretrain/released
   e1_fusion        released_vatex                     no training arm at workdir_pretrain/released
-  e1_zs            gram_activitynet_t1                cell name does not end in a known benchmark
-  e1_zs            gram_audiocaps_t1                  cell name does not end in a known benchmark
-  e1_zs            gram_didemo_t1                     cell name does not end in a known benchmark
-  e1_zs            gram_vatex_t1                      cell name does not end in a known benchmark
-  e1_zs            released_activitynet               no training arm at workdir_pretrain/released
-  e1_zs            released_audiocaps                 no training arm at workdir_pretrain/released
-  e1_zs            released_didemo                    no training arm at workdir_pretrain/released
-  e1_zs            released_vatex                     no training arm at workdir_pretrain/released
-  e1_zs            sca_activitynet_t1                 cell name does not end in a known benchmark
-  e1_zs            sca_audiocaps_t1                   cell name does not end in a known benchmark
-  e1_zs            sca_didemo_t1                      cell name does not end in a known benchmark
-  e1_zs            sca_vatex_t1                       cell name does not end in a known benchmark
+  e1_missing       gram_activitynet_r00               cell name does not end in a known benchmark
+  e1_missing       gram_activitynet_r25               cell name does not end in a known benchmark
+  e1_missing       gram_activitynet_r50               cell name does not end in a known benchmark
+  e1_missing       gram_activitynet_r75               cell name does not end in a known benchmark
+  e1_missing       gram_activitynet_r90               cell name does not end in a known benchmark
+  e1_missing       gram_audiocaps_r00                 cell name does not end in a known benchmark
+  e1_missing       gram_audiocaps_r25                 cell name does not end in a known benchmark
+  e1_missing       gram_audiocaps_r50                 cell name does not end in a known benchmark
+  e1_missing       gram_audiocaps_r75                 cell name does not end in a known benchmark
+  e1_missing       gram_audiocaps_r90                 cell name does not end in a known benchmark
+  e1_missing       gram_didemo_r00                    cell name does not end in a known benchmark
+  e1_missing       gram_didemo_r25                    cell name does not end in a known benchmark
+  e1_missing       gram_didemo_r50                    cell name does not end in a known benchmark
+  e1_missing       gram_didemo_r75                    cell name does not end in a known benchmark
+  ... and 57 more
 
 Every verifiable cell was scored with the geometry its arm was trained with.

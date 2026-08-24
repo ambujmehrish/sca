@@ -10,7 +10,7 @@
   "ret_bidirection_evaluation": true,
   "itm_rerank_num": 50,
   "model_type": "pmrl",
-  "score_mode": "pmrl_raw",
+  "score_mode": "pmrl_norm",
   "use_lora": false,
   "eval_mask_rate": 0.5,
   "eval_mask_seed": 0

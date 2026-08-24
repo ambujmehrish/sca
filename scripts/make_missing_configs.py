@@ -68,6 +68,13 @@ def main():
                       'lora_alpha'):
                 pcfg['model_cfg'].pop(k, None)
             pcfg['model_cfg']['use_lora'] = False
+            # pmrl_norm, not pmrl_raw: lambda_1 of a Gram matrix of m unit vectors lives in
+            # [1, m], so at MIXED arity the raw score structurally penalises masked clips --
+            # their ceiling is lower regardless of alignment. The norm variant divides by the
+            # clip's own arity (their head's built-in option), and at r=0 every clip has the
+            # same arity so the division is a constant: ranking, and therefore R@1, is
+            # IDENTICAL to raw -- the r00 control still anchors to PMRL's Table rows exactly.
+            pcfg['model_cfg']['score_mode'] = 'pmrl_norm'
             pcfg['model_cfg']['eval_mask_rate'] = rate
             pcfg['model_cfg']['eval_mask_seed'] = 0
             pdst = os.path.join(outdir, 'pmrl_%s.json' % b)

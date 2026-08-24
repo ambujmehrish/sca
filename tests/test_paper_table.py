@@ -90,3 +90,17 @@ def test_missing_modality_sweep_is_paired_and_anchored():
     assert 'GRAM_RELEASED_CKPT' in launch and 'set GRAM_RELEASED_CKPT' in launch
     assert 't9_qweight_only/ckpt/model_step_5330.pt' in launch
     assert 'must reproduce Table 1/2' in launch
+
+
+def test_pmrl_masked_cells_use_the_arity_normalised_score():
+    """lambda_1 of m unit vectors lives in [1, m]: at mixed arity the raw score penalises
+    masked clips structurally, regardless of alignment -- the strawman this sweep must not
+    be. pmrl_norm divides by the clip's own arity; at r=0 the division is a constant, so the
+    r00 control remains rank-identical to the pmrl_raw Table rows."""
+    import json
+    for r in ('r00', 'r25', 'r50', 'r75', 'r90'):
+        m = json.load(open('benchmark_eval/configs_missing/%s/pmrl_msrvtt.json' % r))['model_cfg']
+        assert m['score_mode'] == 'pmrl_norm', (r, m['score_mode'])
+    src = open('scripts/make_missing_configs.py').read()
+    assert 'structurally penalises masked clips' in src
+    assert 'IDENTICAL to raw' in src

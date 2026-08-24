@@ -1,0 +1,49 @@
+{
+ "run_cfg": {
+  "default": "./config/gram/default_run_cfg.json",
+  "mode": "testing",
+  "checkpoint": "${EVAL_CKPT}"
+ },
+ "model_cfg": {
+  "default": "./config/gram/default_model_cfg.json",
+  "vision_encoder_type": "evaclip01_giant",
+  "ret_bidirection_evaluation": true,
+  "itm_rerank_num": 50,
+  "eval_mask_rate": 0.25,
+  "eval_mask_seed": 0
+ },
+ "data_cfg": {
+  "train": [
+   {
+    "type": "annoindexed",
+    "training": false,
+    "name": "audiocaps_ret",
+    "txt": "benchmark_eval/audiocaps_tva_annotation.json",
+    "audio": "${DATA_ROOT}/AudioCaps/audios",
+    "vision": "${DATA_ROOT}/AudioCaps/videos",
+    "audio_sample_num": 1,
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 8,
+    "task": "ret%tva",
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ],
+  "val": [
+   {
+    "type": "annoindexed",
+    "training": false,
+    "name": "audiocaps_ret",
+    "txt": "benchmark_eval/audiocaps_tva_annotation.json",
+    "audio": "${DATA_ROOT}/AudioCaps/audios",
+    "vision": "${DATA_ROOT}/AudioCaps/videos",
+    "audio_sample_num": 1,
+    "vision_format": "video_rawvideo",
+    "vision_sample_num": 8,
+    "task": "ret%tva",
+    "n_workers": 8,
+    "batch_size": 64
+   }
+  ]
+ }
+}

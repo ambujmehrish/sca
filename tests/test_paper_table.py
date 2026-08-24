@@ -65,3 +65,26 @@ def test_table2_layout_and_policy():
     # HyperGRAM/AudioCaps is a deliberate dash even when other cells are MISSING locally
     hg = [l for l in out.splitlines() if l.startswith('HyperGRAM')][0]
     assert hg.rstrip('\\ ').endswith('--'), hg
+
+
+def test_missing_modality_sweep_is_paired_and_anchored():
+    """The sweep's fairness rests on three properties: the gram configs inherit the exact
+    Table-1 config plus only the two mask keys; both sides carry identical mask keys at
+    every rate; and r00 exists as the masking-off control that must reproduce Table 1/2."""
+    import json, subprocess
+    r = subprocess.run(['python3', 'scripts/make_missing_configs.py'],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert 'mask keys agree at every rate' in r.stdout
+    base = json.load(open('benchmark_eval/configs_e1/gram_msrvtt.json'))['model_cfg']
+    masked = json.load(open('benchmark_eval/configs_missing/r50/gram_msrvtt.json'))['model_cfg']
+    extra = {k for k in masked if k not in base}
+    assert extra == {'eval_mask_rate', 'eval_mask_seed'}, extra
+    for k in base:
+        assert masked[k] == base[k], '%s drifted from the Table-1 config' % k
+    r00 = json.load(open('benchmark_eval/configs_missing/r00/gram_msrvtt.json'))['model_cfg']
+    assert r00['eval_mask_rate'] == 0.0, 'the control anchor must be masking-off exactly'
+    launch = open('slurm_scripts/missing_eval.sh').read()
+    assert 'GRAM_RELEASED_CKPT' in launch and 'set GRAM_RELEASED_CKPT' in launch
+    assert 't9_qweight_only/ckpt/model_step_5330.pt' in launch
+    assert 'must reproduce Table 1/2' in launch

@@ -53,6 +53,22 @@ FOUNDATION = [('ImageBind', 'ImageBind', '--'), ('UMT-L (25M)', 'UMT-L', '--'),
 
 SCA_SEEDS = ('t9_qweight_only', 's1_t9_seed51', 's2_t9_seed52')
 
+PARAMS_JSON = os.path.join(ROOT, 'experiments/results/tables_final/trainable_params.json')
+
+
+def params_str(key):
+    """Measured trainable-parameter count as '4.2M' / '1.3B', or MISSING.
+
+    The counts come from scripts/count_trainable.py -- optimizer state for LoRA runs, full
+    checkpoint for full-FT -- committed to trainable_params.json. Absent key = MISSING; the
+    column never carries a number quoted from a paper."""
+    if not os.path.exists(PARAMS_JSON):
+        return 'MISSING'
+    n = json.load(open(PARAMS_JSON)).get(key, {}).get('trainable')
+    if n is None:
+        return 'MISSING'
+    return '%.1fB' % (n / 1e9) if n >= 1e9 else '%.0fM' % (n / 1e6)
+
 # HyperGRAM's release does not run the audio-anchor benchmark, and their paper reports no
 # AudioCaps number. '--' by decision, not MISSING by accident.
 ABSENT = {("HyperGRAM$^{\\dagger}$", 'audiocaps')}
@@ -196,9 +212,9 @@ def main():
             sca_sd.append(st.stdev(vals) if i in (0, 2) else None)   # error bar on R@1 only
 
     rows = [
-        ("GRAM$^{\\star}$", 'full-FT', '\\xmark', gram),
-        ("HyperGRAM$^{\\dagger}$", 'full-FT', '\\xmark', hg),
-        ("PMRL$^{\\star}$", 'full-FT', '\\xmark', pmrl),
+        ("GRAM$^{\\star}$", 'full-FT', params_str('gram_released'), '\\xmark', gram),
+        ("HyperGRAM$^{\\dagger}$", 'full-FT', params_str('hypergram_trained'), '\\xmark', hg),
+        ("PMRL$^{\\star}$", 'full-FT', params_str('pmrl_released'), '\\xmark', pmrl),
     ]
 
     # ---- render
@@ -215,25 +231,25 @@ def main():
     out.append('\\label{tab:%s}' % b)
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')
-    out.append('\\begin{tabular}{llccccc}')
+    out.append('\\begin{tabular}{llcccccc}')
     out.append('\\toprule')
-    out.append(' & & & \\multicolumn{2}{c}{Text $\\rightarrow$ Video} & '
+    out.append(' & & & & \\multicolumn{2}{c}{Text $\\rightarrow$ Video} & '
                '\\multicolumn{2}{c}{Video $\\rightarrow$ Text} \\\\')
-    out.append('\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}')
-    out.append('Method & Adapter & Mask & R@1 & R@10 & R@1 & R@10 \\\\')
+    out.append('\\cmidrule(lr){5-6}\\cmidrule(lr){7-8}')
+    out.append('Method & Adapter & Params & Mask & R@1 & R@10 & R@1 & R@10 \\\\')
     out.append('\\midrule')
 
     def cells(vals):
         return ' & '.join('--' if v is None else '%.1f' % v for v in vals)
 
-    out.append('\\multicolumn{7}{l}{\\emph{(a) Foundation models}} \\\\')
+    out.append('\\multicolumn{8}{l}{\\emph{(a) Foundation models}} \\\\')
     for disp, adapter, vals in ref:
         out.append('%s & %s & \\xmark & %s \\\\' % (disp, adapter, cells(vals)))
     out.append('\\midrule')
-    out.append('\\multicolumn{7}{l}{\\emph{(b) Gramian-volume alignment}} \\\\')
+    out.append('\\multicolumn{8}{l}{\\emph{(b) Gramian-volume alignment}} \\\\')
 
     # bold = column max over the MEASURED rows only (b-d measured + SCA)
-    measured_vals = [r[3] for r in rows if r[3]] + ([tuple(sca_cols)] if all(
+    measured_vals = [r[4] for r in rows if r[4]] + ([tuple(sca_cols)] if all(
         v is not None for v in sca_cols) else [])
     colmax = [max((m[i] for m in measured_vals if m[i] is not None), default=None)
               for i in range(4)]
@@ -254,20 +270,23 @@ def main():
             outc.append(cell)
         return ' & '.join(outc)
 
-    for name, adapter, mask, vals in rows[:2]:
-        out.append('%s & %s & %s & %s \\\\' % (name, adapter, mask, mcells(name, vals)))
+    for name, adapter, prm, mask, vals in rows[:2]:
+        out.append('%s & %s & %s & %s & %s \\\\' % (name, adapter, prm, mask,
+                                                        mcells(name, vals)))
     out.append('\\midrule')
-    out.append('\\multicolumn{7}{l}{\\emph{(c) Leading-eigenvalue alignment}} \\\\')
-    name, adapter, mask, vals = rows[2]
-    out.append('%s & %s & %s & %s \\\\' % (name, adapter, mask, mcells(name, vals)))
+    out.append('\\multicolumn{8}{l}{\\emph{(c) Leading-eigenvalue alignment}} \\\\')
+    name, adapter, prm, mask, vals = rows[2]
+    out.append('%s & %s & %s & %s & %s \\\\' % (name, adapter, prm, mask,
+                                                    mcells(name, vals)))
     out.append('\\midrule')
-    out.append('\\multicolumn{7}{l}{\\emph{(d) Spherical centroid alignment (ours)}} \\\\')
+    out.append('\\multicolumn{8}{l}{\\emph{(d) Spherical centroid alignment (ours)}} \\\\')
     if all(v is None for v in sca_cols):
         missing.append('SCA (no seed cells readable)')
         sca_cells = ' & '.join(['MISSING'] * 4)
     else:
         sca_cells = mcells('SCA', tuple(sca_cols), tuple(sca_sd))
-    out.append('\\textbf{SCA} (ours) & LoRA & \\cmark & %s \\\\' % sca_cells)
+    out.append('\\textbf{SCA} (ours) & LoRA & %s & \\cmark & %s \\\\'
+               % (params_str('sca_t9'), sca_cells))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')
     out.append('\\end{table}')

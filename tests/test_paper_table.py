@@ -22,7 +22,9 @@ def test_hypergram_audiocaps_is_a_deliberate_dash_not_missing():
     r = subprocess.run(['python3', 'scripts/build_paper_table.py', '--bench', 'audiocaps'],
                        capture_output=True, text=True)
     hg = [l for l in r.stdout.splitlines() if l.startswith('HyperGRAM$^{\\dagger}$')][0]
-    assert 'MISSING' not in hg and '--' in hg
+    # the four METRIC cells must be the deliberate dash; the Params cell may read MISSING
+    # until count_trainable has run, which is a different (and honest) state
+    assert hg.rstrip('\\ ').endswith('-- & -- & -- & --'), hg
 
 
 def test_published_rows_are_reference_only_and_never_bolded():

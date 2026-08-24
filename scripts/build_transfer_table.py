@@ -23,10 +23,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_paper_table import (ROOT, LABEL, FOUNDATION, _pub, fmt,          # noqa: E402
-                               gram_cell, sca_cell, authors_metrics)
+                               gram_cell, sca_cell, authors_metrics, params_str)
 
 T2_BENCHES = ('didemo', 'activitynet', 'vatex', 'audiocaps')
-NCOL = 3 + 2 * len(T2_BENCHES)
+NCOL = 4 + 2 * len(T2_BENCHES)
 
 
 def measured_for(b):
@@ -93,13 +93,13 @@ def main():
     out.append('\\label{tab:transfer}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')
-    out.append('\\begin{tabular}{llc%s}' % ('cc' * len(T2_BENCHES)))
+    out.append('\\begin{tabular}{llcc%s}' % ('cc' * len(T2_BENCHES)))
     out.append('\\toprule')
-    out.append(' & & & %s \\\\' % ' & '.join('\\multicolumn{2}{c}{%s}' % LABEL[b]
+    out.append(' & & & & %s \\\\' % ' & '.join('\\multicolumn{2}{c}{%s}' % LABEL[b]
                                              for b in T2_BENCHES))
-    out.append(''.join('\\cmidrule(lr){%d-%d}' % (4 + 2 * i, 5 + 2 * i)
+    out.append(''.join('\\cmidrule(lr){%d-%d}' % (5 + 2 * i, 6 + 2 * i)
                        for i in range(len(T2_BENCHES))))
-    out.append('Method & Adapter & Mask & %s \\\\' % ' & '.join(['R@1 & R@10'] * len(T2_BENCHES)))
+    out.append('Method & Adapter & Params & Mask & %s \\\\' % ' & '.join(['R@1 & R@10'] * len(T2_BENCHES)))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(a) Foundation models}} \\\\' % NCOL)
     for disp, key, adapter in FOUNDATION:
@@ -107,17 +107,21 @@ def main():
         for b in T2_BENCHES:
             v = _pub(pub, key, b, 't2v')
             cells += ['--' if x is None else '%.1f' % x for x in v]
-        out.append('%s$^{\\S}$ & %s & \\xmark & %s \\\\' % (disp, adapter, ' & '.join(cells)))
+        out.append('%s$^{\\S}$ & %s & -- & \\xmark & %s \\\\' % (disp, adapter, ' & '.join(cells)))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(b) Gramian-volume alignment}} \\\\' % NCOL)
-    out.append('GRAM$^{\\star}$ & full-FT & \\xmark & %s \\\\' % row('GRAM', 'gram'))
-    out.append('HyperGRAM$^{\\dagger}$ & full-FT & \\xmark & %s \\\\' % row('HyperGRAM', 'hg'))
+    out.append('GRAM$^{\\star}$ & full-FT & %s & \\xmark & %s \\\\'
+               % (params_str('gram_released'), row('GRAM', 'gram')))
+    out.append('HyperGRAM$^{\\dagger}$ & full-FT & %s & \\xmark & %s \\\\'
+               % (params_str('hypergram_trained'), row('HyperGRAM', 'hg')))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(c) Leading-eigenvalue alignment}} \\\\' % NCOL)
-    out.append('PMRL$^{\\star}$ & full-FT & \\xmark & %s \\\\' % row('PMRL', 'pmrl'))
+    out.append('PMRL$^{\\star}$ & full-FT & %s & \\xmark & %s \\\\'
+               % (params_str('pmrl_released'), row('PMRL', 'pmrl')))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(d) Spherical centroid alignment (ours)}} \\\\' % NCOL)
-    out.append('\\textbf{SCA} (ours) & LoRA & \\cmark & %s \\\\' % row('SCA', 'sca', with_sd=True))
+    out.append('\\textbf{SCA} (ours) & LoRA & %s & \\cmark & %s \\\\'
+               % (params_str('sca_t9'), row('SCA', 'sca', with_sd=True)))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')
     out.append('\\end{table*}')

@@ -77,6 +77,9 @@ run paper_tables "Per-benchmark paper tables (both directions, R@1/R@10, section
 run transfer_table "Table 2: the four transfer benchmarks side by side (T->V R@1/R@10)" \
     python3 scripts/build_transfer_table.py
 
+run missing_table "Table 3: R@1 under test-time missing modalities, per benchmark" \
+    python3 scripts/build_missing_table.py --all
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

@@ -51,7 +51,31 @@ def main():
                 json.dump(cfg, f, indent=1)
                 f.write('\n')
             wrote += 1
-    print('wrote %d gram configs across %s' % (wrote, ', '.join(sorted(RATES))))
+
+            # PMRL: the authors' RELEASED checkpoint through OUR pmrl class (masking lives in
+            # our trunk; theirs has none). Derived from the configs_repro pmrl config -- our
+            # only config that names their scoring (model_type pmrl, score_mode pmrl_raw) --
+            # with the LoRA keys STRIPPED: the released checkpoint is full-FT and carries no
+            # adapter weights, and a LoRA-bearing class would report them as missing keys.
+            # Whether the released weights actually fit this class is not assumed here: the
+            # launcher verifies the load from the eval log and refuses the cells otherwise.
+            psrc = os.path.join(ROOT, 'benchmark_eval/configs_repro', 'pmrl_%s.json' % b)
+            if not os.path.exists(psrc):
+                sys.exit('FATAL: %s not found -- the pmrl side of the sweep has no base '
+                         'config.' % psrc)
+            pcfg = json.load(open(psrc), object_pairs_hook=collections.OrderedDict)
+            for k in ('use_lora', 'lora_r_vision', 'lora_r_audio', 'lora_r_text',
+                      'lora_alpha'):
+                pcfg['model_cfg'].pop(k, None)
+            pcfg['model_cfg']['use_lora'] = False
+            pcfg['model_cfg']['eval_mask_rate'] = rate
+            pcfg['model_cfg']['eval_mask_seed'] = 0
+            pdst = os.path.join(outdir, 'pmrl_%s.json' % b)
+            with open(pdst, 'w') as f:
+                json.dump(pcfg, f, indent=1)
+                f.write('\n')
+            wrote += 1
+    print('wrote %d gram+pmrl configs across %s' % (wrote, ', '.join(sorted(RATES))))
 
     # sanity: the SCA config at each rate must carry the same mask keys
     for rdir, rate in sorted(RATES.items()):

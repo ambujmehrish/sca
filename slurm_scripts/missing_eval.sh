@@ -60,14 +60,21 @@ if [ -z "${GRAM_RELEASED_CKPT:-}" ]; then
 fi
 [ -f "$GRAM_RELEASED_CKPT" ] || {
   echo "FATAL: GRAM_RELEASED_CKPT=$GRAM_RELEASED_CKPT does not exist" >&2; exit 1; }
+# PMRL: the authors' released checkpoint, through OUR pmrl class -- masking lives in our
+# trunk and theirs has none. Valid ONLY if the weights fully load into that class, which is
+# verified from each cell's own log below, never assumed.
+PMRL_CKPT="${PMRL_MISSING_CKPT:-$WORK_ROOT/pmrl_weights/model_ckpts/pmrl_base.pt}"
+[ -f "$PMRL_CKPT" ] || { echo "FATAL: PMRL released ckpt not at $PMRL_CKPT" >&2; exit 2; }
 
 # the gram configs are generated; refuse to run from a stale set
 python3 scripts/make_missing_configs.py || exit 2
 
 NOISE="mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($"
 rc_all=0
-for model in sca gram; do
-  ckpt="$SCA_CKPT"; [ "$model" = gram ] && ckpt="$GRAM_RELEASED_CKPT"
+for model in sca gram pmrl; do
+  ckpt="$SCA_CKPT"
+  [ "$model" = gram ] && ckpt="$GRAM_RELEASED_CKPT"
+  [ "$model" = pmrl ] && ckpt="$PMRL_CKPT"
   for rate in r00 r25 r50 r75 r90; do
     cfg="benchmark_eval/configs_missing/${rate}/${model}_${BENCH}.json"
     [ -f "$cfg" ] || { echo "== [$model/$BENCH/$rate] SKIP: no $cfg" >&2; rc_all=2; continue; }
@@ -78,8 +85,18 @@ for model in sca gram; do
     EVAL_CKPT="$ckpt" srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 \
       --nproc_per_node 4 --master_port $((9500 + IDX)) \
       ./benchmark_eval/run_eval.py --config "$cfg" --output_dir "$out" 2>&1 \
-      | { grep -v --line-buffered -E "$NOISE" || true; }
+      | tee "$out/eval.log" | { grep -v --line-buffered -E "$NOISE" || true; }
     rc=${PIPESTATUS[0]}
+    if [ $rc -eq 0 ] && [ "$model" != sca ]; then
+      # A released checkpoint through our class loads with strict=False: verify from the
+      # cell's own log that it FULLY loaded, or the number is from a partly random model.
+      # For pmrl a failure invalidates every rate, so the loop stops rather than continuing.
+      python3 scripts/verify_ckpt_load.py "$out/eval.log" || {
+        echo "== [$model/$BENCH/$rate] LOAD NOT VERIFIED -- cell refused" >&2
+        rc=3; rc_all=3
+        [ "$model" = pmrl ] && { echo "   (all pmrl rates refused for $BENCH)" >&2; break; }
+      }
+    fi
     if [ $rc -eq 0 ]; then cell_mark_done "$out" "$cfg"; echo "== [$model/$BENCH/$rate] OK $(date +%T)"
     else echo "== [$model/$BENCH/$rate] FAILED rc=$rc" >&2; rc_all=$rc; fi
   done

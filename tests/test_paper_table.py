@@ -123,3 +123,19 @@ def test_table3_reports_the_representation_stage_and_documents_why():
     assert 'PMRL' not in main.split('caption')[1].split('}')[0] or True
     assert '45.2' in main and '38.7' in main, 'MSR-VTT r00 aggregator cells'
     assert 'MISSING' not in main
+
+
+def test_the_abstracts_gain_numbers_are_findable_in_a_table():
+    """Every gain the prose cites must be a cell in table_gain.tex -- a reader who checks
+    must find -27.6 (PMRL/VATEX), the 12-of-14 count, and the uniform-vs-query flip."""
+    r = subprocess.run(['python3', 'scripts/build_gain_table.py'],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    tex = open('experiments/results/tables_final/table_gain.tex').read()
+    for n in ('-27.6', '-12.2', '-3.4', '-1.9', '+1.4', '-11.2', '+4.0'):
+        assert n in tex, n
+    body = [l for l in tex.splitlines() if l.rstrip().endswith('\\\\') and '&' in l
+            and 'Method' not in l]
+    baseline_cells = ' '.join(body[:3])
+    assert baseline_cells.count('-') >= 12, 'the 12-of-14 negative count must be countable'
+    assert 'uniform weights' in tex and 'query-weighted' in tex

@@ -83,6 +83,10 @@ run missing_table "Table 3: R@1 under test-time missing modalities, per benchmar
 run loss_ablation_table "Table 4: T9 with one objective component removed at a time" \
     python3 scripts/build_loss_ablation_table.py
 
+# after the pmrl_released / hypergram_authors / raw_vs_itm extractors above: it reads their files
+run gain_table "The aggregation-gain table: the abstract's headline numbers, in the paper" \
+    python3 scripts/build_gain_table.py
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

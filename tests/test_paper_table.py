@@ -7,9 +7,10 @@ SRC = open('scripts/build_paper_table.py').read()
 def test_row_provenance_is_the_project_policy():
     """GRAM and PMRL from released checkpoints, HyperGRAM from the authors' code (they
     release none), SCA as the single configuration over three seeds."""
-    assert "GRAM$^{\\star}$ (released ckpt)" in SRC
-    assert "PMRL$^{\\star}$ (released ckpt)" in SRC
-    assert "HyperGRAM$^{\\dagger}$ (authors' code)" in SRC
+    # the source spells the backslash escaped, so match the source text, not the LaTeX
+    assert r"GRAM$^{\\star}$ (released ckpt)" in SRC
+    assert r"PMRL$^{\\star}$ (released ckpt)" in SRC
+    assert r"HyperGRAM$^{\\dagger}$ (authors' code)" in SRC
     assert "SCA_SEEDS = ('t9_qweight_only', 's1_t9_seed51', 's2_t9_seed52')" in SRC
 
 

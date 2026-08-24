@@ -39,3 +39,29 @@ def test_a_cell_that_cannot_be_read_is_missing_and_the_exit_code_says_so():
     if 'MISSING' in r.stdout:
         assert r.returncode == 1
         assert 'never a remembered number' in r.stderr
+
+
+def test_table2_shares_the_extraction_with_the_per_benchmark_tables():
+    """Two tables disagreeing about one number is the failure this import prevents."""
+    src = open('scripts/build_transfer_table.py').read()
+    assert 'from build_paper_table import' in src
+    assert 'gram_cell' in src and 'sca_cell' in src and 'authors_metrics' in src
+    for bad in ('def gram_cell', 'def sca_cell', 'def authors_metrics', 'def cell_metrics'):
+        assert bad not in src, '%s reimplemented instead of imported' % bad
+
+
+def test_table2_layout_and_policy():
+    import subprocess
+    r = subprocess.run(['python3', 'scripts/build_transfer_table.py',
+                        '--out', '/tmp/claude-0/-home-user-sca/725c81e1-2702-55f2-8f1c-81a27a02a7ad/scratchpad/t2.tex'],
+                       capture_output=True, text=True)
+    out = open('/tmp/claude-0/-home-user-sca/725c81e1-2702-55f2-8f1c-81a27a02a7ad/scratchpad/t2.tex').read()
+    for b in ('DiDeMo', 'ActivityNet', 'VATEX', 'AudioCaps'):
+        assert '\\multicolumn{2}{c}{%s}' % b in out
+    assert 'MSR-VTT' not in out, 'MSR-VTT belongs to Table 1'
+    for line in out.splitlines():
+        if '$^{\\S}$' in line:
+            assert '\\textbf' not in line, 'published rows must never be bolded'
+    # HyperGRAM/AudioCaps is a deliberate dash even when other cells are MISSING locally
+    hg = [l for l in out.splitlines() if l.startswith('HyperGRAM')][0]
+    assert hg.rstrip('\\ ').endswith('--'), hg

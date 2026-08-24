@@ -74,6 +74,9 @@ run main_table "The main table, generated from measured cells (MISSING where unm
 run paper_tables "Per-benchmark paper tables (both directions, R@1/R@10, sectioned by geometry)" \
     python3 scripts/build_paper_table.py --all
 
+run transfer_table "Table 2: the four transfer benchmarks side by side (T->V R@1/R@10)" \
+    python3 scripts/build_transfer_table.py
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

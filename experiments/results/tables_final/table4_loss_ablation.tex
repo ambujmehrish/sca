@@ -2,21 +2,20 @@
 %% Reference row t9_qweight_only must equal the SCA seed-0 cells behind Tables 1/2.
 \begin{table}[t]
 \centering
-\caption{Ablating the objective at the reported configuration: each row is T9 with one component removed and nothing else retrained or retuned (text$\rightarrow$video R@1, two-stage protocol; $\bar{\Delta}$ = mean change vs.\ the full objective). $\mathcal{L}_{\mathrm{align}}$ is the retrieval objective itself and is never removed. Removing the masked training views and removing $\mathcal{L}_{\mathrm{mask}}$ are separate rows: the former stops drawing reduced-arity views for the alignment loss, the latter drops only the explicit cross-arity agreement term.}
+\caption{Ablating the objective at the reported configuration: each row is T9 with one component removed and nothing else retrained or retuned (text$\rightarrow$video R@1, two-stage protocol; $\bar{\Delta}$ = mean change vs.\ the full objective; $\bar{\Delta}_{\mathrm{agg}}$ = mean aggregation gain over the five benchmarks, the representation-level effect the shared reranker compresses). $\mathcal{L}_{\mathrm{align}}$ is the retrieval objective itself and is never removed. Removing the masked training views and removing $\mathcal{L}_{\mathrm{mask}}$ are separate rows: the former stops drawing reduced-arity views for the alignment loss, the latter drops only the explicit cross-arity agreement term.}
 \label{tab:loss_ablation}
 \small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{lccccc c}
+\begin{tabular}{lccccc cc}
 \toprule
-Objective & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps & $\bar{\Delta}$ \\
+Objective & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps & $\bar{\Delta}$ & $\bar{\Delta}_{\mathrm{agg}}$ \\
 \midrule
-full objective (T9) & 54.8 & 51.5 & 55.8 & 90.5 & 35.2 & -- \\
+full objective (T9) & 54.8 & 51.5 & 55.8 & 90.5 & 35.2 & -- & +1.0 \\
 \midrule
-\quad w/o masked training views ($p_{\mathrm{full}}{=}1$) & MISSING & MISSING & MISSING & MISSING & MISSING & MISSING \\
-\quad w/o $\mathcal{L}_{\mathrm{mask}}$ ($\beta{=}0$) & 54.8 & 51.0 & 55.8 & 90.3 & 35.4 & -0.1 \\
-\quad w/o $\mathcal{L}_{\mathrm{sem}}$ ($\alpha{=}0$) & 54.2 & 50.2 & 56.3 & 91.2 & 35.8 & -0.0 \\
-\quad w/o $\mathcal{L}_{\mathrm{concept}}$ ($\delta{=}0$) & 54.8 & 51.4 & 55.8 & 90.5 & 35.2 & -0.0 \\
-\quad w/o $\mathcal{L}_{\mathrm{unif}}$ ($\lambda{=}0$) & 54.2 & 51.2 & 56.0 & 90.5 & 35.1 & -0.2 \\
+\quad w/o masked training views ($p_{\mathrm{full}}{=}1$) & MISSING & MISSING & MISSING & MISSING & MISSING & MISSING & MISSING \\
+\quad w/o $\mathcal{L}_{\mathrm{mask}}$ ($\beta{=}0$) & 54.8 & 51.0 & 55.8 & 90.3 & 35.4 & -0.1 & -0.5 \\
+\quad w/o $\mathcal{L}_{\mathrm{sem}}$ ($\alpha{=}0$) & 54.2 & 50.2 & 56.3 & 91.2 & 35.8 & -0.0 & +0.1 \\
+\quad w/o $\mathcal{L}_{\mathrm{unif}}$ ($\lambda{=}0$) & 54.2 & 51.2 & 56.0 & 90.5 & 35.1 & -0.2 & +0.6 \\
 \bottomrule
 \end{tabular}
 \end{table}

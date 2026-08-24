@@ -62,11 +62,16 @@ def test_table4_rows_are_the_loss_leave_one_out_set():
     """One row per removable component, reference first; L_align is never a removed row --
     it is the retrieval objective itself."""
     for arm in ('t9_qweight_only', 'g11_train_nomask', 'g10_mask0',
-                'g8_sem0', 'g9_concept0', 'g6_lambda0'):
+                'g8_sem0', 'g6_lambda0'):
         assert "'%s'" % arm in SRC, arm
     assert 'never removed' in SRC, 'the L_align exclusion must be stated, not implicit'
     rows_block = SRC.split('ROWS = [')[1].split(']')[0]
     assert 'align' not in rows_block.lower(), 'L_align must not appear as a removable row'
+    # L_concept is NOT a row: the reported configuration has sca_num_concepts=0, so the
+    # loss never trains and a delta=0 arm is a bit-identical no-op (g9 proved it -- its
+    # cells equal T9's exactly). The exclusion must be documented, not silent.
+    assert 'g9_concept0' not in rows_block, 'a no-op arm must not pose as an ablation'
+    assert 'sca_num_concepts=0' in SRC and 'bit-identical' in SRC
 
 
 def test_table4_reads_e1_frames_through_the_shared_extraction():

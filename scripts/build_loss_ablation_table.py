@@ -41,13 +41,30 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_paper_table import ROOT, LABEL, cell_metrics  # noqa: E402
 
 BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
-ROWS = [
-    ('full objective (T9)', 't9_qweight_only'),
-    ('\\quad w/o masked training views ($p_{\\mathrm{full}}{=}1$)', 'g11_train_nomask'),
-    ('\\quad w/o $\\mathcal{L}_{\\mathrm{mask}}$ ($\\beta{=}0$)', 'g10_mask0'),
-    ('\\quad w/o $\\mathcal{L}_{\\mathrm{sem}}$ ($\\alpha{=}0$)', 'g8_sem0'),
-    ('\\quad w/o $\\mathcal{L}_{\\mathrm{unif}}$ ($\\lambda{=}0$)', 'g6_lambda0'),
+# Three tiers, matching the claims made about each component: the CORE is the objective and
+# is not ablatable; the MECHANISM rows carry the robustness pillar and are where effects
+# must (and do) show; the REGULARIZERS are labeled as such -- small, free, not load-bearing.
+TIERS = [
+    ('\\emph{(a) core (not ablatable: $\\mathcal{L}_{\\mathrm{align}}$ is the objective)}', [
+        ('full objective (T9)', 't9_qweight_only'),
+    ]),
+    ('\\emph{(b) mechanism: masked-view training}', [
+        ('\\quad w/o masked training views ($p_{\\mathrm{full}}{=}1$)', 'g11_train_nomask'),
+        ('\\quad w/o $\\mathcal{L}_{\\mathrm{mask}}$ ($\\beta{=}0$)', 'g10_mask0'),
+    ]),
+    ('\\emph{(c) regularizers}', [
+        ('\\quad w/o $\\mathcal{L}_{\\mathrm{sem}}$ ($\\alpha{=}0$)', 'g8_sem0'),
+        ('\\quad w/o $\\mathcal{L}_{\\mathrm{unif}}$ ($\\lambda{=}0$)', 'g6_lambda0'),
+    ]),
 ]
+ROWS = [row for _, rows in TIERS for row in rows]
+
+# the missing-modality sweep names T9's cells 'sca'; ablation arms carry their own names
+# (SCA_ONLY_ARMS mode of slurm_scripts/missing_eval.sh)
+MISSING_PREFIX = {'t9_qweight_only': 'sca'}
+# Delta_90 provenance: the reference and mechanism rows get swept (absence = MISSING, a
+# hole); the regularizer rows are not swept by design and print '--' (a decision).
+SWEEP_EXPECTED = {'t9_qweight_only', 'g11_train_nomask', 'g10_mask0'}
 
 # harvest-pivot fallback for the aggregation-gain column (positional, like Table 3's):
 #   <cell>  cosTV cosTA best1mod AGGREG GAIN ITM [<- note]
@@ -91,6 +108,39 @@ def t2v_r1(arm, bench):
     return vals[5] if vals else None
 
 
+def _missing_agg(arm, bench, rate, _cache={}):
+    """Aggregator R@1 for one masked cell (workdir/e1_missing), pivot fallback."""
+    name = '%s_%s_%s' % (MISSING_PREFIX.get(arm, arm), bench, rate)
+    d = os.path.join(ROOT, 'workdir/e1_missing', name)
+    if os.path.isdir(d):
+        from raw_vs_itm import scan
+        got, _ = scan(d)
+        if got.get('ret_area_forward') is not None:
+            return got['ret_area_forward']
+    if 'rows' not in _cache:
+        _cache['rows'] = {}
+        for txt in sorted(glob.glob(os.path.join(
+                ROOT, 'experiments/results/harvest', 'raw_vs_itm_missing*.txt'))):
+            for line in open(txt):
+                m = _PIVOT.match(line.rstrip())
+                if m:
+                    _cache['rows'][m.group(1)] = [float(x) for x in m.group(2).split()]
+    vals = _cache['rows'].get(name)
+    return vals[3] if vals else None
+
+
+def mask_drop(arm):
+    """Mean aggregator drop r=0 -> r=90% over the benchmarks with both cells measured --
+    the robustness column, where component effects amplify instead of being compressed by
+    the shared reranker. None until the arm has been swept (SCA_ONLY_ARMS mode)."""
+    drops = []
+    for b in BENCHES:
+        a0, a9 = _missing_agg(arm, b, 'r00'), _missing_agg(arm, b, 'r90')
+        if a0 is not None and a9 is not None:
+            drops.append(a0 - a9)
+    return sum(drops) / len(drops) if drops else None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', default='experiments/results/tables_final/table4_loss_ablation.tex')
@@ -118,35 +168,47 @@ def main():
     out.append('\\begin{table}[t]')
     out.append('\\centering')
     out.append("\\caption{Ablating the objective at the reported configuration: each row is "
-               "T9 with one component removed and nothing else retrained or retuned "
-               "(text$\\rightarrow$video R@1, two-stage protocol; $\\bar{\\Delta}$ = mean "
-               "change vs.\\ the full objective; $\\bar{\\Delta}_{\\mathrm{agg}}$ = mean "
-               "aggregation gain over the five benchmarks, the representation-level effect "
-               "the shared reranker compresses). $\\mathcal{L}_{\\mathrm{align}}$ is the "
-               "retrieval objective itself and is never removed. Removing the masked "
-               "training views and removing $\\mathcal{L}_{\\mathrm{mask}}$ are separate "
-               "rows: the former stops drawing reduced-arity views for the alignment loss, "
-               "the latter drops only the explicit cross-arity agreement term.}")
+               "T9 with one component removed, nothing retrained or retuned. Left block: "
+               "text$\\rightarrow$video R@1, two-stage protocol ($\\bar{\\Delta}$ = mean "
+               "change vs.\\ the full objective; at full modality, individual effects are "
+               "within seed variance -- the shared reranker compresses them). The "
+               "components' effects are structural: $\\bar{\\Delta}_{\\mathrm{agg}}$ is the "
+               "mean aggregation gain (own score vs.\\ best single pathway), and "
+               "$\\Delta_{90}$ the mean drop of that score from 0\\% to 90\\% test-time "
+               "masking. Rows are grouped by claim: the mechanism rows carry the "
+               "missing-modality pillar (w/o masked views stops drawing reduced-arity "
+               "training views; w/o $\\mathcal{L}_{\\mathrm{mask}}$ drops only the "
+               "cross-arity agreement term); the regularizers are free and not "
+               "load-bearing.}")
     out.append('\\label{tab:loss_ablation}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')
-    out.append('\\begin{tabular}{l%s cc}' % ('c' * len(BENCHES)))
+    ncol = 1 + len(BENCHES) + 3
+    out.append('\\begin{tabular}{l%s ccc}' % ('c' * len(BENCHES)))
     out.append('\\toprule')
-    out.append('Objective & %s & $\\bar{\\Delta}$ & $\\bar{\\Delta}_{\\mathrm{agg}}$ \\\\'
-               % ' & '.join(LABEL[b] for b in BENCHES))
-    out.append('\\midrule')
-    for i, (name, arm) in enumerate(ROWS):
-        cells = ['MISSING' if v is None else '%.1f' % v for v in vals[arm]]
-        if i == 0:
-            dc = '--'
-        else:
-            d = dbar(arm)
-            dc = 'MISSING' if d is None else '%+.1f' % d
-        g = gbar(arm)
-        gc = 'MISSING' if g is None else '%+.1f' % g
-        out.append('%s & %s & %s & %s \\\\' % (name, ' & '.join(cells), dc, gc))
-        if i == 0:
-            out.append('\\midrule')
+    out.append('Objective & %s & $\\bar{\\Delta}$ & $\\bar{\\Delta}_{\\mathrm{agg}}$ '
+               '& $\\Delta_{90}$ \\\\' % ' & '.join(LABEL[b] for b in BENCHES))
+    for tier, rows in TIERS:
+        out.append('\\midrule')
+        out.append('\\multicolumn{%d}{l}{%s} \\\\' % (ncol, tier))
+        for name, arm in rows:
+            cells = ['MISSING' if v is None else '%.1f' % v for v in vals[arm]]
+            if arm == ROWS[0][1]:
+                dc = '--'
+            else:
+                d = dbar(arm)
+                dc = 'MISSING' if d is None else '%+.1f' % d
+            g = gbar(arm)
+            gc = 'MISSING' if g is None else '%+.1f' % g
+            md = mask_drop(arm)
+            if md is not None:
+                mc = '%.1f' % md
+            elif arm in SWEEP_EXPECTED:
+                mc = 'MISSING'      # reference + mechanism rows are swept; absence is a hole
+            else:
+                mc = '--'           # regularizers are not swept BY DECISION (caption)
+            out.append('%s & %s & %s & %s & %s \\\\'
+                       % (name, ' & '.join(cells), dc, gc, mc))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')
     out.append('\\end{table}')

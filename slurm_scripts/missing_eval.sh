@@ -48,35 +48,56 @@ IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 BENCH="${BENCHES[$IDX]:-}"
 [ -n "$BENCH" ] || { echo "FATAL: index $IDX out of range (0-4)" >&2; exit 2; }
 
-# SCA: the T9 final checkpoint -- the same weights behind the reported row.
-SCA_CKPT="${SCA_MISSING_CKPT:-workdir_pretrain/t9_qweight_only/ckpt/model_step_5330.pt}"
-[ -f "$SCA_CKPT" ] || { echo "FATAL: SCA checkpoint not at $SCA_CKPT (set SCA_MISSING_CKPT)" >&2
-  exit 2; }
-# GRAM: no default guess -- the released checkpoint is not in this repo, and silently
-# substituting a reproduction would relabel it as the released model.
-if [ -z "${GRAM_RELEASED_CKPT:-}" ]; then
-  echo "FATAL: set GRAM_RELEASED_CKPT to the released GRAM checkpoint -- the same file the" >&2
-  echo "       GRAM* rows of Table 1/2 used." >&2; exit 2
+# SCA-ONLY MODE: sweep SCA ablation arms instead of the three-model comparison. Each named
+# arm must share T9's EVAL geometry (g10_mask0 and g11_train_nomask differ from T9 only in
+# TRAINING knobs), because the cells reuse the sca_<bench> configs. Feeds Table 4's
+# robustness column: the ablation arms' aggregator drop under masking, where component
+# effects amplify instead of being compressed by the shared reranker.
+#
+#   SCA_ONLY_ARMS="g10_mask0 g11_train_nomask" sbatch slurm_scripts/missing_eval.sh
+if [ -n "${SCA_ONLY_ARMS:-}" ]; then
+  for arm in $SCA_ONLY_ARMS; do
+    ck="workdir_pretrain/${arm}/ckpt/model_step_5330.pt"
+    [ -f "$ck" ] || { echo "FATAL: $arm has no final checkpoint at $ck -- train it first" >&2
+      exit 2; }
+  done
+else
+  # SCA: the T9 final checkpoint -- the same weights behind the reported row.
+  SCA_CKPT="${SCA_MISSING_CKPT:-workdir_pretrain/t9_qweight_only/ckpt/model_step_5330.pt}"
+  [ -f "$SCA_CKPT" ] || { echo "FATAL: SCA checkpoint not at $SCA_CKPT (set SCA_MISSING_CKPT)" >&2
+    exit 2; }
+  # GRAM: no default guess -- the released checkpoint is not in this repo, and silently
+  # substituting a reproduction would relabel it as the released model.
+  if [ -z "${GRAM_RELEASED_CKPT:-}" ]; then
+    echo "FATAL: set GRAM_RELEASED_CKPT to the released GRAM checkpoint -- the same file the" >&2
+    echo "       GRAM* rows of Table 1/2 used." >&2; exit 2
+  fi
+  [ -f "$GRAM_RELEASED_CKPT" ] || {
+    echo "FATAL: GRAM_RELEASED_CKPT=$GRAM_RELEASED_CKPT does not exist" >&2; exit 1; }
+  # PMRL: the authors' released checkpoint, through OUR pmrl class -- masking lives in our
+  # trunk and theirs has none. Valid ONLY if the weights fully load into that class, which is
+  # verified from each cell's own log below, never assumed.
+  PMRL_CKPT="${PMRL_MISSING_CKPT:-$WORK_ROOT/pmrl_weights/model_ckpts/pmrl_base.pt}"
+  [ -f "$PMRL_CKPT" ] || { echo "FATAL: PMRL released ckpt not at $PMRL_CKPT" >&2; exit 2; }
 fi
-[ -f "$GRAM_RELEASED_CKPT" ] || {
-  echo "FATAL: GRAM_RELEASED_CKPT=$GRAM_RELEASED_CKPT does not exist" >&2; exit 1; }
-# PMRL: the authors' released checkpoint, through OUR pmrl class -- masking lives in our
-# trunk and theirs has none. Valid ONLY if the weights fully load into that class, which is
-# verified from each cell's own log below, never assumed.
-PMRL_CKPT="${PMRL_MISSING_CKPT:-$WORK_ROOT/pmrl_weights/model_ckpts/pmrl_base.pt}"
-[ -f "$PMRL_CKPT" ] || { echo "FATAL: PMRL released ckpt not at $PMRL_CKPT" >&2; exit 2; }
 
 # the gram configs are generated; refuse to run from a stale set
 python3 scripts/make_missing_configs.py || exit 2
 
 NOISE="mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($"
 rc_all=0
-for model in sca gram pmrl; do
-  ckpt="$SCA_CKPT"
-  [ "$model" = gram ] && ckpt="$GRAM_RELEASED_CKPT"
-  [ "$model" = pmrl ] && ckpt="$PMRL_CKPT"
+MODELS="${SCA_ONLY_ARMS:-sca gram pmrl}"
+for model in $MODELS; do
+  if [ -n "${SCA_ONLY_ARMS:-}" ]; then
+    ckpt="workdir_pretrain/${model}/ckpt/model_step_5330.pt"
+    cfgmodel=sca   # ablation arms share T9's eval geometry; cells reuse the sca configs
+  else
+    ckpt="$SCA_CKPT"; cfgmodel="$model"
+    [ "$model" = gram ] && ckpt="$GRAM_RELEASED_CKPT"
+    [ "$model" = pmrl ] && ckpt="$PMRL_CKPT"
+  fi
   for rate in r00 r25 r50 r75 r90; do
-    cfg="benchmark_eval/configs_missing/${rate}/${model}_${BENCH}.json"
+    cfg="benchmark_eval/configs_missing/${rate}/${cfgmodel}_${BENCH}.json"
     [ -f "$cfg" ] || { echo "== [$model/$BENCH/$rate] SKIP: no $cfg" >&2; rc_all=2; continue; }
     out="workdir/e1_missing/${model}_${BENCH}_${rate}"
     cell_is_done "$out" "$cfg" && { echo "== [$model/$BENCH/$rate] already done, skip"; continue; }
@@ -87,7 +108,7 @@ for model in sca gram pmrl; do
       ./benchmark_eval/run_eval.py --config "$cfg" --output_dir "$out" 2>&1 \
       | tee "$out/eval.log" | { grep -v --line-buffered -E "$NOISE" || true; }
     rc=${PIPESTATUS[0]}
-    if [ $rc -eq 0 ] && [ "$model" != sca ]; then
+    if [ $rc -eq 0 ] && [ -z "${SCA_ONLY_ARMS:-}" ] && [ "$model" != sca ]; then
       # A released checkpoint through our class loads with strict=False: verify from the
       # cell's own log that it FULLY loaded, or the number is from a partly random model.
       # For pmrl a failure invalidates every rate, so the loop stops rather than continuing.

@@ -1,0 +1,10 @@
+$ python3 scripts/build_paper_table.py --all
+
+
+1 row(s) NOT MEASURED -- MISSING is printed, never a remembered number:
+  GRAM$^{\star}$ (released ckpt)
+wrote experiments/results/tables_final/table_msrvtt.tex
+wrote experiments/results/tables_final/table_didemo.tex
+wrote experiments/results/tables_final/table_activitynet.tex
+wrote experiments/results/tables_final/table_vatex.tex
+wrote experiments/results/tables_final/table_audiocaps.tex

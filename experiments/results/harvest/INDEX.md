@@ -16,6 +16,7 @@ ran, any other value means the file records a failure rather than a result.
 | [raw_vs_itm_missing](raw_vs_itm_missing.txt) | 2 | Missing-modality sweep (workdir/e1_missing), pivots |
 | [score_fusion](score_fusion.txt) | 0 | Candidate recall@k (the ceiling) and the fusion-weight sweep |
 | [main_table](main_table.txt) | 1 | The main table, generated from measured cells (MISSING where unmeasured) |
+| [paper_tables](paper_tables.txt) | 1 | Per-benchmark paper tables (both directions, R@1/R@10, sectioned by geometry) |
 | [eval_geometry](eval_geometry.txt) | 0 | Was every cell scored with the geometry its arm was TRAINED with? |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |

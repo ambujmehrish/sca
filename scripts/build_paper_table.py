@@ -151,6 +151,21 @@ def main():
                         got = cell_metrics(d)
                         if got:
                             return got, os.path.relpath(d, ROOT)
+        # MSR-VTT: the released checkpoint was validated on this pipeline early on and the
+        # measurement is RECORDED in the repo -- read from that record, never typed from
+        # memory. The line looks like:
+        #   | **official ckpt -- THIS pipeline** | ... | **52.5 / 82.5** (D2T 50.5/81.2) |
+        if b == 'msrvtt':
+            rec = os.path.join(ROOT, 'experiments/results/wave1/validation_official_gram.md')
+            if os.path.exists(rec):
+                import re
+                m = re.search(r'official ckpt[^|]*THIS pipeline[^|]*\|[^|]*\|\s*'
+                              r'\*\*([0-9.]+)\s*/\s*([0-9.]+)\*\*\s*'
+                              r'\(D2T\s*([0-9.]+)\s*/\s*([0-9.]+)\)', open(rec).read())
+                if m:
+                    vals = tuple(float(m.group(i)) for i in (1, 2, 3, 4))
+                    return vals, ('recorded validation %s (same checkpoint, same pipeline)'
+                                  % os.path.relpath(rec, ROOT))
         return None, 'no released-checkpoint cell found for %s' % b
     gram, gram_src = gram_row()
 

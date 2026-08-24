@@ -1,38 +1,14 @@
 $ python3 scripts/audit_eval_geometry.py
 
-checked 184 cell(s) across 7 root(s); 22 could not be verified
+checked 193 cell(s) across 6 root(s); 18 could not be verified
 
-GEOMETRY MISMATCH -- these numbers describe a model that was never trained:
-
-root             cell                               key                    trained -> scored
-----------------------------------------------------------------------------------------------------
-e1_repro         gram_lora_activitynet              score_mode             None -> 'centroid'
-e1_repro         gram_lora_audiocaps                score_mode             None -> 'centroid'
-e1_repro         gram_lora_didemo                   score_mode             None -> 'centroid'
-e1_repro         gram_lora_msrvtt                   score_mode             None -> 'centroid'
-e1_repro         gram_lora_vatex                    score_mode             None -> 'centroid'
-e1_repro         pmrl_activitynet                   use_lora               None -> True
-e1_repro         pmrl_audiocaps                     use_lora               None -> True
-e1_repro         pmrl_didemo                        use_lora               None -> True
-e1_repro         pmrl_msrvtt                        use_lora               None -> True
-e1_repro         pmrl_vatex                         use_lora               None -> True
-
-Each line is a checkpoint scored under a geometry it was not trained with.
-Nothing raises when this happens: the shapes match, the run completes, and the
-number is wrong in a way no reader can detect. Re-run these cells against the
-config that matches their arm before any of them reaches a table.
-
-NOT VERIFIED (22) -- absence of a mismatch here is not evidence of one:
+NOT VERIFIED (18) -- absence of a mismatch here is not evidence of one:
+  e1_frames        r3_itm_top50_n4_msrvtt             no log/hps.json
   e1_fusion        released_activitynet               no training arm at workdir_pretrain/released
   e1_fusion        released_audiocaps                 no training arm at workdir_pretrain/released
   e1_fusion        released_didemo                    no training arm at workdir_pretrain/released
   e1_fusion        released_msrvtt                    no training arm at workdir_pretrain/released
   e1_fusion        released_vatex                     no training arm at workdir_pretrain/released
-  e1_repro         hypergram_activitynet              no training arm at workdir_pretrain/hypergram
-  e1_repro         hypergram_audiocaps                no training arm at workdir_pretrain/hypergram
-  e1_repro         hypergram_didemo                   no training arm at workdir_pretrain/hypergram
-  e1_repro         hypergram_msrvtt                   no training arm at workdir_pretrain/hypergram
-  e1_repro         hypergram_vatex                    no training arm at workdir_pretrain/hypergram
   e1_zs            gram_activitynet_t1                cell name does not end in a known benchmark
   e1_zs            gram_audiocaps_t1                  cell name does not end in a known benchmark
   e1_zs            gram_didemo_t1                     cell name does not end in a known benchmark
@@ -43,4 +19,7 @@ NOT VERIFIED (22) -- absence of a mismatch here is not evidence of one:
   e1_zs            released_vatex                     no training arm at workdir_pretrain/released
   e1_zs            sca_activitynet_t1                 cell name does not end in a known benchmark
   e1_zs            sca_audiocaps_t1                   cell name does not end in a known benchmark
-  ... and 2 more
+  e1_zs            sca_didemo_t1                      cell name does not end in a known benchmark
+  e1_zs            sca_vatex_t1                       cell name does not end in a known benchmark
+
+Every verifiable cell was scored with the geometry its arm was trained with.

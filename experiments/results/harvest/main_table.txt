@@ -1,0 +1,17 @@
+$ python3 scripts/build_main_table.py --out experiments/results/tables_final/table1_main_all.tex
+
+wrote experiments/results/tables_final/table1_main_all.tex
+
+11 cell(s) NOT MEASURED -- the table prints MISSING for them:
+  GRAM, released ckpt/msrvtt
+  HyperGRAM (repro)/msrvtt
+  HyperGRAM (repro)/didemo
+  HyperGRAM (repro)/activitynet
+  HyperGRAM (repro)/vatex
+  HyperGRAM (repro)/audiocaps
+  PMRL (repro)/msrvtt
+  PMRL (repro)/didemo
+  PMRL (repro)/activitynet
+  PMRL (repro)/vatex
+  PMRL (repro)/audiocaps
+Fill them by running the eval, never by typing the number in.

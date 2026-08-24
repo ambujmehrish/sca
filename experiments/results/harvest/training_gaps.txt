@@ -46,16 +46,18 @@ g7_lambda03                  128    5    2e-05    5334~     5330      3      1  
 g8_sem0                      128    5    2e-05    5334~     5330      3      1  annotations150k.json
 g9_concept0                  128    5    2e-05    5334~     5330      3      1  annotations150k.json
 gram                         256    5    2e-05    2660~     2649     10      1  annotations150k.json
-gram_hyp                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
-gram_hyp2                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_lora                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_masked                  256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_s51                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
 gram_s52                     256    5    2e-05    2660~     2649     10      1  annotations150k.json
-h1_hypergram_paper           128    5   0.0001    5330~     1595      3      1  annotations150k.json
-pmrl                         256    5    2e-05    2660~     2649     10      1  annotations150k.json
-pmrl_lora                    256    5    2e-05    2660~     2649     10      1  annotations150k.json
-pmrl_masked                  256    5    2e-05    2660~     2649     10      1  annotations150k.json
+hgauth_hybrid                128    1    5e-05    1060~     1039     20      1  annotations150k.json
+hgauth_hybrid_pmrl           128    1    5e-05  UNKNOWN        -      0      0  annotations150k.json
+hgauth_pmrl                  128    1    5e-05  UNKNOWN        -      0      0  annotations150k.json
+hgauth_pmrl_volume           128    1    5e-05  UNKNOWN        -      0      0  annotations150k.json
+r1_itm_vas                   128    5    2e-05    5334~     5330      3      1  annotations150k.json
+r2_itm_top50                 128    5    2e-05    5334~     5330      3      1  annotations150k.json
+r3_itm_top50_n4              128    5    2e-05    5334~     5330      3      1  annotations150k.json
+r4_itm_vas_top50_n4          128    5    2e-05    5334~     5330      3      1  annotations150k.json
 s1_t9_seed51                 128    5    2e-05    5334~     5330      3      1  annotations150k.json
 s2_t9_seed52                 128    5    2e-05    5334~     5330      3      1  annotations150k.json
 sca                          256    5    2e-05    2660~     2649     10      1  annotations150k.json
@@ -91,23 +93,26 @@ x7_xenc_1ep_lr5e6            128    1    5e-06    1060~     1049     10      1  
 x8_xenclr_1e6                128    5    2e-05    5330~     5319     10      1  annotations150k.json
 x9_xenclr_2e6                128    5    2e-05    5330~     5319     10      1  annotations150k.json
 
-SHORT OF THE TRAINING SCHEDULE -- these stopped early:
-  h1_hypergram_paper         1595/5330 steps (30%)
-
 BATCH_SIZE DIFFERS ACROSS ARMS -- these are not comparable as they stand:
-  256            48 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+42 more)
-  128            35 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, g10_mask0 (+29 more)
+  256            43 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+37 more)
+  128            42 arm(s): b1_bs128_r8, b2_bs128_r32, b5_bs128_xenc, e1_bs128_ep1, e2_bs128_ep2, g10_mask0 (+36 more)
   512             3 arm(s): b3_bs512_r8, b4_bs512_r32, b6_bs512_xenc
   64              2 arm(s): t13_qw_8frames, t7_frameset_4f
 
 EPOCH DIFFERS ACROSS ARMS -- these are not comparable as they stand:
-  5              84 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+78 more)
-  1               3 arm(s): e1_bs128_ep1, x6_xenc_1ep_lr2e5, x7_xenc_1ep_lr5e6
+  5              82 arm(s): a1_term2off, a3_sstar_eye, a4_concept_off, a4_eps0, a4_eta09, a4_proto_batch (+76 more)
+  1               7 arm(s): e1_bs128_ep1, hgauth_hybrid, hgauth_hybrid_pmrl, hgauth_pmrl, hgauth_pmrl_volume, x6_xenc_1ep_lr2e5 (+1 more)
   2               1 arm(s): e2_bs128_ep2
 
 COULD NOT BE VERIFIED -- these checks did not run, which is not the same as
 passing. Do not read the summary below as clearing them:
   b6_bs512_xenc              no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
   b6_bs512_xenc              only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
+  hgauth_hybrid_pmrl         no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
+  hgauth_hybrid_pmrl         only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
+  hgauth_pmrl                no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
+  hgauth_pmrl                only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
+  hgauth_pmrl_volume         no step target could be recovered -- hps.json records 0 and the log has too few evaluation blocks
+  hgauth_pmrl_volume         only 0 evaluation and 0 checkpoint step(s) -- too few to see a hole in the sequence
 
 Gaps above. Any table row drawn from an affected arm is not comparable until fixed.

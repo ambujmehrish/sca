@@ -88,10 +88,6 @@ g9_concept0                1776:54.3  3553:54.8  5330:54.8
                              peak 54.8 at step 3553 (67% of the run), final 54.8, drop +0.0
 gram                       264:51.2  529:52.6  794:50.8  1059:51.3  1324:51.3  1589:51.5  1854:50.6  2119:51.1  2384:51.1  2649:51.1
                              peak 52.6 at step 529 (20% of the run), final 51.1, drop -1.5
-gram_hyp                   264:12.5  529:6.4  794:14.8  1059:16.7  1324:19.0  1589:22.6  1854:23.9  2119:33.7  2384:34.4  2649:35.2
-                             peak 35.2 at step 2649 (100% of the run), final 35.2, drop +0.0
-gram_hyp2                  264:46.4  529:50.4  794:50.1  1059:51.0  1324:44.4  1589:44.2  1854:41.4  2119:39.2  2384:37.4  2649:37.4
-                             peak 51.0 at step 1059 (40% of the run), final 37.4, drop -13.6
 gram_lora                  264:49.9  529:52.9  794:53.3  1059:53.0  1324:53.2  1589:53.3  1854:52.0  2119:51.4  2384:50.5  2649:50.1
                              peak 53.3 at step 794 (30% of the run), final 50.1, drop -3.2
 gram_masked                264:51.2  529:52.1  794:50.7  1059:50.4  1324:49.4  1589:48.1  1854:47.6  2119:48.3  2384:48.3  2649:48.3
@@ -100,14 +96,16 @@ gram_s51                   264:51.6  529:52.3  794:52.1  1059:51.8  1324:50.7  1
                              peak 52.3 at step 529 (20% of the run), final 51.3, drop -1.0
 gram_s52                   264:51.7  529:52.2  794:51.2  1059:52.1  1324:51.1  1589:52.0  1854:50.6  2119:51.0  2384:50.5  2649:50.6
                              peak 52.2 at step 529 (20% of the run), final 50.6, drop -1.6
-h1_hypergram_paper         531:52.0  1063:45.1  1595:43.8
-                             peak 52.0 at step 531 (33% of the run), final 43.8, drop -8.2
-pmrl                       264:51.9  529:49.2  794:47.8  1059:47.6  1324:46.5  1589:46.9  1854:47.2  2119:46.6  2384:46.8  2649:46.9
-                             peak 51.9 at step 264 (10% of the run), final 46.9, drop -5.0
-pmrl_lora                  264:50.7  529:52.1  794:52.3  1059:53.5  1324:53.9  1589:53.9  1854:53.2  2119:53.5  2384:53.5  2649:53.3
-                             peak 53.9 at step 1324 (50% of the run), final 53.3, drop -0.6
-pmrl_masked                264:52.6  529:50.0  794:47.5  1059:47.9  1324:46.3  1589:46.6  1854:45.7  2119:46.7  2384:45.7  2649:45.9
-                             peak 52.6 at step 264 (10% of the run), final 45.9, drop -6.7
+hgauth_hybrid              0:48.0  51:53.3  103:53.1  155:52.8  207:54.0  259:52.9  311:52.6  363:52.8  415:52.7  467:52.9  519:53.5  571:52.3  623:52.8  675:52.7  727:52.6  779:52.8  831:52.8  883:52.3  935:52.5  987:52.6  1039:52.6
+                             peak 54.0 at step 207 (20% of the run), final 52.6, drop -1.4
+r1_itm_vas                 1776:50.2  3553:50.5  5330:50.4
+                             peak 50.5 at step 3553 (67% of the run), final 50.4, drop -0.1
+r2_itm_top50               1776:54.3  3553:55.1  5330:54.6
+                             peak 55.1 at step 3553 (67% of the run), final 54.6, drop -0.5
+r3_itm_top50_n4            1776:54.2  3553:54.5  5330:54.2
+                             peak 54.5 at step 3553 (67% of the run), final 54.2, drop -0.3
+r4_itm_vas_top50_n4        1776:51.2  3553:52.1  5330:51.8
+                             peak 52.1 at step 3553 (67% of the run), final 51.8, drop -0.3
 s1_t9_seed51               1776:54.8  3553:54.4  5330:54.7
                              peak 54.8 at step 1776 (33% of the run), final 54.7, drop -0.1
 s2_t9_seed52               1776:54.4  3553:54.9  5330:54.4
@@ -178,12 +176,8 @@ x9_xenclr_2e6              531:54.2  1063:54.8  1595:54.6  2127:53.7  2659:53.8 
                              peak 54.8 at step 1063 (20% of the run), final 53.3, drop -1.5
 
 PEAKED IN THE FIRST HALF -- these decayed for the rest of training:
-  gram_hyp2                  peak at 40% of the run, then -13.6
   b5_bs128_xenc              peak at 10% of the run, then -10.4
-  h1_hypergram_paper         peak at 33% of the run, then -8.2
   x1_xenc_full_lr2e5         peak at 20% of the run, then -8.0
-  pmrl_masked                peak at 10% of the run, then -6.7
-  pmrl                       peak at 10% of the run, then -5.0
   t4_fullft1e4               peak at 10% of the run, then -4.7
   gram_masked                peak at 20% of the run, then -3.8
   x1_xenc_full               peak at 10% of the run, then -3.4
@@ -193,12 +187,12 @@ PEAKED IN THE FIRST HALF -- these decayed for the rest of training:
   gram_s52                   peak at 20% of the run, then -1.6
   gram                       peak at 20% of the run, then -1.5
   x9_xenclr_2e6              peak at 20% of the run, then -1.5
+  hgauth_hybrid              peak at 20% of the run, then -1.4
   x5_xenc_clean_lr5e6        peak at 33% of the run, then -1.2
   gram_s51                   peak at 20% of the run, then -1.0
   a6_fullft                  peak at 30% of the run, then -0.9
   g3_r64_qw                  peak at 33% of the run, then -0.9
   x8_xenclr_1e6              peak at 30% of the run, then -0.8
-  pmrl_lora                  peak at 50% of the run, then -0.6
   g6_lambda0                 peak at 33% of the run, then -0.6
   e1_bs128_ep1               peak at 50% of the run, then -0.5
   g4_lr5e5                   peak at 33% of the run, then -0.5
@@ -222,4 +216,4 @@ PEAKED IN THE FIRST HALF -- these decayed for the rest of training:
 A reported number from such an arm was measured after the decay. That is a
 systematic error across every affected row, not a tuning opportunity.
 
-1 arm(s) logged no itm validation: b6_bs512_xenc
+4 arm(s) logged no itm validation: b6_bs512_xenc, hgauth_hybrid_pmrl, hgauth_pmrl, hgauth_pmrl_volume

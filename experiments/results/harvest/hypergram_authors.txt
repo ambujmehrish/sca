@@ -1,0 +1,29 @@
+$ bash -c shopt -s nullglob; f=(workdir/hgeval/*/run.log);
+             [ ${#f[@]} -gt 0 ] || { echo "no logs under workdir/hgeval"; exit 3; }
+             python3 scripts/parse_authors_eval.py "${f[@]}"
+
+workdir/hgeval/audiocaps/run.log: NO EVALUATION BLOCKS -- the run did not reach evaluation
+
+ACTIVITYNET
+  REPORTED  ret_itm  T->V R@1  53.7   recall 53.7/78.4/86.2
+            (V->T R@1 48.1, not the reported direction)
+  aggregator ret_itc T->V R@1  34.3
+  best single pathway cosine_TV 36.3  ->  aggregation tax -2.0
+
+DIDEMO
+  REPORTED  ret_itm  T->V R@1  48.9   recall 48.9/72.1/76.7
+            (V->T R@1 47.9, not the reported direction)
+  aggregator ret_itc T->V R@1  32.0
+  best single pathway cosine_TV 32.1  ->  aggregation tax -0.1
+
+MSRVTT
+  REPORTED  ret_itm  T->V R@1  54.0   recall 54.0/74.7/82.0
+            (V->T R@1 51.9, not the reported direction)
+  aggregator ret_itc T->V R@1  39.1
+  best single pathway cosine_TV 42.5  ->  aggregation tax -3.4
+
+VATEX
+  REPORTED  ret_itm  T->V R@1  89.8   recall 89.8/99.5/100.0
+            (V->T R@1 87.2, not the reported direction)
+  aggregator ret_itc T->V R@1  78.0
+  best single pathway cosine_TV 78.0  ->  aggregation tax +0.0

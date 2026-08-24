@@ -67,7 +67,10 @@ def params_str(key):
     n = json.load(open(PARAMS_JSON)).get(key, {}).get('trainable')
     if n is None:
         return 'MISSING'
-    return '%.1fB' % (n / 1e9) if n >= 1e9 else '%.0fM' % (n / 1e6)
+    if n >= 1e9:
+        return '%.1fB' % (n / 1e9)
+    # below 10M one decimal matters (4.8M, not 5M) -- this is the column's whole point
+    return '%.1fM' % (n / 1e6) if n < 1e7 else '%.0fM' % (n / 1e6)
 
 # HyperGRAM's release does not run the audio-anchor benchmark, and their paper reports no
 # AudioCaps number. '--' by decision, not MISSING by accident.

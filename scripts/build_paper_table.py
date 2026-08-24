@@ -55,7 +55,7 @@ SCA_SEEDS = ('t9_qweight_only', 's1_t9_seed51', 's2_t9_seed52')
 
 # HyperGRAM's release does not run the audio-anchor benchmark, and their paper reports no
 # AudioCaps number. '--' by decision, not MISSING by accident.
-ABSENT = {("HyperGRAM$^{\\dagger}$ (authors' code)", 'audiocaps')}
+ABSENT = {("HyperGRAM$^{\\dagger}$", 'audiocaps')}
 
 
 def _pub(rows, name, bench, direction):
@@ -182,9 +182,9 @@ def main():
             sca_sd.append(st.stdev(vals) if i in (0, 2) else None)   # error bar on R@1 only
 
     rows = [
-        ("GRAM$^{\\star}$ (released ckpt)", 'full-FT', '\\xmark', gram),
-        ("HyperGRAM$^{\\dagger}$ (authors' code)", 'full-FT', '\\xmark', hg),
-        ("PMRL$^{\\star}$ (released ckpt)", 'full-FT', '\\xmark', pmrl),
+        ("GRAM$^{\\star}$", 'full-FT', '\\xmark', gram),
+        ("HyperGRAM$^{\\dagger}$", 'full-FT', '\\xmark', hg),
+        ("PMRL$^{\\star}$", 'full-FT', '\\xmark', pmrl),
     ]
 
     # ---- render

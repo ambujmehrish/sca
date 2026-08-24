@@ -47,8 +47,18 @@ run raw_vs_itm_itmfrozen "Reranker on FROZEN weights (workdir/e1_itmfrozen), piv
 run itm_frozen_delta "Frozen-reranker vs adapted, paired per cell, with the stage-1 check" \
     python3 scripts/itm_frozen_delta.py
 
-run raw_vs_itm_repro "Same-environment baselines (workdir/e1_repro): PMRL, HyperGRAM*, GRAM-LoRA" \
+run raw_vs_itm_repro "RETIRED reimplementation baselines (workdir/e1_repro) -- superseded by the two below" \
     python3 scripts/raw_vs_itm.py --root workdir/e1_repro --pivot
+
+run pmrl_released "PMRL from the authors' RELEASED checkpoint, our protocol (workdir/pmrl_released)" \
+    bash -c 'shopt -s nullglob; f=(workdir/pmrl_released/*/run.log);
+             [ ${#f[@]} -gt 0 ] || { echo "no logs under workdir/pmrl_released"; exit 3; }
+             python3 scripts/parse_authors_eval.py "${f[@]}"'
+
+run hypergram_authors "HyperGRAM trained from the authors' code at their recipe, our protocol (workdir/hgeval)" \
+    bash -c 'shopt -s nullglob; f=(workdir/hgeval/*/run.log);
+             [ ${#f[@]} -gt 0 ] || { echo "no logs under workdir/hgeval"; exit 3; }
+             python3 scripts/parse_authors_eval.py "${f[@]}"'
 
 run raw_vs_itm_missing "Missing-modality sweep (workdir/e1_missing), pivots" \
     python3 scripts/raw_vs_itm.py --root workdir/e1_missing --pivot
@@ -113,7 +123,10 @@ echo "  [job_logs] -> $OUT/job_logs.txt"
   echo "   identical before reporting anything: stage 1 is untouched by the flag, so if it"
   echo "   moved, the ITM column cannot be attributed to the reranker and the run is void."
   echo "   \`raw_vs_itm_itmfrozen\` is the same cells as a raw pivot, for reading the detail."
-  echo "3b. \`raw_vs_itm_frames\` -- the query-weighted arms, which carry the current result;"
+  echo "2b. \`pmrl_released\` and \`hypergram_authors\` -- the two authors'-code baseline rows."
+  echo "   The REPORTED line is the table number; raw_vs_itm_repro is RETIRED and must not"
+  echo "   be quoted for PMRL or HyperGRAM."
+  echo "3b. \`raw_vs_itm_frames\` -- the query-weighted arms AND the R1-R4 reranker arms;"
   echo "   \`raw_vs_itm_final\` -- final-checkpoint numbers for the earlier arms."
   echo "4. \`raw_vs_itm\` -- the pivots give arm x benchmark for the aggregator score and for the"
   echo "   reported ITM metric. Compare an SCA arm against \`released\` down each column."

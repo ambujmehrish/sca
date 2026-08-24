@@ -2,7 +2,7 @@
 %% The abstract's "as much as -27.6 R@1" is the PMRL/VATEX cell of THIS table.
 \begin{table}[t]
 \centering
-\caption{Aggregation gain: each method's joint multimodal score minus its best single-modality pathway, both within the same embedding (T$\rightarrow$V R@1; positive in bold -- fusion adds information, negative -- fusion destroys it). $\star$: authors' released checkpoint; $\dagger$: trained from the authors' code. The uniform-weights row is our centroid without query conditioning: it pays the baselines' penalty on the same trunk, isolating query conditioning as the mechanism. Components of the subtraction in the supplement.}
+\caption{Aggregation gain: each method's joint multimodal score minus its best single-modality pathway, both within the same embedding (T$\rightarrow$V R@1; positive in bold -- fusion adds information, negative -- fusion destroys it). $\star$: authors' released checkpoint; $\dagger$: trained from the authors' code. The uniform-weights row is our centroid without query conditioning: it pays the baselines' penalty on the same trunk, isolating query conditioning as the mechanism. These decompositions are not reported in the baselines' papers: both terms are computed by us from each released model's own embeddings, scored by its own published scoring function, in one shared evaluation environment. Components of the subtraction in the supplement.}
 \label{tab:gain}
 \small
 \setlength{\tabcolsep}{5pt}

@@ -114,7 +114,10 @@ def main():
         "$\\star$: authors' released checkpoint; $\\dagger$: trained from the authors' "
         "code. The uniform-weights row is our centroid without query conditioning: it pays "
         "the baselines' penalty on the same trunk, isolating query conditioning as the "
-        "mechanism. Components of the subtraction in the supplement.}",
+        "mechanism. These decompositions are not reported in the baselines' papers: both "
+        "terms are computed by us from each released model's own embeddings, scored by its "
+        "own published scoring function, in one shared evaluation environment. Components "
+        "of the subtraction in the supplement.}",
         '\\label{tab:gain}', '\\small', '\\setlength{\\tabcolsep}{5pt}',
         '\\begin{tabular}{l%s}' % ('c' * len(BENCHES)), '\\toprule',
         'Method & %s \\\\' % ' & '.join(LABEL[b] for b in BENCHES), '\\midrule']

@@ -208,13 +208,10 @@ def main():
     out.append('%% SCA seeds (t2v_r1/t2v_r10/v2t_r1/v2t_r10 per seed): ' + json.dumps(seedvals))
     out.append('\\begin{table}[t]')
     out.append('\\centering')
-    out.append("\\caption{Zero-shot retrieval on %s. $\\S$: numbers as published (reference "
-               "only; not comparable across environments). $\\star$: the authors' released "
-               "checkpoint evaluated in our environment on our protocol. $\\dagger$: trained "
-               "from the authors' unmodified code at their published recipe (no checkpoint "
-               "is released). SCA is one configuration over three seeds ($\\pm$ sd on R@1). "
-               "HyperGRAM's release does not run the audio-anchor benchmark and its paper "
-               "reports no AudioCaps number.}" % LABEL[b])
+    out.append("\\caption{Zero-shot retrieval on %s. $\\S$: published numbers "
+               "(reference only). $\\star$: authors' released checkpoint, evaluated on our "
+               "protocol. $\\dagger$: trained from the authors' released code at their "
+               "recipe. SCA: three seeds, $\\pm$ sd on R@1.}" % LABEL[b])
     out.append('\\label{tab:%s}' % b)
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')

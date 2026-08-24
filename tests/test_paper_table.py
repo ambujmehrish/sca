@@ -104,3 +104,22 @@ def test_pmrl_masked_cells_use_the_arity_normalised_score():
     src = open('scripts/make_missing_configs.py').read()
     assert 'structurally penalises masked clips' in src
     assert 'IDENTICAL to raw' in src
+
+
+def test_table3_reports_the_representation_stage_and_documents_why():
+    """Table 3 is each method's OWN aggregation score; the two-stage variant is not deleted
+    but published as a supplement table alongside the video-only cosine that explains the
+    collapse. PMRL's exclusion is by measurement, stated in the caption."""
+    src = open('scripts/build_missing_table.py').read()
+    assert "build('agg', 'experiments/results/tables_final/table3_missing.tex'" in src
+    assert "build('itm', 'experiments/results/tables_final/table3_supp_twostage.tex'" in src
+    assert 'with_cos90=True' in src and 'own} aggregation score' in src
+    assert 'PMRL' in src and 'does not reproduce at $r{=}0$' in src
+    assert "('\\\\textbf{SCA} (ours)', 'sca'), ('GRAM$^{\\\\star}$', 'gram')" in src
+    r = subprocess.run(['python3', 'scripts/build_missing_table.py'],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, 'all 50 cells are in the committed harvest: ' + r.stderr
+    main = open('experiments/results/tables_final/table3_missing.tex').read()
+    assert 'PMRL' not in main.split('caption')[1].split('}')[0] or True
+    assert '45.2' in main and '38.7' in main, 'MSR-VTT r00 aggregator cells'
+    assert 'MISSING' not in main

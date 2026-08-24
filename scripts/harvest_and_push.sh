@@ -71,6 +71,9 @@ run score_fusion "Candidate recall@k (the ceiling) and the fusion-weight sweep" 
 run main_table "The main table, generated from measured cells (MISSING where unmeasured)" \
     python3 scripts/build_main_table.py --out experiments/results/tables_final/table1_main_all.tex
 
+run paper_tables "Per-benchmark paper tables (both directions, R@1/R@10, sectioned by geometry)" \
+    python3 scripts/build_paper_table.py --all
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 
@@ -140,7 +143,7 @@ if [ "${1:-}" = "--no-push" ]; then
 fi
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-git add "$OUT"
+git add "$OUT" experiments/results/tables_final
 if git diff --cached --quiet; then
   echo "nothing changed -- not committing"; exit 0
 fi

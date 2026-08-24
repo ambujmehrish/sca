@@ -93,8 +93,8 @@ def _masked_softmax(logits, mask, dim=-1, eps=1e-6):
 def query_weights(z, query, present, tau=0.1, eps=1e-6):
     """Per-modality weights from the QUERY: w_m ∝ exp(<t, z_m> / tau) over the present set.
 
-    Why this and not reliability weighting. Every arm pays an "aggregation tax" -- the fused
-    score is worse than the best single modality it fused. Measured against its own best
+    Why this and not reliability weighting. Every arm shows NEGATIVE aggregation gain -- the
+    fused score is worse than the best single modality it fused. Measured against its own best
     modality, SCA loses 9.5 R@1 on VATEX where the released GRAM checkpoint loses 1.9, and
     4-5 points on DiDeMo and ActivityNet. The cause is structural: a uniform mean gives a
     subtitle stream retrieving at 15.1 the same share as video retrieving at 81.4. A Gramian

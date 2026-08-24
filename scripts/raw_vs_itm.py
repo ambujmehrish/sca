@@ -197,7 +197,7 @@ def main():
     rows = {}                       # cell -> (cos T-V, cos T-A, aggregator, ITM), for the pivots
     repeats = {}                    # suffix -> [(cell, [every run], spread)], the noise floor
     print('%-34s %8s %8s %8s %8s %8s %8s' %
-          ('cell', 'cos T-V', 'cos T-A', 'best 1mod', 'AGGREG', 'TAX', 'ITM'))
+          ('cell', 'cos T-V', 'cos T-A', 'best 1mod', 'AGGREG', 'GAIN', 'ITM'))
     print('-' * 88)
     for d in dirs:
         got, seen = scan(d)
@@ -208,13 +208,14 @@ def main():
         tv, ta = got.get('cosine_TV'), got.get('cosine_TA')
         agg, itm = got.get('ret_area_forward'), got.get('ret_itm_area')
         solo = max([v for v in (tv, ta) if v is not None], default=None)
-        # aggregation tax: what fusing costs relative to the best single modality it fused.
-        # Negative means the aggregator scores WORSE than one of its own inputs.
-        tax = '%+.1f' % (agg - solo) if (agg is not None and solo is not None) else '--'
+        # aggregation gain (Delta_agg): the aggregator against the best single modality it
+        # fused. Negative gain means the aggregator scores WORSE than one of its own inputs
+        # -- fusion destroyed information.
+        gain = '%+.1f' % (agg - solo) if (agg is not None and solo is not None) else '--'
         rows[name] = (tv, ta, agg, itm)
         rerun = max((len(v) for v in seen.values()), default=1)
         print('%-34s %8s %8s %8s %8s %8s %8s%s'
-              % (name, f(tv), f(ta), f(solo), f(agg), tax, f(itm),
+              % (name, f(tv), f(ta), f(solo), f(agg), gain, f(itm),
                  '   <- %d runs in the log, reporting the LAST' % rerun if rerun > 1 else ''))
         if rerun > 1:
             # keyed by CELL, not by metric: telling a replicate from a later checkpoint needs
@@ -232,10 +233,11 @@ def main():
         pivot(rows, 0, 'cosine T-V R@1 (video alone)')
     noise_floor(repeats)
 
-    print('\nTAX is the diagnostic: an aggregator that scores below the best modality it was')
-    print('built from is destroying information. Compare an SCA cell against the released-GRAM')
-    print('cell for the SAME benchmark -- a worse tax on equal or better single-modality')
-    print('features is a fusion defect, not a representation defect.')
+    print('\nGAIN (the aggregation gain, Delta_agg) is the diagnostic: an aggregator that')
+    print('scores below the best modality it was built from -- negative gain -- is destroying')
+    print('information. Compare an SCA cell against the released-GRAM cell for the SAME')
+    print('benchmark: worse gain on equal or better single-modality features is a fusion')
+    print('defect, not a representation defect.')
     print('\nITM is the reported metric. If SCA leads on AGGREG and trails on ITM, the')
     print('reranking stage is where the advantage is lost instead.')
     return 0

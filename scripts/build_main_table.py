@@ -115,7 +115,9 @@ def itm_of(root, cellprefix, bench):
         if got.get('ret_itm_area') is not None:
             return got['ret_itm_area']
     # Off-cluster fallback: the committed harvest pivots carry one line per cell,
-    #   <cell>  cosTV cosTA best1mod AGGREG TAX ITM [<- annotation]
+    #   <cell>  cosTV cosTA best1mod AGGREG GAIN ITM [<- annotation]
+    # (older committed pivots say TAX in the header; the regex below is positional -- six
+    # numeric fields, ITM last -- so both generations parse identically)
     # written by raw_vs_itm from the same eval logs the scan above would read -- the same
     # numbers through the same extractor, only relayed through git. The ITM column is last.
     pat = re.compile(r'^(%s\S*_%s)\s+((?:[-+]?\d+\.\d+\s+){5}[-+]?\d+\.\d+)\s*(?:<-.*)?$'

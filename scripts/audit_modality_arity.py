@@ -11,7 +11,7 @@ then be evaluated on a task string that asks for k=3, and nothing in the config,
 the completion audit would say so.
 
 That combination is the one thing that would explain VATEX specifically. VATEX is the only
-T-VAS benchmark, and it is the only benchmark where SCA's aggregation tax is catastrophic:
+T-VAS benchmark, and it is the only benchmark where SCA's aggregation gain is catastrophic:
 -9.5 R@1 against its own best modality, where the released GRAM checkpoint loses 1.9 -- on
 the benchmark where SCA's video features are the STRONGEST it has (81.4 vs GRAM's 77.5). A
 uniform mean over three modalities, one of which retrieves at 15.1 while another retrieves

@@ -66,7 +66,7 @@ def test_a_log_without_evaluation_says_so_rather_than_reporting_nothing(tmp_path
     assert not r.stdout.strip(), 'an empty result must not print a table of nothing'
 
 
-def test_the_aggregation_tax_is_measured_against_the_best_single_pathway(tmp_path):
+def test_the_aggregation_gain_is_measured_against_the_best_single_pathway(tmp_path):
     log = tmp_path / 'run.log'
     log.write_text(SAMPLE)
     r = subprocess.run(['python3', 'scripts/parse_authors_eval.py', str(log)],
@@ -108,12 +108,12 @@ def test_hypergrams_key_dialect_is_read_not_reported_as_nan(tmp_path):
     assert '54.0' in reported and 'nan' not in reported
     agg = [l for l in r.stdout.splitlines() if 'aggregator' in l][0]
     assert '39.1' in agg, 'ret_area_forward is their name for the pre-rerank aggregator'
-    assert '-3.4' in r.stdout, 'tax against cosine_TV 42.5'
+    assert '-3.4' in r.stdout, 'aggregation gain against cosine_TV 42.5'
 
 
 def test_the_backward_direction_is_not_mistaken_for_the_aggregator(tmp_path):
     """ret_area_backard (their spelling) is the reverse direction at 33.2; treating it as the
-    aggregator would understate the tax by a point."""
+    aggregator would understate the (negative) aggregation gain by a point."""
     log = tmp_path / 'run.log'
     log.write_text(HG_SAMPLE)
     r = subprocess.run(['python3', 'scripts/parse_authors_eval.py', str(log)],

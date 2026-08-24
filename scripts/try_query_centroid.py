@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Does query-conditioned weighting recover the aggregation tax? Measured, no training.
+"""Does query-conditioned weighting recover the (negative) aggregation gain? Measured, no
+training.
 
     python3 scripts/try_query_centroid.py results/e4_transfer/feats/sca_activitynet.pt
     python3 scripts/try_query_centroid.py results/e4_transfer/feats/*.pt --taus 0.02 0.05 0.1
 
-The tax. Every aggregator we have scores WORSE than the best single modality it fused:
+The aggregation gain (Delta_agg = aggregator R@1 - best single pathway R@1). Every
+aggregator we have scores WORSE than the best single modality it fused -- negative gain:
 
-    benchmark      best 1-mod   SCA centroid   tax        GRAM volume   tax
+    benchmark      best 1-mod   SCA centroid   gain       GRAM volume   gain
     VATEX             81.4          71.9      -9.5           75.6      -1.9
     ActivityNet       38.4          33.3      -5.1           31.0      -5.8
     DiDeMo            37.1          32.8      -4.3           28.2      -3.8
@@ -28,7 +30,7 @@ ceiling that a pure max would reach; anything above 'best 1-mod' is fusion addin
 rather than destroying it. If the peak sits strictly between the two, the weighting is doing
 real work and belongs in the objective, not just at inference.
 
-This measures the AGGREGATOR score. That is the quantity the tax is defined on, and it feeds
+This measures the AGGREGATOR score. That is the quantity the gain is defined on, and it feeds
 the shortlist the cross-encoder reranks -- shortlist recall is 80.6 on DiDeMo, so it is not
 saturated and improving it can still move the reported metric.
 """
@@ -77,7 +79,7 @@ def report(path, taus):
 
     mu_u, _, _ = masked_spherical_mean(z, present)
     r_u = recall(feat_t @ mu_u.T, gt_cols)
-    print('   uniform centroid : %5.1f/%5.1f/%5.1f      tax vs best single modality %+.1f'
+    print('   uniform centroid : %5.1f/%5.1f/%5.1f      gain vs best single modality %+.1f'
           % (r_u[0], r_u[1], r_u[2], r_u[0] - best_solo))
 
     print('   %-8s %-24s %-10s %s' % ('tau', 'R@1/R@5/R@10', 'vs uniform', 'vs best 1-mod'))

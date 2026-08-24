@@ -13,7 +13,7 @@ so one parser serves the PMRL released-checkpoint row and the HyperGRAM authors'
 
 WHICH NUMBER IS THE ROW. `ret_itm_*` -- the two-stage figure after ITM reranking -- because
 that is what every other row of our table reports and what these papers report. `ret_itc_*`
-is the aggregator before reranking: useful for the aggregation-tax analysis, never the
+is the aggregator before reranking: useful for the aggregation-gain analysis, never the
 headline. Reporting the wrong one of those two would move a row by tens of points, so both
 are extracted and labelled rather than one being picked silently.
 
@@ -116,12 +116,13 @@ def main():
             print('  REPORTED  ret_itm  MISSING -- no reranked block in this log')
         if itc:
             print('  aggregator ret_itc T->V R@1 %5.1f' % itc.get('video_r1', float('nan')))
-        # the aggregation tax: the aggregator against the best single pathway it is built from
+        # the aggregation gain (Delta_agg): the aggregator against the best single pathway it
+        # is built from; negative = fusing lost information
         singles = {k: v.get('forward_r1') for k, v in met.items() if k.startswith('cosine_')
                    and v.get('forward_r1') is not None}
         if itc and singles:
             best = max(singles.items(), key=lambda kv: kv[1])
-            print('  best single pathway %s %.1f  ->  aggregation tax %+.1f'
+            print('  best single pathway %s %.1f  ->  aggregation gain %+.1f'
                   % (best[0], best[1], itc.get('video_r1', 0) - best[1]))
     return 0
 

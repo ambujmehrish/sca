@@ -103,11 +103,15 @@ run query_centroid "Query-weighted centroid vs uniform, tau sweep on cached feat
 # Slurm tails: the exit line and the last error, which is where a failed cell shows up
 {
   echo "Last lines of the most recent job logs"
-  for pat in e1_xenc e1_fusion b_grid e1_zs; do
-    for lg in $(ls -t slurm_scripts/logs/${pat}_*.out 2>/dev/null | head -2); do
-      echo; echo "===== $lg"; tail -15 "$lg"
-    done
+  # ALL launchers, most recent first -- the old hardcoded pattern list silently omitted
+  # every launcher written after it (missing_eval, fs_eval, hgeval, pmrl_released), which
+  # is exactly where the open failures were when it mattered.
+  for lg in $(ls -t slurm_scripts/logs/*.out 2>/dev/null | head -14); do
+    echo; echo "===== $lg"; tail -25 "$lg"
   done
+  echo; echo "===== cell-level status lines from the missing-modality sweep (all logs)"
+  grep -H -E "^== \[|LOAD NOT VERIFIED|refused|EXIT=" slurm_scripts/logs/missing_*.out \
+    2>/dev/null | tail -120 || echo "(no missing_*.out logs)"
 } > "$OUT/job_logs.txt" 2>&1
 echo "  [job_logs] -> $OUT/job_logs.txt"
 

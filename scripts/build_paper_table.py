@@ -134,10 +134,6 @@ def main():
     for disp, key, adapter in FOUNDATION:
         t2v, v2t = _pub(pub, key, b, 't2v'), _pub(pub, key, b, 'v2t')
         ref.append((disp + '$^{\\S}$', adapter, t2v + v2t))
-    ref_gram = _pub(pub, 'GRAM (paper)', b, 't2v') + _pub(pub, 'GRAM (paper)', b, 'v2t')
-    ref_hg = (_pub(pub, 'HyperGRAM (paper, 150k)', b, 't2v')
-              + _pub(pub, 'HyperGRAM (paper, 150k)', b, 'v2t'))
-    ref_pmrl = _pub(pub, 'PMRL (paper)', b, 't2v') + _pub(pub, 'PMRL (paper)', b, 'v2t')
 
     # ---- measured rows
     missing = []
@@ -224,8 +220,6 @@ def main():
         out.append('%s & %s & \\xmark & %s \\\\' % (disp, adapter, cells(vals)))
     out.append('\\midrule')
     out.append('\\multicolumn{7}{l}{\\emph{(b) Gramian-volume alignment}} \\\\')
-    out.append('GRAM$^{\\S}$ & full-FT & \\xmark & %s \\\\' % cells(ref_gram))
-    out.append('HyperGRAM$^{\\S}$ & full-FT & \\xmark & %s \\\\' % cells(ref_hg))
 
     # bold = column max over the MEASURED rows only (b-d measured + SCA)
     measured_vals = [r[3] for r in rows if r[3]] + ([tuple(sca_cols)] if all(
@@ -253,7 +247,6 @@ def main():
         out.append('%s & %s & %s & %s \\\\' % (name, adapter, mask, mcells(name, vals)))
     out.append('\\midrule')
     out.append('\\multicolumn{7}{l}{\\emph{(c) Leading-eigenvalue alignment}} \\\\')
-    out.append('PMRL$^{\\S}$ & full-FT & \\xmark & %s \\\\' % cells(ref_pmrl))
     name, adapter, mask, vals = rows[2]
     out.append('%s & %s & %s & %s \\\\' % (name, adapter, mask, mcells(name, vals)))
     out.append('\\midrule')

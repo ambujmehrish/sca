@@ -32,17 +32,17 @@ def test_an_unmeasured_cell_prints_missing_and_fails(monkeypatch, capsys):
 
 def test_measured_cells_are_rendered_and_the_best_is_bolded(monkeypatch, capsys):
     m = _mod()
-    # GRAM 50, HyperGRAM 52, PMRL 51, SCA seeds 54/54/55 -> SCA best in every column
+    # GRAM 50, authors' rows 51/52, SCA seeds 54/54/55 -> SCA best in every column. The
+    # authors' rows come through authors_itm (their own eval logs / the committed harvest),
+    # not through itm_of, so both entry points are stubbed.
     def fake(root, prefix, bench):
         if prefix == 'released':
             return 50.0
-        if prefix == 'hypergram':
-            return 52.0
-        if prefix == 'pmrl':
-            return 51.0
         return {'t9_qweight_only': 54.0, 's1_t9_seed51': 54.0,
                 's2_t9_seed52': 55.0}.get(prefix)
     monkeypatch.setattr(m, 'itm_of', fake)
+    monkeypatch.setattr(m, 'authors_itm', lambda root, name: (
+        {b: (51.0 if 'pmrl' in root else 52.0) for b in m.BENCHES}, 'stubbed for the test'))
     monkeypatch.setattr(sys, 'argv', ['build_main_table.py'])
     rc = m.main()
     out = capsys.readouterr().out
@@ -60,6 +60,8 @@ def test_published_numbers_are_a_reference_block_not_comparison_rows(monkeypatch
     never sit in the block SCA is bolded against, or the bold means nothing."""
     m = _mod()
     monkeypatch.setattr(m, 'itm_of', lambda *a, **k: 50.0)
+    monkeypatch.setattr(m, 'authors_itm',
+                        lambda root, name: ({b: 50.0 for b in m.BENCHES}, 'stubbed'))
     monkeypatch.setattr(sys, 'argv', ['build_main_table.py'])
     m.main()
     out = capsys.readouterr().out
@@ -92,3 +94,20 @@ def test_the_sca_row_needs_more_than_one_seed():
             sys.stdout, sys.stderr = old_out, old_err
     assert rc == 1
     assert 'only 1 seed' in buf_err.getvalue()
+
+
+def test_authors_rows_come_from_the_parser_never_from_the_retired_cells():
+    """The e1_repro cells are the superseded reimplementations; the PMRL and HyperGRAM rows
+    must come from their authors' own eval logs (or the committed harvest of them), and the
+    header must say which source was used."""
+    src = open('scripts/build_main_table.py').read()
+    # the string may appear in a comment saying the cells are NOT consulted; what must not
+    # appear is e1_repro as a data path in the row definitions
+    import re
+    paths = re.findall(r"'(workdir/[^']+)'", src)
+    assert not any('e1_repro' in p for p in paths), \
+        'the retired reimplementation cells are being consulted: %s' % paths
+    assert 'workdir/pmrl_released' in src and 'workdir/hgeval' in src
+    assert 'def authors_itm' in src
+    assert "out.append('%% source -- ' + line)" in src, \
+        'the header must record where each authors row came from'

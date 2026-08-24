@@ -46,3 +46,16 @@ python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annot
 python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --topk 32 --out_path $SCA_CACHE_ROOT/s_star_150k_top32.pt   # A9_topk_32
 python3 data/semantic_targets.py --annotation_json $DATA_ROOT/vast27m_150k/annotations150k.json --topk 128 --out_path $SCA_CACHE_ROOT/s_star_150k_top128.pt   # A9_topk_128
 ```
+
+## G11 — T9 with NO masked training (the arm G10 is not)
+
+| arm | config | delta from T9 | grid |
+|---|---|---|---|
+| G11_train_nomask | `./config/sca/ablations/G11_train_nomask.json` | mask_p_full held at 1.0: no masked view ever drawn | loss ablation (Table 4) |
+
+G10_mask0 zeroes beta, the L_mask agreement term -- but the mask sampler still feeds
+present_M into L_align, so G10 trains WITH masked views. G11 stops drawing them at all:
+L_align sees only full-arity centroids, and at p_full=1 l_mask is identically zero in value
+and gradient, so the two mask_p_full keys are the arm's only live difference from T9.
+Together the pair separates drawing reduced-arity views for the main loss (G11 removes)
+from the explicit cross-arity agreement penalty on top of them (G10 removes).

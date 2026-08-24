@@ -60,6 +60,14 @@
 #   sbatch --array=19-29 slurm_scripts/b_grid_pretrain.sh  # G1-G10: capacity, lr, objective
 #   sbatch --array=30-32 slurm_scripts/b_grid_pretrain.sh  # X3-X5: cross-encoder, done properly
 #   sbatch --array=33-40 slurm_scripts/b_grid_pretrain.sh  # X6-X13: HOW MUCH to move it
+#   sbatch --array=46 slurm_scripts/b_grid_pretrain.sh     # G11: T9 with NO masked training
+#
+# G11_train_nomask holds mask_p_full at 1.0 for the whole run: no masked view is ever drawn,
+# so the main alignment loss trains on the full-arity centroid only. This is the arm G10 is
+# not: G10 zeroes beta (the L_mask agreement term) but the mask sampler still feeds present_M
+# into L_align, so G10 trains WITH masked views and G11 trains WITHOUT them. At p_full=1 the
+# two centroids coincide and l_mask is exactly zero in value and gradient, so the two
+# mask_p_full keys are the arm's only live difference from T9.
 #   (no HyperGRAM arm here: their code is released, so the reproduction runs THEIR repo
 #    with THEIR config -- see experiments/results/HYPERGRAM_STATUS.md. H1 was removed because
 #    it claimed their recipe while carrying GRAM's: lr 1e-4 not 5e-5, 5 epochs not 1, and
@@ -230,7 +238,7 @@ source "$HELPER" || { echo "FATAL: cannot source $HELPER" >&2; exit 2; }
 command -v claim_outdir >/dev/null || {
   echo "FATAL: sourced $HELPER but claim_outdir is not defined." >&2; exit 2; }
 
-ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6 X6_xenc_1ep_lr2e5 X7_xenc_1ep_lr5e6 X8_xenclr_1e6 X9_xenclr_2e6 X10_xenclr_5e7 X11_xenc_top2 X12_xenc_top4 X13_xenclr_2e6_itm05 R1_itm_vas R2_itm_top50 R3_itm_top50_n4 R4_itm_vas_top50_n4 F1_t9_fullft)
+ARMS=(B1_bs128_r8 B2_bs128_r32 B3_bs512_r8 B4_bs512_r32 B5_bs128_xenc B6_bs512_xenc T6_frameset E1_bs128_ep1 E2_bs128_ep2 T7_frameset_4f T8_frameset_tau005 T9_qweight_only T10_frameset_bs256 T11_frameset_tau02 T12_qw_4frames T13_qw_8frames T14_itm_frozen S1_t9_seed51 S2_t9_seed52 G1_r16_qw G2_r32_qw G2b_r32_a16_qw G3_r64_qw G4_lr5e5 G5_lr1e5 G6_lambda0 G7_lambda03 G8_sem0 G9_concept0 G10_mask0 X3_xenc_clean_lr2e5 X4_xenc_clean_lr1e5 X5_xenc_clean_lr5e6 X6_xenc_1ep_lr2e5 X7_xenc_1ep_lr5e6 X8_xenclr_1e6 X9_xenclr_2e6 X10_xenclr_5e7 X11_xenc_top2 X12_xenc_top4 X13_xenclr_2e6_itm05 R1_itm_vas R2_itm_top50 R3_itm_top50_n4 R4_itm_vas_top50_n4 F1_t9_fullft G11_train_nomask)
 IDX="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 [ -n "$IDX" ] || { echo "FATAL: no array index. sbatch this, or pass 0-3 to run one arm." >&2; exit 2; }
 ARM="${ARMS[$IDX]:-}"

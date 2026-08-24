@@ -80,6 +80,9 @@ run transfer_table "Table 2: the four transfer benchmarks side by side (T->V R@1
 run missing_table "Table 3: R@1 under test-time missing modalities, per benchmark" \
     python3 scripts/build_missing_table.py --all
 
+run loss_ablation_table "Table 4: T9 with one objective component removed at a time" \
+    python3 scripts/build_loss_ablation_table.py
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

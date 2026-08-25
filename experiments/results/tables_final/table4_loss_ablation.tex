@@ -2,7 +2,7 @@
 %% Reference row t9_qweight_only must equal the SCA seed-0 cells behind Tables 1/2.
 \begin{table}[t]
 \centering
-\caption{Ablating the objective: each row is the reported configuration with one component removed, nothing retrained or retuned. Left block: two-stage text$\rightarrow$video R@1 ($\bar{\Delta}$ = mean change vs.\ the full objective) -- at full modality individual effects sit within seed variance, because the shared reranker compresses them. The components' effects are structural: $\bar{\Delta}_{\mathrm{agg}}$ is the mean aggregation gain (own score vs.\ best unimodal, Table~\ref{tab:gain}) and $\bar{\Delta}_{\mathrm{agg}}^{90}$ the same under 90\% test-time masking. Removing the masked training views collapses the gain ($+1.0\!\to\!-5.5$, and $-7.6$ under masking) while the video pathway is unchanged: masked-view training is what makes the query-conditioned centroid a positive-gain aggregator. $\mathcal{L}_{\mathrm{mask}}$ drops only the explicit cross-arity agreement term on top of those views; the regularizers are free and not load-bearing (not swept: '--').}
+\caption{Ablating the objective: each row is the reported configuration with one component removed, nothing retrained or retuned. The reference row carries absolute values; every ablation row reports the CHANGE its removal causes, in all three summary columns. $\bar{\Delta}$: two-stage text$\rightarrow$video R@1 -- at full modality these effects sit within seed variance, because the shared reranker compresses them. The components' effects are structural: $\bar{\Delta}_{\mathrm{agg}}$, the mean aggregation gain (Table~\ref{tab:gain}), and $\bar{\Delta}_{\mathrm{agg}}^{90}$, the same under 90\% test-time masking. Masked-view training dominates ($-6.5$ gain, $-7.1$ under masking): it is what makes the query-conditioned centroid a positive-gain aggregator, with the explicit $\mathcal{L}_{\mathrm{mask}}$ term a smaller share. The regularizers cost nothing and contribute measurably to fusion quality ($\mathcal{L}_{\mathrm{sem}}$ $-0.9$, without which the gain also turns negative on the audio-anchored benchmark; $\mathcal{L}_{\mathrm{unif}}$ $-0.4$); they are not part of the robustness claim and are not swept ('--').}
 \label{tab:loss_ablation}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -14,12 +14,12 @@ Objective & MSR-VTT & DiDeMo & ActivityNet & VATEX & AudioCaps & $\bar{\Delta}$ 
 full objective (T9) & 54.8 & 51.5 & 55.8 & 90.5 & 35.2 & -- & +1.0 & -0.5 \\
 \midrule
 \multicolumn{9}{l}{\emph{(b) mechanism: masked-view training}} \\
-\quad w/o masked training views ($p_{\mathrm{full}}{=}1$) & 53.8 & 50.4 & 54.7 & 90.5 & 34.5 & -0.8 & -5.5 & -7.6 \\
-\quad w/o $\mathcal{L}_{\mathrm{mask}}$ ($\beta{=}0$) & 54.8 & 51.0 & 55.8 & 90.3 & 35.4 & -0.1 & -0.5 & -0.5 \\
+\quad w/o masked training views ($p_{\mathrm{full}}{=}1$) & 53.8 & 50.4 & 54.7 & 90.5 & 34.5 & -0.8 & -6.5 & -7.1 \\
+\quad w/o $\mathcal{L}_{\mathrm{mask}}$ ($\beta{=}0$) & 54.8 & 51.0 & 55.8 & 90.3 & 35.4 & -0.1 & -1.5 & +0.0 \\
 \midrule
 \multicolumn{9}{l}{\emph{(c) regularizers}} \\
-\quad w/o $\mathcal{L}_{\mathrm{sem}}$ ($\alpha{=}0$) & 54.2 & 50.2 & 56.3 & 91.2 & 35.8 & -0.0 & +0.1 & -- \\
-\quad w/o $\mathcal{L}_{\mathrm{unif}}$ ($\lambda{=}0$) & 54.2 & 51.2 & 56.0 & 90.5 & 35.1 & -0.2 & +0.6 & -- \\
+\quad w/o $\mathcal{L}_{\mathrm{sem}}$ ($\alpha{=}0$) & 54.2 & 50.2 & 56.3 & 91.2 & 35.8 & -0.0 & -0.9 & -- \\
+\quad w/o $\mathcal{L}_{\mathrm{unif}}$ ($\lambda{=}0$) & 54.2 & 51.2 & 56.0 & 90.5 & 35.1 & -0.2 & -0.4 & -- \\
 \bottomrule
 \end{tabular}
 \end{table}

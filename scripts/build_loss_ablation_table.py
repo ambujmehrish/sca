@@ -179,19 +179,22 @@ def main():
     out.append('\\begin{table}[t]')
     out.append('\\centering')
     out.append("\\caption{Ablating the objective: each row is the reported configuration "
-               "with one component removed, nothing retrained or retuned. Left block: "
-               "two-stage text$\\rightarrow$video R@1 ($\\bar{\\Delta}$ = mean change vs.\\ "
-               "the full objective) -- at full modality individual effects sit within seed "
-               "variance, because the shared reranker compresses them. The components' "
-               "effects are structural: $\\bar{\\Delta}_{\\mathrm{agg}}$ is the mean "
-               "aggregation gain (own score vs.\\ best unimodal, Table~\\ref{tab:gain}) "
-               "and $\\bar{\\Delta}_{\\mathrm{agg}}^{90}$ the same under 90\\% test-time "
-               "masking. Removing the masked training views collapses the gain "
-               "($+1.0\\!\\to\\!-5.5$, and $-7.6$ under masking) while the video pathway "
-               "is unchanged: masked-view training is what makes the query-conditioned "
-               "centroid a positive-gain aggregator. $\\mathcal{L}_{\\mathrm{mask}}$ drops "
-               "only the explicit cross-arity agreement term on top of those views; the "
-               "regularizers are free and not load-bearing (not swept: '--').}")
+               "with one component removed, nothing retrained or retuned. The reference "
+               "row carries absolute values; every ablation row reports the CHANGE its "
+               "removal causes, in all three summary columns. $\\bar{\\Delta}$: two-stage "
+               "text$\\rightarrow$video R@1 -- at full modality these effects sit within "
+               "seed variance, because the shared reranker compresses them. The "
+               "components' effects are structural: $\\bar{\\Delta}_{\\mathrm{agg}}$, the "
+               "mean aggregation gain (Table~\\ref{tab:gain}), and "
+               "$\\bar{\\Delta}_{\\mathrm{agg}}^{90}$, the same under 90\\% test-time "
+               "masking. Masked-view training dominates ($-6.5$ gain, $-7.1$ under "
+               "masking): it is what makes the query-conditioned centroid a positive-gain "
+               "aggregator, with the explicit $\\mathcal{L}_{\\mathrm{mask}}$ term a "
+               "smaller share. The regularizers cost nothing and contribute measurably to "
+               "fusion quality ($\\mathcal{L}_{\\mathrm{sem}}$ $-0.9$, without which the "
+               "gain also turns negative on the audio-anchored benchmark; "
+               "$\\mathcal{L}_{\\mathrm{unif}}$ $-0.4$); they are not part of the "
+               "robustness claim and are not swept ('--').}")
     out.append('\\label{tab:loss_ablation}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')
@@ -206,16 +209,25 @@ def main():
         out.append('\\multicolumn{%d}{l}{%s} \\\\' % (ncol, tier))
         for name, arm in rows:
             cells = ['MISSING' if v is None else '%.1f' % v for v in vals[arm]]
-            if arm == ROWS[0][1]:
+            ref = arm == ROWS[0][1]
+            # ONE semantics for all three stat columns: the reference row carries the
+            # absolute value, every ablation row the CHANGE caused by the removal.
+            # (Mixed absolute/delta columns made the regularizers' +0.9/+0.4 gain
+            # contributions read as 'no impact' -- the exact misreading this table
+            # exists to prevent.)
+            if ref:
                 dc = '--'
             else:
                 d = dbar(arm)
                 dc = 'MISSING' if d is None else '%+.1f' % d
-            g = gbar(arm)
-            gc = 'MISSING' if g is None else '%+.1f' % g
-            md = masked_gain(arm)
-            if md is not None:
-                mc = '%+.1f' % md
+            g, g_full = gbar(arm), gbar(ROWS[0][1])
+            if g is None or g_full is None:
+                gc = 'MISSING'
+            else:
+                gc = '%+.1f' % g if ref else '%+.1f' % (g - g_full)
+            md, md_full = masked_gain(arm), masked_gain(ROWS[0][1])
+            if md is not None and (ref or md_full is not None):
+                mc = '%+.1f' % md if ref else '%+.1f' % (md - md_full)
             elif arm in SWEEP_EXPECTED:
                 mc = 'MISSING'      # reference + mechanism rows are swept; absence is a hole
             else:

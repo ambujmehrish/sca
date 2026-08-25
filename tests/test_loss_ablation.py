@@ -91,4 +91,4 @@ def test_table4_prints_missing_and_fails_loud_when_cells_are_absent(tmp_path):
     if 'MISSING' in tex:
         assert p.returncode == 1
     assert '\\bar{\\Delta}' in tex
-    assert 'full objective (T9)' in tex
+    assert 'full objective' in tex   # no internal arm codename in the paper row

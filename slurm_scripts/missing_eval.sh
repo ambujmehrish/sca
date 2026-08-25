@@ -112,7 +112,13 @@ for model in $MODELS; do
       # A released checkpoint through our class loads with strict=False: verify from the
       # cell's own log that it FULLY loaded, or the number is from a partly random model.
       # For pmrl a failure invalidates every rate, so the loop stops rather than continuing.
-      python3 scripts/verify_ckpt_load.py "$out/eval.log" || {
+      # contra_head_d is the DEPTH projection head, constructed unconditionally by our
+      # GRAM class (model/gram.py:33) while the released T-VAS checkpoint has no depth
+      # modality -- and no T-VA/T-VAS evaluation ever calls it (gram.py:412). It is
+      # therefore legitimately absent from every released-GRAM load, and allowing it by
+      # name is a documented exception, not a loosened check: any other missing key, and
+      # every unexpected key, still refuses the cell.
+      python3 scripts/verify_ckpt_load.py "$out/eval.log" --allow-prefix contra_head_d || {
         echo "== [$model/$BENCH/$rate] LOAD NOT VERIFIED -- cell refused" >&2
         rc=3; rc_all=3
         [ "$model" = pmrl ] && { echo "   (all pmrl rates refused for $BENCH)" >&2; break; }

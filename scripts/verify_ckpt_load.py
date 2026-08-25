@@ -16,13 +16,28 @@ import sys
 
 
 def keylists(text):
-    """(missing, unexpected) or (None, None) when the log never printed them."""
+    """(missing, unexpected) or (None, None) when the log never printed them.
+
+    Parsed ONE LINE AT A TIME, over EVERY occurrence. Four ranks each print their own
+    missing_keys/Unexpected keys line into the same tee'd log, so a bracket opened by one
+    rank can be closed after another rank's line has interleaved. The previous regex was
+    `(.*?)` under re.S on the whole file and took the FIRST match, so it could swallow
+    interleaved text and report it as key names -- nondeterministically, since interleaving
+    is a race. That is exactly what happened: the same released checkpoint verified clean on
+    23 of 25 sweep cells and was 'refused' on the other two. A verifier whose verdict depends
+    on process scheduling is worse than none, because it launders a race into a provenance
+    claim.
+
+    Line-scoped ([^]\n]*) cannot cross a rank boundary, and the union over occurrences means
+    one rank's genuine mismatch is never hidden by another rank's clean line."""
     def grab(label):
-        m = re.search(re.escape(label) + r'\s*\[(.*?)\]', text, re.S)
-        if not m:
+        hits = re.findall(re.escape(label) + r'\s*\[([^\]\n]*)\]', text)
+        if not hits:
             return None
-        body = m.group(1).strip()
-        return [k.strip().strip("'\"") for k in body.split(',') if k.strip()] if body else []
+        keys = []
+        for body in hits:
+            keys += [k.strip().strip("'\"") for k in body.split(',') if k.strip()]
+        return sorted(set(keys))
     return grab('missing_keys'), grab('Unexpected keys')
 
 

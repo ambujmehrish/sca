@@ -284,7 +284,31 @@ def evaluate_ret(model, tasks, val_loader, global_step, dataset_name=None):
     # per-clip missing-modality mask (zero-vector feature => absent for that clip); all-present ==
     # volume_computationN byte-for-byte. Same masking logic as the retrieval eval / train.
     _present = torch.stack([(f.norm(dim=-1) > 0.5).float() for f in _feats], dim=1)
-    area = volume_computation_masked(feat_t, _feats, present=_present)
+    # score_mode dispatch, mirroring evaluation_mm.py:309. This path used to hardcode the
+    # volume, so an SCA checkpoint routed through vgg_ret was silently scored with GRAM's
+    # geometry -- a model that was never trained, reported under SCA's name (caught when
+    # SCA 'lost' 5.6 Acc@1 on VGGSound with its own scoring never having run). Unknown
+    # modes fail loudly rather than falling back to the volume: a silent default here IS
+    # the bug this block replaces.
+    _score_mode = getattr(model.config, 'score_mode', 'volume')
+    if _score_mode == 'centroid':
+        from model.centroid import masked_spherical_mean, query_centroid_scores
+        if getattr(model.config, 'sca_frame_slots', False):
+            raise RuntimeError('sca_frame_slots is not wired in the classification eval '
+                               'path -- score this arm through the retrieval eval instead.')
+        _z = torch.stack([f.float() for f in _feats], dim=1)
+        if getattr(model.config, 'sca_query_weighting', False):
+            _tau_w = float(getattr(model.config, 'sca_tau_w', 0.1))
+            area = 1.0 - query_centroid_scores(feat_t.float(), _z, _present, tau=_tau_w)
+        else:
+            _mu, _, _ = masked_spherical_mean(_z, _present)
+            area = 1.0 - feat_t.float() @ _mu.T
+    elif _score_mode == 'volume':
+        area = volume_computation_masked(feat_t, _feats, present=_present)
+    else:
+        raise ValueError('score_mode=%r has no classification-eval scoring path; add it '
+                         'explicitly rather than silently scoring with the volume.'
+                         % _score_mode)
     min_values_volume = torch.min(area, 1).values
     mean_values_volume = torch.mean(min_values_volume)
     val_log[f"gramian_value"] = {"value": mean_values_volume.item()}

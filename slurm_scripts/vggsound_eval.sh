@@ -83,7 +83,9 @@ EVAL_CKPT="$CKPT" srun python3 -m torch.distributed.launch --nnodes 1 --node_ran
   | tee "$OUT/eval.log" | { grep -v --line-buffered -E "$NOISE" || true; }
 rc=${PIPESTATUS[0]}
 if [ $rc -eq 0 ] && [ "$ARM" = gram_released ]; then
-  python3 scripts/verify_ckpt_load.py "$OUT/eval.log" || {
+  # see missing_eval.sh: contra_head_d is the unused depth head, absent from the released
+  # checkpoint by construction; every other key still gates the cell.
+  python3 scripts/verify_ckpt_load.py "$OUT/eval.log" --allow-prefix contra_head_d || {
     echo "== [$ARM/vggsound] LOAD NOT VERIFIED -- cell refused" >&2; rc=3; }
 fi
 if [ $rc -eq 0 ]; then cell_mark_done "$OUT" "$CFG"; echo "== [$ARM/vggsound] OK $(date +%T)"

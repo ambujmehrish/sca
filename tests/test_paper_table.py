@@ -159,3 +159,17 @@ def test_vggsound_cells_carry_the_exact_e1_geometry():
     launch = open('slurm_scripts/vggsound_eval.sh').read()
     assert 'VGG5K_ROOT' in launch and 'GRAM_RELEASED_CKPT' in launch
     assert '38.3/76.3' in launch, 'the wave-1 self-check anchor must be stated'
+
+
+def test_classification_eval_scores_each_arm_with_its_own_geometry():
+    """The vgg_ret path hardcoded the volume, so an SCA checkpoint was silently scored with
+    GRAM's geometry (reported as SCA 'losing' 5.6 Acc@1 with its own scoring never run).
+    The dispatch must mirror evaluation_mm: centroid (+query weighting) for SCA, volume for
+    GRAM, and FAIL on unknown modes rather than defaulting to the volume."""
+    src = open('evaluation/evaluation_classification.py').read()
+    assert "getattr(model.config, 'score_mode', 'volume')" in src
+    assert 'query_centroid_scores' in src and 'masked_spherical_mean' in src
+    assert "raise ValueError('score_mode=%r has no classification-eval" in src
+    # the volume call must be reachable only through the dispatch, not unconditionally
+    pre = src.split("_score_mode = getattr")[0]
+    assert 'area = volume_computation_masked' not in pre

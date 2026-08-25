@@ -1,0 +1,302 @@
+% Methodology section for the SCA paper.
+% Every equation below matches the implementation:
+%   model/centroid.py      -- masked_spherical_mean, query_weights, query_centroid_scores
+%   model/losses_sca.py    -- l_align, l_mask, l_sem, l_unif
+%   data/mask_sampler.py   -- MaskSampler (p_full schedule, m-dagger draw)
+%   data/semantic_targets.py -- S* construction
+%   model/sca.py           -- forward composition, warmup gating, ITM stage
+% Hyperparameter values are the defaults in config/sca/default_model_cfg.json and the
+% reported configuration config/sca/ablations/T9_qweight_only.json.
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Problem setting and notation}
+
+A gallery clip $j$ is observed through a set of modality streams -- video frames,
+audio, and (where available) subtitles. A frozen multimodal backbone encodes each
+present stream into a unit vector, so clip $j$ is a set
+\begin{equation}
+  \mathcal{Z}_j \;=\; \{\, z_{j,m} \in \mathbb{S}^{d-1} \;:\; m \in \mathcal{M}_j \,\},
+  \qquad \mathcal{M}_j \subseteq \{V, A, S\},
+  \label{eq:clip}
+\end{equation}
+where $\mathcal{M}_j$ is the set of modalities that clip $j$ actually has. Two facts
+about $\mathcal{M}_j$ drive the entire design. First, it varies across clips: $9\%$
+of the clips in the shared pretraining corpus carry no audio at all. Second, it
+varies across benchmarks: MSR-VTT and VATEX are evaluated with three modalities,
+DiDeMo, ActivityNet and AudioCaps with two. A text query $q$ is encoded to
+$t \in \mathbb{S}^{d-1}$, and retrieval ranks clips by a score $s(t, \mathcal{Z}_j)$.
+The design question is therefore not how to combine three fixed vectors, but how to
+define one score that is meaningful for \emph{any} $\mathcal{M}_j$ and comparable
+\emph{across} clips whose $\mathcal{M}_j$ differ.
+
+\subsection{Why not a volume}
+\label{sec:why-not-volume}
+
+Recent methods answer with a geometric functional of the set: the volume of the
+parallelotope spanned by $\{t\} \cup \mathcal{Z}_j$, or the leading eigenvalue of its
+Gram matrix. Both have a property that Eq.~\eqref{eq:clip} makes fatal. A $k$-volume
+and a $(k{-}1)$-volume are quantities of different physical dimension, and
+$\lambda_1$ of a Gram matrix of $m$ unit vectors lies in $[1, m]$: their ranges move
+with $|\mathcal{M}_j|$, so scores computed at different arities cannot be compared
+without a normalisation that neither method defines. The released implementations
+resolve this by refusing the problem -- their data loaders discard any clip missing a
+modality -- which is why a robustness question cannot even be posed inside their code.
+
+The second property is the one our measurements expose (Sec.~\ref{sec:gain}): both
+functionals are \emph{symmetric} in the modality arguments. A stream that retrieves
+at $5$ R@1 enters the score with the same standing as one that retrieves at $80$.
+We show this costs these methods more accuracy than it buys them: their joint score
+falls below their own best single-modality score on almost every benchmark.
+
+Our design follows directly from these two observations: the aggregation must be
+(i) defined and comparable at every arity, and (ii) asymmetric in a way that reflects
+how informative each modality is \emph{for the query at hand}.
+
+\subsection{Level-1 aggregation: the masked spherical centroid}
+
+We aggregate by the spherical mean of the present modality embeddings. Writing
+$\mathbb{1}[m \in \mathcal{M}_j]$ for the presence indicator, the clip
+representation is
+\begin{equation}
+  \mu_j \;=\; \frac{\displaystyle\sum_{m \in \mathcal{M}_j} z_{j,m}}
+                   {\bigl\|\sum_{m \in \mathcal{M}_j} z_{j,m}\bigr\|}
+  \;\in\; \mathbb{S}^{d-1},
+  \label{eq:centroid}
+\end{equation}
+and the score is a plain cosine, $s(t, \mathcal{Z}_j) = \langle t, \mu_j \rangle$.
+The text embedding is never averaged into $\mu_j$: it is the query side only, so the
+gallery representation carries no information about the text it will be scored
+against.
+
+This choice buys the first requirement outright. Eq.~\eqref{eq:centroid} is defined
+for any non-empty $\mathcal{M}_j$, and because $\mu_j$ is renormalised onto the
+sphere the score is a cosine in $[-1, 1]$ \emph{whatever} $|\mathcal{M}_j|$ is. A
+clip with two modalities and a clip with three produce scores on the same scale, with
+no arity-dependent correction: the aggregation is arity-invariant by construction,
+where the volume family is arity-dependent by construction. A missing modality is not
+an exception to be handled, only a smaller index set in the sum.
+
+We also record the concentration of the modality set,
+\begin{equation}
+  A(\mathcal{M}_j) \;=\; \frac{1}{|\mathcal{M}_j|}
+    \Bigl\| \sum_{m \in \mathcal{M}_j} z_{j,m} \Bigr\| \;\in\; [0, 1],
+  \label{eq:resultant}
+\end{equation}
+the mean resultant length of the set, which measures how much the modalities of a
+clip agree. $A$ is always computed with uniform weights, since it is a property of
+the set rather than of the mixture, and it is degenerate at $|\mathcal{M}_j| = 1$
+(where it is identically $1$).
+
+\subsection{Query-conditioned weighting}
+\label{sec:qw}
+
+A uniform mean satisfies the first requirement but not the second: it is exactly the
+symmetric aggregation we criticised, and it inherits the same failure (we measure
+this directly in Sec.~\ref{sec:gain}, where our uniform-weight variant pays the
+baselines' penalty). The missing ingredient is that \emph{which modality matters is a
+property of the query}: ``a dog barking'' should lean on audio, ``a red car turns
+left'' on video. We therefore weight each modality by its agreement with the query,
+\begin{equation}
+  w_{j,m}(t) \;=\;
+  \frac{\exp\bigl(\langle t, z_{j,m}\rangle / \tau_w\bigr)}
+       {\sum_{m' \in \mathcal{M}_j} \exp\bigl(\langle t, z_{j,m'}\rangle / \tau_w\bigr)},
+  \qquad m \in \mathcal{M}_j,
+  \label{eq:qweights}
+\end{equation}
+a softmax restricted to the present set (absent modalities receive exactly zero
+weight, never a small one), and aggregate with those weights:
+\begin{equation}
+  \mu_j(t) \;=\; \frac{\displaystyle\sum_{m \in \mathcal{M}_j} w_{j,m}(t)\, z_{j,m}}
+                      {\bigl\| \sum_{m \in \mathcal{M}_j} w_{j,m}(t)\, z_{j,m} \bigr\|},
+  \qquad
+  s(t, \mathcal{Z}_j) \;=\; \bigl\langle t,\, \mu_j(t) \bigr\rangle .
+  \label{eq:qcentroid}
+\end{equation}
+
+Four properties make this the right form of asymmetry. It is still a centroid -- a
+convex combination of unit vectors, renormalised -- so arity invariance is untouched
+and the cost stays $O(|\mathcal{M}_j|)$ with no determinant. It introduces
+\emph{no new parameters}: the single temperature $\tau_w$ interpolates between the two
+regimes we want to sit between,
+\begin{equation}
+  \lim_{\tau_w \to \infty} \mu_j(t) = \mu_j
+  \quad\text{(uniform centroid)},
+  \qquad
+  \lim_{\tau_w \to 0} s(t, \mathcal{Z}_j) = \max_{m \in \mathcal{M}_j} \langle t, z_{j,m}\rangle
+  \quad\text{(best single modality)} .
+  \label{eq:limits}
+\end{equation}
+Because it is parameter-free it can be evaluated on an already-trained checkpoint,
+which is how we verified the mechanism before spending any training compute. And
+being query-dependent rather than clip-dependent, it is well defined at every arity
+including $|\mathcal{M}_j| = 2$ -- unlike weighting schemes derived from the clip
+alone, which are forced to be uniform when two modalities are symmetric in each
+other. We use $\tau_w = 0.1$ throughout.
+
+\paragraph{Closed-form scoring.}
+Eq.~\eqref{eq:qcentroid} makes the gallery representation query-dependent, so a clip
+no longer has a single precomputable embedding. Materialising a centroid per
+(text, clip) pair would cost $O(N_t N_g d)$ memory -- hundreds of gigabytes on
+ActivityNet -- but it is unnecessary: both halves of the cosine are computable from
+quantities that never carry the embedding dimension,
+\begin{equation}
+  \bigl\langle t, {\textstyle\sum_m} w_m z_m \bigr\rangle = \sum_{m} w_m \langle t, z_m \rangle,
+  \qquad
+  \Bigl\| {\textstyle\sum_m} w_m z_m \Bigr\|^2 = \sum_{m}\sum_{n} w_m w_n \langle z_m, z_n \rangle,
+  \label{eq:closedform}
+\end{equation}
+where the per-clip Gram matrix $G_j = [\langle z_{j,m}, z_{j,n}\rangle]$ is computed
+once and reused for every query. Scoring is therefore exact -- not an approximation of
+the pairwise form -- at a peak allocation of $O(c\,N_g\,|\mathcal{M}|)$ for a query
+chunk of size $c$.
+
+\subsection{Training with masked views}
+\label{sec:masked-views}
+
+A representation that is \emph{defined} on any modality subset is not automatically
+\emph{good} on any subset: if every training clip is complete, the model never
+receives gradient for the reduced-arity case, and the weakest modality is free to
+drift out of alignment. We therefore train on masked views. At step $\ell$, each clip
+keeps its full modality set with probability
+\begin{equation}
+  p_{\mathrm{full}}(\ell) \;=\; p_0 + \min\!\Bigl(\frac{\ell}{L_s}, 1\Bigr)\,(p_T - p_0),
+  \qquad p_0 = 1.0,\; p_T = 0.5,\; L_s = 2000,
+  \label{eq:schedule}
+\end{equation}
+and otherwise loses one modality $m^\dagger$ drawn uniformly from its present set,
+\begin{equation}
+  \tilde{\mathcal{M}}_j \;=\; \mathcal{M}_j \setminus \{m^\dagger\},
+  \qquad m^\dagger \sim \mathrm{Unif}(\mathcal{M}_j),
+  \qquad |\tilde{\mathcal{M}}_j| \geq 1 .
+  \label{eq:mdagger}
+\end{equation}
+A clip is never reduced below one modality, and a modality it does not have can never
+be ``dropped''. Both the masked centroid $\mu_{\tilde{\mathcal{M}}}$ and the full
+centroid $\mu_{\mathcal{M}}$ are computed from the \emph{same} forward pass, so
+masking costs no additional encoder time. The schedule starts at $p_0 = 1$ so that
+early training sees complete clips while the alignment is still forming.
+
+\subsection{Training objective}
+
+\paragraph{Retrieval alignment.}
+The base term is a symmetric InfoNCE between texts and gallery centroids over the
+in-batch (and cross-device gathered) negatives. With query weighting the score is
+query-dependent, which forces the \emph{pairwise} form: the entry $(i, j)$ must be
+the score of text $i$ against clip $j$ \emph{weighted for text $i$},
+\begin{equation}
+  S_{ij} \;=\; \frac{1}{\tau}\,\bigl\langle t_i,\, \mu_j(t_i) \bigr\rangle,
+  \qquad
+  \mathcal{L}_{\mathrm{align}} \;=\; \tfrac{1}{2}\Bigl[
+    \mathrm{CE}\bigl(S_{i:},\, i\bigr) + \mathrm{CE}\bigl(S_{:j}^{\top},\, j\bigr)
+  \Bigr],
+  \label{eq:align}
+\end{equation}
+with a fixed temperature $\tau = 0.07$ and label smoothing $0.1$. Using the
+non-pairwise shortcut $\langle t_i, \mu_j(t_j)\rangle$ would let the model win by
+sharpening weights on positives alone, and would not match inference, where every
+candidate is conditioned on the query.
+
+\paragraph{Cross-arity consistency.}
+Masked views supply reduced-arity examples; this term states what they should satisfy.
+The masked centroid must land where the full one does, and -- because the score is
+compared \emph{across} clips of different arity -- the positive-pair score must not
+shift when a modality drops:
+\begin{equation}
+  \mathcal{L}_{\mathrm{mask}} \;=\;
+  \underbrace{\bigl(1 - \langle \mu_{\tilde{\mathcal{M}}},\, \mu_{\mathcal{M}} \rangle\bigr)}
+             _{\text{direction}}
+  \;+\;
+  \underbrace{\bigl(s_{\tilde{\mathcal{M}}} - \mathrm{sg}[\,s_{\mathcal{M}}\,]\bigr)^2}
+             _{\text{score calibration}},
+  \label{eq:lmask}
+\end{equation}
+where $s_{\mathcal{M}} = \langle t, \mu_{\mathcal{M}} \rangle$,
+$s_{\tilde{\mathcal{M}}} = \langle t, \mu_{\tilde{\mathcal{M}}} \rangle$, and
+$\mathrm{sg}[\cdot]$ is the stop-gradient that makes the full view the reference. At
+$p_{\mathrm{full}} \equiv 1$ the two views coincide and
+Eq.~\eqref{eq:lmask} vanishes identically in both value and gradient, which is what
+makes the ablation in Sec.~\ref{sec:ablation} a clean one-factor comparison.
+
+\paragraph{Semantic calibration.}
+InfoNCE treats every negative as equally wrong, although some clips are far closer in
+meaning to a query than others. We soften the targets with an affinity matrix
+computed once, offline, by a frozen sentence encoder over the captions,
+\begin{equation}
+  S^*_{ij} \;=\; \Bigl(\frac{\cos(e_i, e_j) + 1}{2}\Bigr)^{1/\tau^*} \in [0,1],
+  \qquad \tau^* = 0.5,
+  \label{eq:sstar}
+\end{equation}
+retaining the top $k = 64$ entries per row. The loss has two parts, because a softmax
+is shift-invariant and therefore cannot pin an absolute scale:
+\begin{equation}
+  \mathcal{L}_{\mathrm{sem}} \;=\;
+  \mathrm{KL}\Bigl(P^* \,\Bigm\|\, \mathrm{softmax}\bigl(S/\tau\bigr)\Bigr)
+  \;+\; c_w \cdot
+  \frac{\sum_{ij} \mathbb{1}[S^*_{ij} > 0]\,\bigl(S_{ij} - (2 S^*_{ij} - 1)\bigr)^2}
+       {\sum_{ij} \mathbb{1}[S^*_{ij} > 0]},
+  \label{eq:lsem}
+\end{equation}
+with $P^* = \mathrm{softmax}(S^*/\tau^*)$ shaping the \emph{ranking} and the
+regression term pinning the \emph{absolute} cosine to the target affinity (the map
+$2S^* - 1$ sends $[0,1]$ to $[-1,1]$), $c_w = 1$. The regression is fitted only where
+$S^* > 0$: an absent entry of the sparsified cache means ``affinity unknown'', not
+``affinity zero'', and regressing those zeros would drive unrelated pairs toward
+cosine $-1$. Because a learnable temperature would simply re-absorb the calibration,
+$\tau$ is held fixed whenever this term is active.
+
+\paragraph{Uniformity.}
+To keep the centroids from collapsing into a narrow cone on the sphere we add the
+uniformity term of Wang and Isola over the in-batch centroids,
+\begin{equation}
+  \mathcal{L}_{\mathrm{unif}} \;=\;
+  \log \frac{1}{B(B-1)} \sum_{i \neq j} \exp\bigl(-t_u \, \|\mu_i - \mu_j\|^2\bigr),
+  \qquad t_u = 2 .
+  \label{eq:lunif}
+\end{equation}
+
+\paragraph{Total.}
+The objective is the weighted sum
+\begin{equation}
+  \mathcal{L} \;=\; \mathcal{L}_{\mathrm{align}}
+  \;+\; \alpha\,\mathcal{L}_{\mathrm{sem}}
+  \;+\; \beta\,\mathcal{L}_{\mathrm{mask}}
+  \;+\; \lambda\,\mathcal{L}_{\mathrm{unif}}
+  \;+\; \gamma\,\mathcal{L}_{\mathrm{ITM}},
+  \label{eq:total}
+\end{equation}
+with $\alpha = 1$, $\beta = 1$, $\lambda = 0.1$, $\gamma = 0.1$. The auxiliary terms
+$\mathcal{L}_{\mathrm{sem}}$ and $\mathcal{L}_{\mathrm{unif}}$ are switched on after a
+warm-up of $500$ steps, so that they shape a geometry that already exists rather than
+one still forming. $\mathcal{L}_{\mathrm{ITM}}$ is the standard image--text matching
+term that trains the second-stage reranker, with hard negatives drawn from the
+centroid similarities of Eq.~\eqref{eq:align}; it is inherited unchanged from the
+backbone recipe so that our comparison isolates the aggregation geometry.
+
+\subsection{Parameter-efficient adaptation}
+
+Because the aggregation is a function of embeddings rather than a new network, it
+does not require the encoders to be relearned. We freeze the backbone and train
+rank-$r$ LoRA adapters on the query and value projections of all three encoders,
+\begin{equation}
+  W \;\leftarrow\; W + \frac{\alpha_{\mathrm{lora}}}{r} B A,
+  \qquad B \in \mathbb{R}^{d \times r},\; A \in \mathbb{R}^{r \times d},\;
+  r = 8,\; \alpha_{\mathrm{lora}} = 16 ,
+  \label{eq:lora}
+\end{equation}
+which leaves $4.8$M trainable parameters against $1.4$B for a fully fine-tuned
+baseline. This is not only a cost argument: the same recipe with full fine-tuning
+instead of adapters is \emph{worse} on every benchmark (Sec.~\ref{sec:results}), so
+the low-rank constraint is doing useful work on a $150$k-clip adaptation set.
+
+\subsection{Inference}
+
+We follow the standard two-stage retrieval protocol of the backbone family so that
+all compared methods differ only in stage one. Stage one scores the full gallery with
+Eq.~\eqref{eq:qcentroid} in the closed form of Eq.~\eqref{eq:closedform} and keeps the
+top $50$ candidates; stage two rescores those candidates with the cross-encoder
+matching head, and the reported metric is R@$k$ after reranking. When a gallery clip
+is missing a modality, stage one simply evaluates Eqs.~\eqref{eq:qweights} and
+\eqref{eq:qcentroid} over the modalities that are present -- no imputation, no
+discarding, and no change of scale.

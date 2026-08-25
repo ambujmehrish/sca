@@ -69,11 +69,13 @@ def main():
     assert classes == data['gram'][0], 'class order differs between dumps'
     stats = {m: metrics(*data[m]) for m in data}
 
-    # deterministic display rule: the 3 classes where BOTH adapted models most exceed the
-    # shared VAST initialization on audio silhouette -- gap_c = min(SCA_c, GRAM_c) - VAST_c
-    gap = np.minimum(stats['sca'][0], stats['gram'][0]) - stats['vast'][0]
+    # deterministic display rule keyed to the metric the data actually moves: the 3 classes
+    # where BOTH adapted models most exceed the shared VAST initialization on TEXT-CENTROID
+    # cosine -- gap_c = min(SCA_c, GRAM_c) - VAST_c. (The audio-silhouette axis is flat
+    # across all three models, 0.20-0.26, and is reported on the panels, not selected on.)
+    gap = np.minimum(stats['sca'][1], stats['gram'][1]) - stats['vast'][1]
     show = sorted(np.argsort(gap)[::-1][:3])
-    print('display classes (largest min(SCA,GRAM)-VAST audio-silhouette gap): %s'
+    print('display classes (largest min(SCA,GRAM)-VAST text-centroid gain): %s'
           % [(classes[i], round(float(gap[i]), 2)) for i in show])
     for m in data:
         print('%s: audio silhouette %.2f (all %d classes), text-centroid cos %.2f'

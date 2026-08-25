@@ -46,7 +46,7 @@ BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
 # must (and do) show; the REGULARIZERS are labeled as such -- small, free, not load-bearing.
 TIERS = [
     ('\\emph{(a) core (not ablatable: $\\mathcal{L}_{\\mathrm{align}}$ is the objective)}', [
-        ('full objective (T9)', 't9_qweight_only'),
+        ('full objective', 't9_qweight_only'),   # T9 is an internal arm name, not paper-facing
     ]),
     ('\\emph{(b) mechanism: masked-view training}', [
         ('\\quad w/o masked training views ($p_{\\mathrm{full}}{=}1$)', 'g11_train_nomask'),
@@ -178,23 +178,15 @@ def main():
     out.append('%% Reference row t9_qweight_only must equal the SCA seed-0 cells behind Tables 1/2.')
     out.append('\\begin{table}[t]')
     out.append('\\centering')
-    out.append("\\caption{Ablating the objective: each row is the reported configuration "
-               "with one component removed, nothing retrained or retuned. The reference "
-               "row carries absolute values; every ablation row reports the CHANGE its "
-               "removal causes, in all three summary columns. $\\bar{\\Delta}$: two-stage "
-               "text$\\rightarrow$video R@1 -- at full modality these effects sit within "
-               "seed variance, because the shared reranker compresses them. The "
-               "components' effects are structural: $\\bar{\\Delta}_{\\mathrm{agg}}$, the "
-               "mean aggregation gain (Table~\\ref{tab:gain}), and "
-               "$\\bar{\\Delta}_{\\mathrm{agg}}^{90}$, the same under 90\\% test-time "
-               "masking. Masked-view training dominates ($-6.5$ gain, $-7.1$ under "
-               "masking): it is what makes the query-conditioned centroid a positive-gain "
-               "aggregator, with the explicit $\\mathcal{L}_{\\mathrm{mask}}$ term a "
-               "smaller share. The regularizers cost nothing and contribute measurably to "
-               "fusion quality ($\\mathcal{L}_{\\mathrm{sem}}$ $-0.9$, without which the "
-               "gain also turns negative on the audio-anchored benchmark; "
-               "$\\mathcal{L}_{\\mathrm{unif}}$ $-0.4$); they are not part of the "
-               "robustness claim and are not swept ('--').}")
+    # Crisp caption: definitions only. The interpretation (masked views dominate, the
+    # L_sem defense) lives in the body text next to the table, not in the caption.
+    out.append("\\caption{Objective ablation: the reported configuration with one "
+               "component removed, nothing retuned. The reference row shows absolute "
+               "values; ablation rows show the \\emph{change} caused by the removal. "
+               "$\\bar{\\Delta}$: mean two-stage text$\\rightarrow$video R@1. "
+               "$\\bar{\\Delta}_{\\mathrm{agg}}$: mean aggregation gain "
+               "(Table~\\ref{tab:gain}); $\\bar{\\Delta}_{\\mathrm{agg}}^{90}$: the same "
+               "under 90\\% test-time masking. Regularizers are not swept ('--').}")
     out.append('\\label{tab:loss_ablation}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')

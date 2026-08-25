@@ -284,6 +284,16 @@ def evaluate_ret(model, tasks, val_loader, global_step, dataset_name=None):
     # per-clip missing-modality mask (zero-vector feature => absent for that clip); all-present ==
     # volume_computationN byte-for-byte. Same masking logic as the retrieval eval / train.
     _present = torch.stack([(f.norm(dim=-1) > 0.5).float() for f in _feats], dim=1)
+    # Optional embedding dump for the latent-space figure (t-SNE): rank 0 saves the raw
+    # per-modality unit vectors plus the deduped class texts. Log-only side channel -- no
+    # metric above or below reads it. Enabled by SCA_DUMP_FEATS=/path/out.pt.
+    if dataset_name == 'vgg_ret' and os.environ.get('SCA_DUMP_FEATS'):
+        if (not torch.distributed.is_initialized()) or torch.distributed.get_rank() == 0:
+            _p = os.environ['SCA_DUMP_FEATS']
+            os.makedirs(os.path.dirname(_p) or '.', exist_ok=True)
+            torch.save({'feat_t': feat_t.float().cpu(), 'class_ids': class_ids,
+                        'feat_v': feat_v.float().cpu(), 'feat_a': feat_a.float().cpu(),
+                        'clip_classes': list(ids_caption)}, _p)
     # score_mode dispatch, mirroring evaluation_mm.py:309. This path used to hardcode the
     # volume, so an SCA checkpoint routed through vgg_ret was silently scored with GRAM's
     # geometry -- a model that was never trained, reported under SCA's name (caught when

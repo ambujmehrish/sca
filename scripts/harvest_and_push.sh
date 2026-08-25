@@ -90,6 +90,9 @@ run gain_table "The aggregation-gain table: the abstract's headline numbers, in 
 run significance "Seed CIs, exact sign tests, and the eval noise floor" \
     python3 scripts/significance.py
 
+run raw_vs_itm_vgg "VGGSound-5K cells (T9 seeds + released GRAM), pivots" \
+    python3 scripts/raw_vs_itm.py --root workdir/e1_vgg --pivot
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

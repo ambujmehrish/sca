@@ -139,3 +139,23 @@ def test_the_abstracts_gain_numbers_are_findable_in_a_table():
     baseline_cells = ' '.join(body[:3])
     assert baseline_cells.count('-') >= 12, 'the 12-of-14 negative count must be countable'
     assert 'uniform weights' in tex and 'query-weighted' in tex
+
+
+def test_vggsound_cells_carry_the_exact_e1_geometry():
+    """The VGGSound configs are the didemo templates with only the dataset block swapped:
+    any model_cfg/run_cfg drift would score the new benchmark with a different geometry
+    than Tables 1/2 -- the exact bug audit_eval_geometry exists for."""
+    import json
+    for a, b in (('benchmark_eval/configs_e1/gram_didemo.json',
+                  'benchmark_eval/configs_e1/gram_vggsound.json'),
+                 ('benchmark_eval/configs_qweight/sca_didemo.json',
+                  'benchmark_eval/configs_qweight/sca_vggsound.json')):
+        da, db = json.load(open(a)), json.load(open(b))
+        assert da['model_cfg'] == db['model_cfg'], (a, b)
+        assert da['run_cfg'] == db['run_cfg'], (a, b)
+        v = db['data_cfg']['val'][0]
+        assert v['txt'] == 'benchmark_eval/vgg5k_annotation_5000.json'
+        assert v['task'] == 'ret%tva' and v['name'] == 'vgg_ret'
+    launch = open('slurm_scripts/vggsound_eval.sh').read()
+    assert 'VGG5K_ROOT' in launch and 'GRAM_RELEASED_CKPT' in launch
+    assert '38.3/76.3' in launch, 'the wave-1 self-check anchor must be stated'

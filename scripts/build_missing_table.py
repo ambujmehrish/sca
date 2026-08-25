@@ -97,12 +97,13 @@ MAIN_CAPTION = (
     "HyperGRAM's release has no missing-modality path.}")
 
 SUPP_CAPTION = (
-    "\\caption{Two-stage (reranked) R@1 on the identical masked cells of Table~3, with "
-    "each method's own video-only cosine at $r{=}90\\%$. The reranker -- one frozen "
+    "\\caption{\\textbf{Why the main table reports the representation stage:} two-stage "
+    "(reranked) R@1 on the identical masked cells of Table~\\ref{tab:missing}, with each "
+    "method's own video-only cosine at $r{=}90\\%$. The reranker -- one frozen "
     "cross-encoder shared by all methods, trained only on complete pairs -- converges "
     "every method onto its video pathway as $r$ grows, erasing the aggregator differences "
-    "of Table~3: end-to-end robustness in a two-stage pipeline is capped by the shared "
-    "reranker, which is why the main table reports the representation stage.}")
+    "of Table~\\ref{tab:missing}: end-to-end robustness in a two-stage pipeline is capped "
+    "by the shared reranker.}")
 
 
 def build(metric, out_rel, caption, label, with_cos90):

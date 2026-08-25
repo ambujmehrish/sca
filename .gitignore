@@ -14,6 +14,8 @@ slurm_scripts/logs
 smoke_gpu_*.out
 wandb/
 *.pt
+# exception: the tiny t-SNE feature dumps ARE deliverables (rendered into the paper figure)
+!experiments/results/tables_final/tsne_feats/*.pt
 experiments/a10_workdir/
 experiments/*.log
 # upstream VAST/GRAM data-loader package (cluster-local, never committed here);

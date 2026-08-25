@@ -93,6 +93,9 @@ run significance "Seed CIs, exact sign tests, and the eval noise floor" \
 run raw_vs_itm_vgg "VGGSound-5K cells (T9 seeds + released GRAM), pivots" \
     python3 scripts/raw_vs_itm.py --root workdir/e1_vgg --pivot
 
+run raw_vs_itm_subsets "Modality-subset ladder (tv/tva rungs, appendix), pivots" \
+    python3 scripts/raw_vs_itm.py --root workdir/e1_subsets --pivot
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

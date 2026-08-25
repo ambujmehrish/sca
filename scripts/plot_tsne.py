@@ -34,7 +34,8 @@ from sklearn.metrics import silhouette_samples
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 FEATS = os.path.join(ROOT, 'experiments/results/tables_final/tsne_feats')
 OUT = os.path.join(ROOT, 'experiments/results/tables_final/fig_tsne_latent')
-PANELS = (('sca', 'SCA (ours)'), ('gram', 'GRAM (released ckpt)'))
+PANELS = (('vast', 'VAST (shared init.)'), ('gram', 'GRAM (1.4B full-FT)'),
+          ('sca', 'SCA (4.8M LoRA, ours)'))
 HUES = ('#2a78d6', '#eb6834', '#1baf7a')          # validated categorical slots 1-3
 INK, MUTED = '#0b0b0b', '#52514e'
 
@@ -68,16 +69,17 @@ def main():
     assert classes == data['gram'][0], 'class order differs between dumps'
     stats = {m: metrics(*data[m]) for m in data}
 
-    # deterministic display rule: largest per-class audio-silhouette gap, SCA minus GRAM
-    gap = stats['sca'][0] - stats['gram'][0]
+    # deterministic display rule: the 3 classes where BOTH adapted models most exceed the
+    # shared VAST initialization on audio silhouette -- gap_c = min(SCA_c, GRAM_c) - VAST_c
+    gap = np.minimum(stats['sca'][0], stats['gram'][0]) - stats['vast'][0]
     show = sorted(np.argsort(gap)[::-1][:3])
-    print('display classes (largest audio-silhouette gap, SCA-GRAM): %s'
+    print('display classes (largest min(SCA,GRAM)-VAST audio-silhouette gap): %s'
           % [(classes[i], round(float(gap[i]), 2)) for i in show])
     for m in data:
         print('%s: audio silhouette %.2f (all %d classes), text-centroid cos %.2f'
               % (m, stats[m][0].mean(), len(classes), stats[m][1].mean()))
 
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.25))
+    fig, axes = plt.subplots(1, 3, figsize=(10.2, 3.4))
     plt.rcParams.update({'font.size': 8.5, 'pdf.fonttype': 42, 'ps.fonttype': 42})
     for ax, (model, title) in zip(axes, PANELS):
         _, t, v, a, labels = data[model]

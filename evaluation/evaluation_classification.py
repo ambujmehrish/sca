@@ -325,6 +325,28 @@ def evaluate_ret(model, tasks, val_loader, global_step, dataset_name=None):
         val_log['ret_area_forward'] = {'volume_T2D_r1': a1,
                                        'volume_T2D_recall': f'{a1}/{a1}/{a10}',   # Acc@1/Acc@1/Acc@10
                                        'volume_T2D_ravg': round((a1 + a10) / 2, 1)}
+        # ---- DIAGNOSTIC DECOMPOSITION (log-only; the reported metric above is untouched).
+        # VGGSound is audio-anchored but the query weights key on raw cosine MAGNITUDE, and
+        # text-video cosines run larger than text-audio in this trunk. If Acc(audio alone)
+        # beats the aggregate while the aggregate tracks Acc(video alone), the weighting is
+        # collapsing onto the wrong modality for label-style queries -- invisible without
+        # this decomposition, since the classification path logs no pathway metrics.
+        def _cls_acc(score):                     # score: (num_class, num_clip), higher=better
+            gts = score[gt, torch.arange(score.shape[1], device=score.device)]
+            rk = (score > gts.unsqueeze(0)).sum(0)
+            return {'acc1': round((rk < 1).float().mean().item() * 100, 1),
+                    'acc10': round((rk < 10).float().mean().item() * 100, 1)}
+        _diag = {'video_alone': _cls_acc(feat_t.float() @ feat_v.float().T),
+                 'audio_alone': _cls_acc(feat_t.float() @ feat_a.float().T)}
+        if _score_mode == 'centroid' and _present.shape[1] == 2:
+            from model.centroid import masked_spherical_mean as _msm
+            _zd = torch.stack([feat_v.float(), feat_a.float()], dim=1)
+            _mu_u, _, _ = _msm(_zd, _present)
+            _diag['uniform_centroid'] = _cls_acc(feat_t.float() @ _mu_u.T)
+            _diag['max_over_modalities'] = _cls_acc(
+                torch.maximum(feat_t.float() @ feat_v.float().T,
+                              feat_t.float() @ feat_a.float().T))
+        val_log['vgg_diag'] = _diag
     else:
         log = compute_metric_ret_area(area, ids, ids_txt, direction='forward')
         log = {k.replace('forward','volume_T2D'): v for k,v in log.items()}

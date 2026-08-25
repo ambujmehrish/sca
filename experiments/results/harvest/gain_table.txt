@@ -1,0 +1,4 @@
+$ python3 scripts/build_gain_table.py
+
+wrote experiments/results/tables_final/table_gain.tex
+wrote experiments/results/tables_final/table_gain_supp.tex

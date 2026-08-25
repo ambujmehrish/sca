@@ -14,6 +14,11 @@
   "source": "/leonardo_work/AIFAC_S07_041/pmrl_weights/model_ckpts/pmrl_base.pt",
   "trainable": 1396646248
  },
+ "sca_fullft": {
+  "method": "optimizer state (exp_avg)",
+  "source": "workdir_pretrain/f1_t9_fullft/ckpt/optimizer_step_5330.pt",
+  "trainable": 1242890226
+ },
  "sca_t9": {
   "method": "optimizer state (exp_avg)",
   "source": "workdir_pretrain/t9_qweight_only/ckpt/optimizer_step_5330.pt",

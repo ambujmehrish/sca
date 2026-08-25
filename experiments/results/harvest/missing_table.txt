@@ -1,12 +1,4 @@
 $ python3 scripts/build_missing_table.py --all
 
-msrvtt: 4 cell(s) NOT MEASURED (MISSING printed): pmrl/r25, pmrl/r50, pmrl/r75, pmrl/r90
-didemo: 4 cell(s) NOT MEASURED (MISSING printed): pmrl/r25, pmrl/r50, pmrl/r75, pmrl/r90
-activitynet: 5 cell(s) NOT MEASURED (MISSING printed): pmrl/r00, pmrl/r25, pmrl/r50, pmrl/r75, pmrl/r90
-vatex: 4 cell(s) NOT MEASURED (MISSING printed): pmrl/r25, pmrl/r50, pmrl/r75, pmrl/r90
-audiocaps: 4 cell(s) NOT MEASURED (MISSING printed): pmrl/r25, pmrl/r50, pmrl/r75, pmrl/r90
-wrote experiments/results/tables_final/table3_missing_msrvtt.tex
-wrote experiments/results/tables_final/table3_missing_didemo.tex
-wrote experiments/results/tables_final/table3_missing_activitynet.tex
-wrote experiments/results/tables_final/table3_missing_vatex.tex
-wrote experiments/results/tables_final/table3_missing_audiocaps.tex
+wrote experiments/results/tables_final/table3_missing.tex
+wrote experiments/results/tables_final/table3_supp_twostage.tex

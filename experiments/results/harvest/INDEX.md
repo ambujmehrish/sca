@@ -18,9 +18,11 @@ ran, any other value means the file records a failure rather than a result.
 | [main_table](main_table.txt) | 1 | The main table, generated from measured cells (MISSING where unmeasured) |
 | [paper_tables](paper_tables.txt) | 0 | Per-benchmark paper tables (both directions, R@1/R@10, sectioned by geometry) |
 | [transfer_table](transfer_table.txt) | 0 | Table 2: the four transfer benchmarks side by side (T->V R@1/R@10) |
-| [missing_table](missing_table.txt) | 1 | Table 3: R@1 under test-time missing modalities, per benchmark |
-| [loss_ablation_table](loss_ablation_table.txt) | 1 | Table 4: T9 with one objective component removed at a time |
-| [eval_geometry](eval_geometry.txt) | 0 | Was every cell scored with the geometry its arm was TRAINED with? |
+| [missing_table](missing_table.txt) | 0 | Table 3: R@1 under test-time missing modalities, per benchmark |
+| [loss_ablation_table](loss_ablation_table.txt) | 0 | Table 4: T9 with one objective component removed at a time |
+| [gain_table](gain_table.txt) | 0 | The aggregation-gain table: the abstract's headline numbers, in the paper |
+| [significance](significance.txt) | 0 | Seed CIs, exact sign tests, and the eval noise floor |
+| [eval_geometry](eval_geometry.txt) | 4 | Was every cell scored with the geometry its arm was TRAINED with? |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |
 | [training_curve](training_curve.txt) | 0 | Where each arm peaks during training (overtraining check) |

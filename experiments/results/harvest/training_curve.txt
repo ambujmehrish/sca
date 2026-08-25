@@ -68,6 +68,8 @@ f1_t9_fullft               1776:50.1  3553:51.4  5330:50.4
                              peak 51.4 at step 3553 (67% of the run), final 50.4, drop -1.0
 g10_mask0                  1776:55.0  3553:54.6  5330:54.8
                              peak 55.0 at step 1776 (33% of the run), final 54.8, drop -0.2
+g11_train_nomask           1776:54.5  3553:54.1  5330:53.8
+                             peak 54.5 at step 1776 (33% of the run), final 53.8, drop -0.7
 g1_r16_qw                  1776:55.0  3553:54.9  5330:54.6
                              peak 55.0 at step 1776 (33% of the run), final 54.6, drop -0.4
 g2_r32_qw                  1776:55.2  3553:54.9  5330:54.8
@@ -195,6 +197,7 @@ PEAKED IN THE FIRST HALF -- these decayed for the rest of training:
   a6_fullft                  peak at 30% of the run, then -0.9
   g3_r64_qw                  peak at 33% of the run, then -0.9
   x8_xenclr_1e6              peak at 30% of the run, then -0.8
+  g11_train_nomask           peak at 33% of the run, then -0.7
   g6_lambda0                 peak at 33% of the run, then -0.6
   e1_bs128_ep1               peak at 50% of the run, then -0.5
   g4_lr5e5                   peak at 33% of the run, then -0.5

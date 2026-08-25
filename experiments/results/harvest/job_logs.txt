@@ -1,106 +1,485 @@
 Last lines of the most recent job logs
 
-===== slurm_scripts/logs/e1_xenc_53345467.out
-08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+===== slurm_scripts/logs/missing_54044783_2.out
+08/24/2026 22:24:49 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_ret_area_backard========
 
-08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 14.1, 'forward_recall': '14.1/37.8/50.1', 'forward_ravg': 34.0}
-08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+08/24/2026 22:24:49 - INFO - __main__ -   {'forward_r1': 18.6, 'forward_recall': '18.6/37.3/45.9', 'forward_ravg': 33.9}
+08/24/2026 22:24:49 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_ret_itm_area========
 
-08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 13.1, 'forward_recall': '13.1/35.9/49.0', 'forward_ravg': 32.7}
-08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+08/24/2026 22:24:49 - INFO - __main__ -   {'volume_ITM_T2D_r1': 30.8, 'volume_ITM_T2D_recall': '30.8/46.2/50.8', 'volume_ITM_T2D_ravg': 42.6, 'volume_ITM_D2T_r1': 25.6, 'volume_ITM_D2T_recall': '25.6/42.9/50.2', 'volume_ITM_D2T_ravg': 39.6}
+08/24/2026 22:24:49 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_TV========
 
-08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 25.1, 'forward_recall': '25.1/54.8/66.9', 'forward_ravg': 49.0}
-08/21/2026 16:17:21 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+08/24/2026 22:24:49 - INFO - __main__ -   {'forward_r1': 22.9, 'forward_recall': '22.9/40.4/47.1', 'forward_ravg': 36.8}
+08/24/2026 22:24:49 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_VT========
 
-08/21/2026 16:17:21 - INFO - __main__ -   {'forward_r1': 17.8, 'forward_recall': '17.8/39.8/51.0', 'forward_ravg': 36.2}
-/var/spool/slurmd/job53345467/slurm_script: line 72: cell_mark_done: command not found
-== [x2_xenc_r64_lr2e5/audiocaps] OK 16:17:27
-EXIT=0 DONE 16:17:27
+08/24/2026 22:24:49 - INFO - __main__ -   {'forward_r1': 17.9, 'forward_recall': '17.9/34.6/41.8', 'forward_ravg': 31.4}
+08/24/2026 22:24:49 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_TA========
 
-===== slurm_scripts/logs/e1_xenc_53330280.out
-  error_file: <N/A>
-  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
-------------------------------------------------------------
-Root Cause (first observed failure):
-[0]:
-  time      : 2026-08-21_13:38:22
-  host      : lrdn2551.leonardo.local
-  rank      : 0 (local_rank: 0)
-  exitcode  : 1 (pid: 2731662)
-  error_file: <N/A>
-  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
-============================================================
-srun: error: lrdn2551: task 0: Exited with exit code 1
-== [x2_xenc_r64_lr2e5/audiocaps] FAILED rc=1
-EXIT=1 DONE 13:38:22
+08/24/2026 22:24:49 - INFO - __main__ -   {'forward_r1': 1.0, 'forward_recall': '1.0/3.2/4.4', 'forward_ravg': 2.9}
+08/24/2026 22:24:49 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_AT========
 
-===== slurm_scripts/logs/e1_fusion_53338192.out
+08/24/2026 22:24:49 - INFO - __main__ -   {'forward_r1': 1.1, 'forward_recall': '1.1/3.3/5.0', 'forward_ravg': 3.1}
+Binary file (standard input) matches
+== [g11_train_nomask/activitynet/r90] OK 22:24:56
 
-08/21/2026 14:28:24 - INFO - __main__ -   {'forward_r1': 25.1, 'forward_recall': '25.1/55.0/66.9', 'forward_ravg': 49.0}
-08/21/2026 14:28:24 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 22:24:56
 
-08/21/2026 14:28:24 - INFO - __main__ -   {'forward_r1': 17.8, 'forward_recall': '17.8/39.8/50.9', 'forward_ravg': 36.1}
-/var/spool/slurmd/job53338192/slurm_script: line 101: cell_mark_done: command not found
-== [sca/audiocaps] OK 14:28:29
+===== slurm_scripts/logs/fs_eval_54060496.out
+f1_t9_fullft -> workdir_pretrain/f1_t9_fullft/ckpt/model_step_5330.pt
+== [f1_t9_fullft/msrvtt] already done, skip
+== [f1_t9_fullft/didemo] already done, skip
+== [f1_t9_fullft/activitynet] already done, skip
+== [f1_t9_fullft/vatex] already done, skip
+== [f1_t9_fullft/audiocaps] already done, skip
 
-SELF-CHECK: these cells must reproduce the e1_zs numbers -- same checkpoints, same
-            configs, only SCA_DUMP_RERANK added. Any drift means the dump changed the
-            eval, and the fusion analysis would be built on a different model.
+  python3 scripts/raw_vs_itm.py --root workdir/e1_frames --pivot
+EXIT=0 DONE 22:14:52
 
-Next (no GPU needed):
-  python3 scripts/sweep_score_fusion.py workdir/e1_fusion/*/dumps/rerank_*.pt
-EXIT=0 DONE 14:28:29
+===== slurm_scripts/logs/missing_54044665_2.out
+08/24/2026 21:47:38 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_ret_area_backard========
 
-===== slurm_scripts/logs/b_grid_53957599_45.out
-[h264 @ 0x55f13bb41100] mmco: unref short failure
-[h264 @ 0x55f139858480] mmco: unref short failure
-[h264 @ 0x55f139858480] mmco: unref short failure
-[h264 @ 0x55f1390f7f00] mmco: unref short failure
-[h264 @ 0x55f1390f7f00] mmco: unref short failure
-[h264 @ 0x5582ee6c6100] mmco: unref short failure
-[h264 @ 0x557861b6e080] mmco: unref short failure
-[h264 @ 0x557861b6e080] mmco: unref short failure
-[h264 @ 0x5578625fe4c0] mmco: unref short failure
-[h264 @ 0x5578625fe4c0] mmco: unref short failure
+08/24/2026 21:47:38 - INFO - __main__ -   {'forward_r1': 19.1, 'forward_recall': '19.1/38.9/47.8', 'forward_ravg': 35.3}
+08/24/2026 21:47:38 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_ret_itm_area========
+
+08/24/2026 21:47:38 - INFO - __main__ -   {'volume_ITM_T2D_r1': 30.3, 'volume_ITM_T2D_recall': '30.3/46.0/51.1', 'volume_ITM_T2D_ravg': 42.5, 'volume_ITM_D2T_r1': 25.4, 'volume_ITM_D2T_recall': '25.4/42.5/49.9', 'volume_ITM_D2T_ravg': 39.3}
+08/24/2026 21:47:38 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_TV========
+
+08/24/2026 21:47:38 - INFO - __main__ -   {'forward_r1': 22.4, 'forward_recall': '22.4/41.0/47.2', 'forward_ravg': 36.9}
+08/24/2026 21:47:38 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_VT========
+
+08/24/2026 21:47:38 - INFO - __main__ -   {'forward_r1': 18.1, 'forward_recall': '18.1/35.4/42.6', 'forward_ravg': 32.0}
+08/24/2026 21:47:38 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_TA========
+
+08/24/2026 21:47:38 - INFO - __main__ -   {'forward_r1': 1.7, 'forward_recall': '1.7/5.1/6.9', 'forward_ravg': 4.6}
+08/24/2026 21:47:38 - INFO - __main__ -   ==== evaluation--ret%tva--activitynet_ret_cosine_AT========
+
+08/24/2026 21:47:38 - INFO - __main__ -   {'forward_r1': 1.2, 'forward_recall': '1.2/4.1/6.5', 'forward_ravg': 4.0}
+Binary file (standard input) matches
+== [g10_mask0/activitynet/r90] OK 21:47:42
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 21:47:42
+
+===== slurm_scripts/logs/fs_eval_54044782.out
+08/24/2026 21:07:02 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_area_forward========
+
+08/24/2026 21:07:02 - INFO - __main__ -   {'volume_T2D_r1': 24.1, 'volume_T2D_recall': '24.1/53.1/66.9', 'volume_T2D_ravg': 48.1}
+08/24/2026 21:07:02 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_area_backard========
+
+08/24/2026 21:07:02 - INFO - __main__ -   {'forward_r1': 21.3, 'forward_recall': '21.3/50.1/63.1', 'forward_ravg': 44.8}
+08/24/2026 21:07:02 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_itm_area========
+
+08/24/2026 21:07:02 - INFO - __main__ -   {'volume_ITM_T2D_r1': 34.5, 'volume_ITM_T2D_recall': '34.5/63.2/74.1', 'volume_ITM_T2D_ravg': 57.3, 'volume_ITM_D2T_r1': 33.8, 'volume_ITM_D2T_recall': '33.8/65.6/76.7', 'volume_ITM_D2T_ravg': 58.7}
+08/24/2026 21:07:02 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/24/2026 21:07:02 - INFO - __main__ -   {'forward_r1': 12.8, 'forward_recall': '12.8/36.1/49.6', 'forward_ravg': 32.8}
+08/24/2026 21:07:02 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/24/2026 21:07:02 - INFO - __main__ -   {'forward_r1': 10.8, 'forward_recall': '10.8/33.2/48.3', 'forward_ravg': 30.8}
+08/24/2026 21:07:02 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/24/2026 21:07:02 - INFO - __main__ -   {'forward_r1': 21.4, 'forward_recall': '21.4/51.0/60.4', 'forward_ravg': 44.3}
+08/24/2026 21:07:02 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/24/2026 21:07:02 - INFO - __main__ -   {'forward_r1': 25.7, 'forward_recall': '25.7/52.0/62.8', 'forward_ravg': 46.8}
+== [g11_train_nomask/audiocaps] OK 21:07:08
+
+  python3 scripts/raw_vs_itm.py --root workdir/e1_frames --pivot
+EXIT=0 DONE 21:07:08
+
+===== slurm_scripts/logs/missing_54044783_1.out
+08/24/2026 20:54:03 - INFO - __main__ -   {'volume_T2D_r1': 21.1, 'volume_T2D_recall': '21.1/33.9/40.2', 'volume_T2D_ravg': 31.7}
+08/24/2026 20:54:03 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_ret_area_backard========
+
+08/24/2026 20:54:03 - INFO - __main__ -   {'forward_r1': 19.9, 'forward_recall': '19.9/37.7/45.2', 'forward_ravg': 34.3}
+08/24/2026 20:54:03 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_ret_itm_area========
+
+08/24/2026 20:54:03 - INFO - __main__ -   {'volume_ITM_T2D_r1': 29.6, 'volume_ITM_T2D_recall': '29.6/41.8/45.5', 'volume_ITM_T2D_ravg': 38.9, 'volume_ITM_D2T_r1': 26.3, 'volume_ITM_D2T_recall': '26.3/42.7/48.3', 'volume_ITM_D2T_ravg': 39.1}
+08/24/2026 20:54:03 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_TV========
+
+08/24/2026 20:54:03 - INFO - __main__ -   {'forward_r1': 23.9, 'forward_recall': '23.9/36.5/41.4', 'forward_ravg': 33.9}
+08/24/2026 20:54:03 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_VT========
+
+08/24/2026 20:54:03 - INFO - __main__ -   {'forward_r1': 17.9, 'forward_recall': '17.9/33.2/38.3', 'forward_ravg': 29.8}
+08/24/2026 20:54:03 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_TA========
+
+08/24/2026 20:54:03 - INFO - __main__ -   {'forward_r1': 2.7, 'forward_recall': '2.7/6.6/9.1', 'forward_ravg': 6.1}
+08/24/2026 20:54:03 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_AT========
+
+08/24/2026 20:54:03 - INFO - __main__ -   {'forward_r1': 2.8, 'forward_recall': '2.8/6.3/9.6', 'forward_ravg': 6.2}
+== [g11_train_nomask/didemo/r90] OK 20:54:09
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:54:09
+
+===== slurm_scripts/logs/missing_54044783_0.out
+08/24/2026 20:51:41 - INFO - __main__ -   {'volume_T2D_r1': 22.6, 'volume_T2D_recall': '22.6/38.3/46.9', 'volume_T2D_ravg': 35.9}
+08/24/2026 20:51:41 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_ret_area_backard========
+
+08/24/2026 20:51:41 - INFO - __main__ -   {'forward_r1': 22.9, 'forward_recall': '22.9/44.3/54.2', 'forward_ravg': 40.5}
+08/24/2026 20:51:41 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_ret_itm_area========
+
+08/24/2026 20:51:41 - INFO - __main__ -   {'volume_ITM_T2D_r1': 31.2, 'volume_ITM_T2D_recall': '31.2/44.4/49.3', 'volume_ITM_T2D_ravg': 41.6, 'volume_ITM_D2T_r1': 32.0, 'volume_ITM_D2T_recall': '32.0/49.6/56.4', 'volume_ITM_D2T_ravg': 46.0}
+08/24/2026 20:51:41 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_TV========
+
+08/24/2026 20:51:41 - INFO - __main__ -   {'forward_r1': 32.1, 'forward_recall': '32.1/52.3/58.3', 'forward_ravg': 47.6}
+08/24/2026 20:51:41 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_VT========
+
+08/24/2026 20:51:41 - INFO - __main__ -   {'forward_r1': 21.7, 'forward_recall': '21.7/42.7/50.5', 'forward_ravg': 38.3}
+08/24/2026 20:51:41 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_TA========
+
+08/24/2026 20:51:41 - INFO - __main__ -   {'forward_r1': 3.1, 'forward_recall': '3.1/8.8/12.6', 'forward_ravg': 8.2}
+08/24/2026 20:51:41 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_AT========
+
+08/24/2026 20:51:41 - INFO - __main__ -   {'forward_r1': 2.3, 'forward_recall': '2.3/8.0/12.6', 'forward_ravg': 7.6}
+== [g11_train_nomask/msrvtt/r90] OK 20:51:44
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:51:44
+
+===== slurm_scripts/logs/missing_54044783_4.out
+08/24/2026 20:45:23 - INFO - __main__ -   {'volume_T2D_r1': 11.1, 'volume_T2D_recall': '11.1/34.2/49.4', 'volume_T2D_ravg': 31.6}
+08/24/2026 20:45:23 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_area_backard========
+
+08/24/2026 20:45:23 - INFO - __main__ -   {'forward_r1': 18.6, 'forward_recall': '18.6/44.5/58.0', 'forward_ravg': 40.3}
+08/24/2026 20:45:23 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_itm_area========
+
+08/24/2026 20:45:23 - INFO - __main__ -   {'volume_ITM_T2D_r1': 10.8, 'volume_ITM_T2D_recall': '10.8/29.5/41.6', 'volume_ITM_T2D_ravg': 27.3, 'volume_ITM_D2T_r1': 11.1, 'volume_ITM_D2T_recall': '11.1/30.5/44.9', 'volume_ITM_D2T_ravg': 28.8}
+08/24/2026 20:45:23 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/24/2026 20:45:23 - INFO - __main__ -   {'forward_r1': 10.1, 'forward_recall': '10.1/25.4/34.4', 'forward_ravg': 23.3}
+08/24/2026 20:45:23 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/24/2026 20:45:23 - INFO - __main__ -   {'forward_r1': 6.0, 'forward_recall': '6.0/19.3/27.7', 'forward_ravg': 17.7}
+08/24/2026 20:45:23 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/24/2026 20:45:23 - INFO - __main__ -   {'forward_r1': 15.1, 'forward_recall': '15.1/33.4/38.8', 'forward_ravg': 29.1}
+08/24/2026 20:45:23 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/24/2026 20:45:23 - INFO - __main__ -   {'forward_r1': 14.8, 'forward_recall': '14.8/29.5/35.8', 'forward_ravg': 26.7}
+== [g11_train_nomask/audiocaps/r90] OK 20:45:29
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:45:29
+
+===== slurm_scripts/logs/missing_54044783_3.out
+08/24/2026 20:42:34 - INFO - __main__ -   {'volume_T2D_r1': 39.0, 'volume_T2D_recall': '39.0/60.6/68.9', 'volume_T2D_ravg': 56.1}
+08/24/2026 20:42:34 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_ret_area_backard========
+
+08/24/2026 20:42:34 - INFO - __main__ -   {'forward_r1': 44.3, 'forward_recall': '44.3/69.8/74.9', 'forward_ravg': 63.0}
+08/24/2026 20:42:34 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_ret_itm_area========
+
+08/24/2026 20:42:34 - INFO - __main__ -   {'volume_ITM_T2D_r1': 57.5, 'volume_ITM_T2D_recall': '57.5/68.9/70.3', 'volume_ITM_T2D_ravg': 65.6, 'volume_ITM_D2T_r1': 59.9, 'volume_ITM_D2T_recall': '59.9/73.5/77.5', 'volume_ITM_D2T_ravg': 70.3}
+08/24/2026 20:42:34 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_TV========
+
+08/24/2026 20:42:34 - INFO - __main__ -   {'forward_r1': 58.5, 'forward_recall': '58.5/69.1/70.3', 'forward_ravg': 66.0}
+08/24/2026 20:42:34 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_VT========
+
+08/24/2026 20:42:34 - INFO - __main__ -   {'forward_r1': 53.1, 'forward_recall': '53.1/68.2/69.6', 'forward_ravg': 63.7}
+08/24/2026 20:42:34 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_TA========
+
+08/24/2026 20:42:34 - INFO - __main__ -   {'forward_r1': 7.7, 'forward_recall': '7.7/16.9/23.9', 'forward_ravg': 16.2}
+08/24/2026 20:42:34 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_AT========
+
+08/24/2026 20:42:34 - INFO - __main__ -   {'forward_r1': 7.0, 'forward_recall': '7.0/18.3/26.5', 'forward_ravg': 17.2}
+== [g11_train_nomask/vatex/r90] OK 20:42:37
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:42:37
+
+===== slurm_scripts/logs/fs_eval_54044645.out
+08/24/2026 20:31:40 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_area_forward========
+
+08/24/2026 20:31:40 - INFO - __main__ -   {'volume_T2D_r1': 20.6, 'volume_T2D_recall': '20.6/52.4/66.5', 'volume_T2D_ravg': 46.5}
+08/24/2026 20:31:40 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_area_backard========
+
+08/24/2026 20:31:40 - INFO - __main__ -   {'forward_r1': 16.1, 'forward_recall': '16.1/45.0/59.7', 'forward_ravg': 40.2}
+08/24/2026 20:31:40 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_itm_area========
+
+08/24/2026 20:31:40 - INFO - __main__ -   {'volume_ITM_T2D_r1': 33.0, 'volume_ITM_T2D_recall': '33.0/61.6/73.9', 'volume_ITM_T2D_ravg': 56.2, 'volume_ITM_D2T_r1': 34.2, 'volume_ITM_D2T_recall': '34.2/59.5/73.0', 'volume_ITM_D2T_ravg': 55.6}
+08/24/2026 20:31:40 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/24/2026 20:31:40 - INFO - __main__ -   {'forward_r1': 11.8, 'forward_recall': '11.8/33.8/49.0', 'forward_ravg': 31.5}
+08/24/2026 20:31:40 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/24/2026 20:31:40 - INFO - __main__ -   {'forward_r1': 8.8, 'forward_recall': '8.8/34.1/47.2', 'forward_ravg': 30.0}
+08/24/2026 20:31:40 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/24/2026 20:31:40 - INFO - __main__ -   {'forward_r1': 20.3, 'forward_recall': '20.3/47.6/59.2', 'forward_ravg': 42.4}
+08/24/2026 20:31:40 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/24/2026 20:31:40 - INFO - __main__ -   {'forward_r1': 19.6, 'forward_recall': '19.6/48.6/61.4', 'forward_ravg': 43.2}
+== [f1_t9_fullft/audiocaps] OK 20:31:46
+
+  python3 scripts/raw_vs_itm.py --root workdir/e1_frames --pivot
+EXIT=0 DONE 20:31:46
+
+===== slurm_scripts/logs/missing_54044665_1.out
+08/24/2026 20:18:52 - INFO - __main__ -   {'volume_T2D_r1': 24.0, 'volume_T2D_recall': '24.0/38.4/43.3', 'volume_T2D_ravg': 35.2}
+08/24/2026 20:18:52 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_ret_area_backard========
+
+08/24/2026 20:18:52 - INFO - __main__ -   {'forward_r1': 20.8, 'forward_recall': '20.8/38.2/46.5', 'forward_ravg': 35.2}
+08/24/2026 20:18:52 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_ret_itm_area========
+
+08/24/2026 20:18:52 - INFO - __main__ -   {'volume_ITM_T2D_r1': 29.1, 'volume_ITM_T2D_recall': '29.1/42.2/45.4', 'volume_ITM_T2D_ravg': 38.9, 'volume_ITM_D2T_r1': 26.0, 'volume_ITM_D2T_recall': '26.0/43.5/49.0', 'volume_ITM_D2T_ravg': 39.5}
+08/24/2026 20:18:52 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_TV========
+
+08/24/2026 20:18:52 - INFO - __main__ -   {'forward_r1': 23.9, 'forward_recall': '23.9/37.7/41.7', 'forward_ravg': 34.4}
+08/24/2026 20:18:52 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_VT========
+
+08/24/2026 20:18:52 - INFO - __main__ -   {'forward_r1': 18.7, 'forward_recall': '18.7/32.4/37.8', 'forward_ravg': 29.6}
+08/24/2026 20:18:52 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_TA========
+
+08/24/2026 20:18:52 - INFO - __main__ -   {'forward_r1': 3.5, 'forward_recall': '3.5/8.5/12.6', 'forward_ravg': 8.2}
+08/24/2026 20:18:52 - INFO - __main__ -   ==== evaluation--ret%tva--didemo_ret_cosine_AT========
+
+08/24/2026 20:18:52 - INFO - __main__ -   {'forward_r1': 2.9, 'forward_recall': '2.9/8.4/12.1', 'forward_ravg': 7.8}
+== [g10_mask0/didemo/r90] OK 20:18:55
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:18:55
+
+===== slurm_scripts/logs/missing_54044665_0.out
+08/24/2026 20:14:58 - INFO - __main__ -   {'volume_T2D_r1': 34.0, 'volume_T2D_recall': '34.0/54.2/61.8', 'volume_T2D_ravg': 50.0}
+08/24/2026 20:14:58 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_ret_area_backard========
+
+08/24/2026 20:14:58 - INFO - __main__ -   {'forward_r1': 26.7, 'forward_recall': '26.7/49.0/59.8', 'forward_ravg': 45.2}
+08/24/2026 20:14:58 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_ret_itm_area========
+
+08/24/2026 20:14:58 - INFO - __main__ -   {'volume_ITM_T2D_r1': 33.3, 'volume_ITM_T2D_recall': '33.3/50.1/58.0', 'volume_ITM_T2D_ravg': 47.1, 'volume_ITM_D2T_r1': 32.0, 'volume_ITM_D2T_recall': '32.0/51.0/58.1', 'volume_ITM_D2T_ravg': 47.0}
+08/24/2026 20:14:58 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_TV========
+
+08/24/2026 20:14:58 - INFO - __main__ -   {'forward_r1': 33.2, 'forward_recall': '33.2/53.6/59.3', 'forward_ravg': 48.7}
+08/24/2026 20:14:58 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_VT========
+
+08/24/2026 20:14:58 - INFO - __main__ -   {'forward_r1': 22.7, 'forward_recall': '22.7/42.4/51.4', 'forward_ravg': 38.8}
+08/24/2026 20:14:58 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_TA========
+
+08/24/2026 20:14:58 - INFO - __main__ -   {'forward_r1': 4.8, 'forward_recall': '4.8/11.3/14.6', 'forward_ravg': 10.2}
+08/24/2026 20:14:58 - INFO - __main__ -   ==== evaluation--ret%tvas--msrvtt_ret_cosine_AT========
+
+08/24/2026 20:14:58 - INFO - __main__ -   {'forward_r1': 3.4, 'forward_recall': '3.4/10.9/15.9', 'forward_ravg': 10.1}
+== [g10_mask0/msrvtt/r90] OK 20:15:04
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:15:04
+
+===== slurm_scripts/logs/missing_54044665_4.out
+08/24/2026 20:09:51 - INFO - __main__ -   {'volume_T2D_r1': 15.1, 'volume_T2D_recall': '15.1/40.1/55.5', 'volume_T2D_ravg': 36.9}
+08/24/2026 20:09:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_area_backard========
+
+08/24/2026 20:09:51 - INFO - __main__ -   {'forward_r1': 20.9, 'forward_recall': '20.9/48.6/60.5', 'forward_ravg': 43.3}
+08/24/2026 20:09:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_ret_itm_area========
+
+08/24/2026 20:09:51 - INFO - __main__ -   {'volume_ITM_T2D_r1': 9.7, 'volume_ITM_T2D_recall': '9.7/27.7/39.3', 'volume_ITM_T2D_ravg': 25.6, 'volume_ITM_D2T_r1': 11.1, 'volume_ITM_D2T_recall': '11.1/31.7/44.0', 'volume_ITM_D2T_ravg': 28.9}
+08/24/2026 20:09:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+
+08/24/2026 20:09:51 - INFO - __main__ -   {'forward_r1': 10.5, 'forward_recall': '10.5/26.3/34.9', 'forward_ravg': 23.9}
+08/24/2026 20:09:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+
+08/24/2026 20:09:51 - INFO - __main__ -   {'forward_r1': 6.7, 'forward_recall': '6.7/19.9/27.3', 'forward_ravg': 17.9}
+08/24/2026 20:09:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+
+08/24/2026 20:09:51 - INFO - __main__ -   {'forward_r1': 19.9, 'forward_recall': '19.9/36.1/43.0', 'forward_ravg': 33.0}
+08/24/2026 20:09:51 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+
+08/24/2026 20:09:51 - INFO - __main__ -   {'forward_r1': 16.9, 'forward_recall': '16.9/34.1/39.9', 'forward_ravg': 30.3}
+== [g10_mask0/audiocaps/r90] OK 20:09:54
+
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:09:54
+
+===== slurm_scripts/logs/b_grid_54016975_46.out
+[h264 @ 0x557622042600] mmco: unref short failure
+[h264 @ 0x557622042600] mmco: unref short failure
+[h264 @ 0x5600ad79fac0] mmco: unref short failure
+[h264 @ 0x5600ad79fac0] mmco: unref short failure
+[h264 @ 0x55e43dc2c680] mmco: unref short failure
+[h264 @ 0x55e43dc2c680] mmco: unref short failure
+[h264 @ 0x55e43fe52f80] mmco: unref short failure
+[h264 @ 0x5576247d7880] mmco: unref short failure
+[h264 @ 0x5576247d7880] mmco: unref short failure
+[h264 @ 0x5576247d7880] mmco: unref short failure
+[h264 @ 0x559f36328640] mmco: unref short failure
+[h264 @ 0x559f36328640] mmco: unref short failure
+[h264 @ 0x55e43f158fc0] mmco: unref short failure
+[h264 @ 0x5576222511c0] mmco: unref short failure
+[h264 @ 0x5576222ab340] mmco: unref short failure
+[h264 @ 0x5576222ab340] mmco: unref short failure
+[h264 @ 0x5576201c3a00] mmco: unref short failure
+[h264 @ 0x5576201c3a00] mmco: unref short failure
+[h264 @ 0x559f36e465c0] mmco: unref short failure
+[h264 @ 0x559f36e465c0] mmco: unref short failure
 [1;34mwandb[0m: 
 [1;34mwandb[0m: You can sync this run to the cloud by running:
-[1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260824_102834-qm8jcls2[0m
-[1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260824_102834-qm8jcls2/logs[0m
-EXIT=0 DONE 13:38:05
+[1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260824_173202-plh7bsfi[0m
+[1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20260824_173202-plh7bsfi/logs[0m
+EXIT=0 DONE 20:08:32
 
-===== slurm_scripts/logs/b_grid_53969064_46.out
-FATAL: index 46 out of range (0-45)
+===== slurm_scripts/logs/missing_54044665_3.out
+08/24/2026 20:04:56 - INFO - __main__ -   {'volume_T2D_r1': 60.3, 'volume_T2D_recall': '60.3/75.4/78.7', 'volume_T2D_ravg': 71.5}
+08/24/2026 20:04:56 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_ret_area_backard========
 
-===== slurm_scripts/logs/e1_zs_53265198.out
-08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+08/24/2026 20:04:56 - INFO - __main__ -   {'forward_r1': 56.6, 'forward_recall': '56.6/77.3/81.7', 'forward_ravg': 71.8}
+08/24/2026 20:04:56 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_ret_itm_area========
 
-08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 12.5, 'forward_recall': '12.5/34.7/50.6', 'forward_ravg': 32.6}
-08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+08/24/2026 20:04:56 - INFO - __main__ -   {'volume_ITM_T2D_r1': 57.5, 'volume_ITM_T2D_recall': '57.5/70.3/72.9', 'volume_ITM_T2D_ravg': 66.9, 'volume_ITM_D2T_r1': 60.1, 'volume_ITM_D2T_recall': '60.1/74.2/79.1', 'volume_ITM_D2T_ravg': 71.2}
+08/24/2026 20:04:56 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_TV========
 
-08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 9.4, 'forward_recall': '9.4/32.1/44.9', 'forward_ravg': 28.8}
-08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
+08/24/2026 20:04:56 - INFO - __main__ -   {'forward_r1': 58.5, 'forward_recall': '58.5/69.6/70.3', 'forward_ravg': 66.1}
+08/24/2026 20:04:56 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_VT========
 
-08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 25.3, 'forward_recall': '25.3/56.7/71.2', 'forward_ravg': 51.0}
-08/20/2026 22:38:28 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
+08/24/2026 20:04:56 - INFO - __main__ -   {'forward_r1': 53.1, 'forward_recall': '53.1/68.0/69.4', 'forward_ravg': 63.5}
+08/24/2026 20:04:56 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_TA========
 
-08/20/2026 22:38:28 - INFO - __main__ -   {'forward_r1': 25.0, 'forward_recall': '25.0/56.8/70.0', 'forward_ravg': 50.6}
-/var/spool/slurmd/job53265198/slurm_script: line 55: cell_mark_done: command not found
-== [gram_audiocaps] OK 22:38:32
-EXIT=0 DONE 22:38:32
+08/24/2026 20:04:56 - INFO - __main__ -   {'forward_r1': 11.4, 'forward_recall': '11.4/26.2/31.8', 'forward_ravg': 23.1}
+08/24/2026 20:04:56 - INFO - __main__ -   ==== evaluation--ret%tvas--vatex_ret_cosine_AT========
 
-===== slurm_scripts/logs/e1_zs_53264889.out
-08/20/2026 21:02:09 - INFO - __main__ -   {'volume_ITM_T2D_r1': 33.1, 'volume_ITM_T2D_recall': '33.1/62.9/73.0', 'volume_ITM_T2D_ravg': 56.3, 'volume_ITM_D2T_r1': 32.8, 'volume_ITM_D2T_recall': '32.8/61.1/74.9', 'volume_ITM_D2T_ravg': 56.2}
-08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TV========
+08/24/2026 20:04:56 - INFO - __main__ -   {'forward_r1': 9.5, 'forward_recall': '9.5/27.1/37.4', 'forward_ravg': 24.7}
+== [g10_mask0/vatex/r90] OK 20:04:59
 
-08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 12.5, 'forward_recall': '12.5/34.7/50.6', 'forward_ravg': 32.6}
-08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_VT========
+CONTROL: the r00 cells must reproduce Table 1/2 for their model (masking off is
+         byte-identical to the standard eval path). If they do not, the sweep is
+         mis-wired and NO rate is reportable.
+EXIT=0 DONE 20:04:59
 
-08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 9.4, 'forward_recall': '9.4/32.1/44.9', 'forward_ravg': 28.8}
-08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_TA========
-
-08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 25.3, 'forward_recall': '25.3/56.7/71.2', 'forward_ravg': 51.0}
-08/20/2026 21:02:09 - INFO - __main__ -   ==== evaluation--ret%tva--audiocaps_ret_cosine_AT========
-
-08/20/2026 21:02:09 - INFO - __main__ -   {'forward_r1': 25.0, 'forward_recall': '25.0/56.8/70.0', 'forward_ravg': 50.6}
-== [gram_audiocaps] OK 21:02:11
-EXIT=0 DONE 21:02:11
+===== cell-level status lines from the missing-modality sweep (all logs)
+slurm_scripts/logs/missing_53965708_4.out:== [gram/audiocaps/r75] START 11:58:23  cfg=benchmark_eval/configs_missing/r75/gram_audiocaps.json  ckpt=/leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt
+slurm_scripts/logs/missing_53965708_4.out:== [gram/audiocaps/r75] LOAD NOT VERIFIED -- cell refused
+slurm_scripts/logs/missing_53965708_4.out:== [gram/audiocaps/r75] FAILED rc=3
+slurm_scripts/logs/missing_53965708_4.out:== [gram/audiocaps/r90] START 12:02:26  cfg=benchmark_eval/configs_missing/r90/gram_audiocaps.json  ckpt=/leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt
+slurm_scripts/logs/missing_53965708_4.out:== [gram/audiocaps/r90] LOAD NOT VERIFIED -- cell refused
+slurm_scripts/logs/missing_53965708_4.out:== [gram/audiocaps/r90] FAILED rc=3
+slurm_scripts/logs/missing_53965708_4.out:== [pmrl/audiocaps/r00] START 12:06:30  cfg=benchmark_eval/configs_missing/r00/pmrl_audiocaps.json  ckpt=/leonardo_work/AIFAC_S07_041/pmrl_weights/model_ckpts/pmrl_base.pt
+slurm_scripts/logs/missing_53965708_4.out:== [pmrl/audiocaps/r00] LOAD NOT VERIFIED -- cell refused
+slurm_scripts/logs/missing_53965708_4.out:   (all pmrl rates refused for audiocaps)
+slurm_scripts/logs/missing_53965708_4.out:EXIT=3 DONE 12:10:47
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r00] START 19:48:22  cfg=benchmark_eval/configs_missing/r00/sca_msrvtt.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r00] OK 19:54:32
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r25] START 19:54:32  cfg=benchmark_eval/configs_missing/r25/sca_msrvtt.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r25] OK 19:59:41
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r50] START 19:59:41  cfg=benchmark_eval/configs_missing/r50/sca_msrvtt.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r50] OK 20:04:48
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r75] START 20:04:48  cfg=benchmark_eval/configs_missing/r75/sca_msrvtt.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r75] OK 20:09:56
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r90] START 20:09:56  cfg=benchmark_eval/configs_missing/r90/sca_msrvtt.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_0.out:== [g10_mask0/msrvtt/r90] OK 20:15:04
+slurm_scripts/logs/missing_54044665_0.out:EXIT=0 DONE 20:15:04
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r00] START 19:48:22  cfg=benchmark_eval/configs_missing/r00/sca_didemo.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r00] OK 19:55:12
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r25] START 19:55:12  cfg=benchmark_eval/configs_missing/r25/sca_didemo.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r25] OK 20:01:05
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r50] START 20:01:05  cfg=benchmark_eval/configs_missing/r50/sca_didemo.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r50] OK 20:06:58
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r75] START 20:06:58  cfg=benchmark_eval/configs_missing/r75/sca_didemo.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r75] OK 20:12:55
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r90] START 20:12:55  cfg=benchmark_eval/configs_missing/r90/sca_didemo.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r90] OK 20:18:55
+slurm_scripts/logs/missing_54044665_1.out:EXIT=0 DONE 20:18:55
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r00] START 19:48:22  cfg=benchmark_eval/configs_missing/r00/sca_activitynet.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r00] OK 20:12:39
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r25] START 20:12:39  cfg=benchmark_eval/configs_missing/r25/sca_activitynet.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r25] OK 20:36:24
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r50] START 20:36:24  cfg=benchmark_eval/configs_missing/r50/sca_activitynet.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r50] OK 21:00:18
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r75] START 21:00:18  cfg=benchmark_eval/configs_missing/r75/sca_activitynet.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r75] OK 21:24:08
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r90] START 21:24:08  cfg=benchmark_eval/configs_missing/r90/sca_activitynet.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_2.out:== [g10_mask0/activitynet/r90] OK 21:47:42
+slurm_scripts/logs/missing_54044665_2.out:EXIT=0 DONE 21:47:42
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r00] START 19:48:22  cfg=benchmark_eval/configs_missing/r00/sca_vatex.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r00] OK 19:52:08
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r25] START 19:52:08  cfg=benchmark_eval/configs_missing/r25/sca_vatex.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r25] OK 19:55:22
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r50] START 19:55:22  cfg=benchmark_eval/configs_missing/r50/sca_vatex.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r50] OK 19:58:34
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r75] START 19:58:34  cfg=benchmark_eval/configs_missing/r75/sca_vatex.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r75] OK 20:01:47
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r90] START 20:01:47  cfg=benchmark_eval/configs_missing/r90/sca_vatex.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_3.out:== [g10_mask0/vatex/r90] OK 20:04:59
+slurm_scripts/logs/missing_54044665_3.out:EXIT=0 DONE 20:04:59
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r00] START 19:48:25  cfg=benchmark_eval/configs_missing/r00/sca_audiocaps.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r00] OK 19:53:27
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r25] START 19:53:27  cfg=benchmark_eval/configs_missing/r25/sca_audiocaps.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r25] OK 19:57:35
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r50] START 19:57:35  cfg=benchmark_eval/configs_missing/r50/sca_audiocaps.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r50] OK 20:01:44
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r75] START 20:01:44  cfg=benchmark_eval/configs_missing/r75/sca_audiocaps.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r75] OK 20:05:46
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r90] START 20:05:46  cfg=benchmark_eval/configs_missing/r90/sca_audiocaps.json  ckpt=workdir_pretrain/g10_mask0/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044665_4.out:== [g10_mask0/audiocaps/r90] OK 20:09:54
+slurm_scripts/logs/missing_54044665_4.out:EXIT=0 DONE 20:09:54
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r00] START 20:24:14  cfg=benchmark_eval/configs_missing/r00/sca_msrvtt.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r00] OK 20:31:18
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r25] START 20:31:18  cfg=benchmark_eval/configs_missing/r25/sca_msrvtt.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r25] OK 20:36:20
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r50] START 20:36:20  cfg=benchmark_eval/configs_missing/r50/sca_msrvtt.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r50] OK 20:41:33
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r75] START 20:41:33  cfg=benchmark_eval/configs_missing/r75/sca_msrvtt.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r75] OK 20:46:41
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r90] START 20:46:41  cfg=benchmark_eval/configs_missing/r90/sca_msrvtt.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_0.out:== [g11_train_nomask/msrvtt/r90] OK 20:51:44
+slurm_scripts/logs/missing_54044783_0.out:EXIT=0 DONE 20:51:44
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r00] START 20:24:17  cfg=benchmark_eval/configs_missing/r00/sca_didemo.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r00] OK 20:30:38
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r25] START 20:30:38  cfg=benchmark_eval/configs_missing/r25/sca_didemo.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r25] OK 20:36:30
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r50] START 20:36:30  cfg=benchmark_eval/configs_missing/r50/sca_didemo.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r50] OK 20:42:23
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r75] START 20:42:23  cfg=benchmark_eval/configs_missing/r75/sca_didemo.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r75] OK 20:48:11
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r90] START 20:48:11  cfg=benchmark_eval/configs_missing/r90/sca_didemo.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_1.out:== [g11_train_nomask/didemo/r90] OK 20:54:09
+slurm_scripts/logs/missing_54044783_1.out:EXIT=0 DONE 20:54:09
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r00] START 20:24:17  cfg=benchmark_eval/configs_missing/r00/sca_activitynet.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r00] OK 20:48:38
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r25] START 20:48:38  cfg=benchmark_eval/configs_missing/r25/sca_activitynet.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r25] OK 21:12:37
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r50] START 21:12:37  cfg=benchmark_eval/configs_missing/r50/sca_activitynet.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r50] OK 21:36:51
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r75] START 21:36:51  cfg=benchmark_eval/configs_missing/r75/sca_activitynet.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r75] OK 22:01:00
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r90] START 22:01:00  cfg=benchmark_eval/configs_missing/r90/sca_activitynet.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_2.out:== [g11_train_nomask/activitynet/r90] OK 22:24:56
+slurm_scripts/logs/missing_54044783_2.out:EXIT=0 DONE 22:24:56
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r00] START 20:24:17  cfg=benchmark_eval/configs_missing/r00/sca_vatex.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r00] OK 20:29:31
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r25] START 20:29:31  cfg=benchmark_eval/configs_missing/r25/sca_vatex.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r25] OK 20:32:43
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r50] START 20:32:43  cfg=benchmark_eval/configs_missing/r50/sca_vatex.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r50] OK 20:36:01
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r75] START 20:36:01  cfg=benchmark_eval/configs_missing/r75/sca_vatex.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r75] OK 20:39:19
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r90] START 20:39:19  cfg=benchmark_eval/configs_missing/r90/sca_vatex.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_3.out:== [g11_train_nomask/vatex/r90] OK 20:42:37
+slurm_scripts/logs/missing_54044783_3.out:EXIT=0 DONE 20:42:37
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r00] START 20:24:17  cfg=benchmark_eval/configs_missing/r00/sca_audiocaps.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r00] OK 20:28:53
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r25] START 20:28:53  cfg=benchmark_eval/configs_missing/r25/sca_audiocaps.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r25] OK 20:33:00
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r50] START 20:33:00  cfg=benchmark_eval/configs_missing/r50/sca_audiocaps.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r50] OK 20:37:08
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r75] START 20:37:08  cfg=benchmark_eval/configs_missing/r75/sca_audiocaps.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r75] OK 20:41:17
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r90] START 20:41:17  cfg=benchmark_eval/configs_missing/r90/sca_audiocaps.json  ckpt=workdir_pretrain/g11_train_nomask/ckpt/model_step_5330.pt
+slurm_scripts/logs/missing_54044783_4.out:== [g11_train_nomask/audiocaps/r90] OK 20:45:29
+slurm_scripts/logs/missing_54044783_4.out:EXIT=0 DONE 20:45:29

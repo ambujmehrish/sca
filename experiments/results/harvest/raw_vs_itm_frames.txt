@@ -2,11 +2,21 @@ $ python3 scripts/raw_vs_itm.py --root workdir/e1_frames --pivot
 
 cell                                cos T-V  cos T-A best 1mod   AGGREG     GAIN      ITM
 ----------------------------------------------------------------------------------------
+f1_t9_fullft_activitynet               31.6      2.8     31.6     31.9     +0.3     53.4
+f1_t9_fullft_audiocaps                 11.8     20.3     20.3     20.6     +0.3     33.0
+f1_t9_fullft_didemo                    29.5      4.5     29.5     28.1     -1.4     49.0
+f1_t9_fullft_msrvtt                    38.9      6.3     38.9     41.3     +2.4     50.4
+f1_t9_fullft_vatex                     76.3     13.5     76.3     75.9     -0.4     89.3
 g10_mask0_activitynet                  32.6      2.2     32.6     32.4     -0.2     55.8
 g10_mask0_audiocaps                    12.5     27.1     27.1     26.1     -1.0     35.4
 g10_mask0_didemo                       36.3      4.1     36.3     34.4     -1.9     51.0
 g10_mask0_msrvtt                       42.4      5.1     42.4     44.8     +2.4     54.8
 g10_mask0_vatex                        81.4     13.9     81.4     79.8     -1.6     90.3
+g11_train_nomask_activitynet           33.5      1.4     33.5     27.6     -5.9     54.7
+g11_train_nomask_audiocaps             12.8     21.4     21.4     24.1     +2.7     34.5
+g11_train_nomask_didemo                35.0      2.7     35.0     28.9     -6.1     50.4
+g11_train_nomask_msrvtt                40.3      4.0     40.3     35.3     -5.0     53.8
+g11_train_nomask_vatex                 81.0      8.8     81.0     67.7    -13.3     90.5
 g1_r16_qw_activitynet                  34.4      2.3     34.4     34.4     +0.0     55.8
 g1_r16_qw_audiocaps                    14.1     25.6     25.6     26.6     +1.0     34.8
 g1_r16_qw_didemo                       35.2      4.2     35.2     34.3     -0.9     50.7
@@ -120,7 +130,9 @@ x5_xenc_clean_lr5e6_vatex              75.4      9.7     75.4     74.0     -1.4 
 AGGREGATOR R@1 (the method's own score -- centroid vs volume)
 arm                            msrvtt       didemo  activitynet        vatex    audiocaps
 -----------------------------------------------------------------------------------------
+f1_t9_fullft                     41.3         28.1         31.9         75.9         20.6
 g10_mask0                        44.8         34.4         32.4         79.8         26.1
+g11_train_nomask                 35.3         28.9         27.6         67.7         24.1
 g1_r16_qw                        45.4         34.3         34.4         81.2         26.6
 g2_r32_qw                        44.9         34.2         34.9         81.9         26.0
 g2b_r32_a16_qw                   45.3         34.0         34.5         82.1         26.6
@@ -147,7 +159,9 @@ x5_xenc_clean_lr5e6              38.1         28.9         27.3         74.0    
 ITM R@1 (the REPORTED metric, after cross-encoder reranking)
 arm                            msrvtt       didemo  activitynet        vatex    audiocaps
 -----------------------------------------------------------------------------------------
+f1_t9_fullft                     50.4         49.0         53.4         89.3         33.0
 g10_mask0                        54.8         51.0         55.8         90.3         35.4
+g11_train_nomask                 53.8         50.4         54.7         90.5         34.5
 g1_r16_qw                        54.6         50.7         55.8         90.3         34.8
 g2_r32_qw                        54.8         50.8         56.1         90.3         34.5
 g2b_r32_a16_qw                   55.0         50.9         55.9         90.5         35.1
@@ -174,7 +188,9 @@ x5_xenc_clean_lr5e6              51.4         50.6         54.3         87.9    
 cosine T-V R@1 (video alone)
 arm                            msrvtt       didemo  activitynet        vatex    audiocaps
 -----------------------------------------------------------------------------------------
+f1_t9_fullft                     38.9         29.5         31.6         76.3         11.8
 g10_mask0                        42.4         36.3         32.6         81.4         12.5
+g11_train_nomask                 40.3         35.0         33.5         81.0         12.8
 g1_r16_qw                        41.4         35.2         34.4         81.0         14.1
 g2_r32_qw                        41.6         36.2         34.8         80.7         13.5
 g2b_r32_a16_qw                   41.3         35.0         34.3         81.2         13.1

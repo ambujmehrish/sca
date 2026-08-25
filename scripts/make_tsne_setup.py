@@ -21,7 +21,12 @@ import os
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-CLASSES = ('cat purring', 'chainsawing trees', 'airplane flyby')
+# Eight acoustically distinctive classes (~17 clips each). The FIGURE displays only three,
+# chosen by a deterministic rule in plot_tsne.py and disclosed in the caption; the numbers
+# printed on the panels are computed over ALL eight, so the selection cannot bias them.
+CLASSES = ('airplane flyby', 'bird squawking', 'car engine knocking',
+           'car engine starting', 'cat purring', 'chainsawing trees',
+           'chicken crowing', 'cow lowing')
 
 
 def main():

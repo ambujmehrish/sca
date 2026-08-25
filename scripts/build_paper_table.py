@@ -247,7 +247,7 @@ def main():
 
     out.append('\\multicolumn{8}{l}{\\emph{(a) Foundation models}} \\\\')
     for disp, adapter, vals in ref:
-        out.append('%s & %s & \\xmark & %s \\\\' % (disp, adapter, cells(vals)))
+        out.append('%s & %s & -- & \\xmark & %s \\\\' % (disp, adapter, cells(vals)))
     out.append('\\midrule')
     out.append('\\multicolumn{8}{l}{\\emph{(b) Gramian-volume alignment}} \\\\')
 

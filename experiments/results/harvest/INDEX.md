@@ -23,6 +23,7 @@ ran, any other value means the file records a failure rather than a result.
 | [gain_table](gain_table.txt) | 0 | The aggregation-gain table: the abstract's headline numbers, in the paper |
 | [significance](significance.txt) | 0 | Seed CIs, exact sign tests, and the eval noise floor |
 | [raw_vs_itm_vgg](raw_vs_itm_vgg.txt) | 0 | VGGSound-5K cells (T9 seeds + released GRAM), pivots |
+| [raw_vs_itm_subsets](raw_vs_itm_subsets.txt) | 0 | Modality-subset ladder (tv/tva rungs, appendix), pivots |
 | [eval_geometry](eval_geometry.txt) | 4 | Was every cell scored with the geometry its arm was TRAINED with? |
 | [training_gaps](training_gaps.txt) | 1 | Completeness, step continuity, cross-arm uniformity, config drift |
 | [modality_arity](modality_arity.txt) | 0 | Gallery arity at train vs at each benchmark |

@@ -1,0 +1,45 @@
+$ python3 scripts/raw_vs_itm.py --root workdir/e1_subsets --pivot
+
+cell                                cos T-V  cos T-A best 1mod   AGGREG     GAIN      ITM
+----------------------------------------------------------------------------------------
+gram_msrvtt_tv                         42.1      7.1     42.1     42.1     +0.0     51.9
+gram_msrvtt_tva                        42.1      7.1     42.1     39.7     -2.4     53.2
+gram_vatex_tv                          77.5     19.7     77.5     77.5     +0.0     88.2
+gram_vatex_tva                         77.5     19.7     77.5     75.6     -1.9     88.6
+sca_msrvtt_tv                          41.2      5.4     41.2     41.2     +0.0     51.3
+sca_msrvtt_tva                         41.2      5.4     41.2     42.1     +0.9     51.9
+sca_vatex_tv                           81.2     13.5     81.2     81.2     +0.0     87.9
+sca_vatex_tva                          81.2     13.5     81.2     81.9     +0.7     90.0
+
+AGGREGATOR R@1 (the method's own score -- centroid vs volume)
+arm                            msrvtt        vatex
+--------------------------------------------------
+gram_tv                          42.1         77.5
+gram_tva                         39.7         75.6
+sca_tv                           41.2         81.2
+sca_tva                          42.1         81.9
+
+ITM R@1 (the REPORTED metric, after cross-encoder reranking)
+arm                            msrvtt        vatex
+--------------------------------------------------
+gram_tv                          51.9         88.2
+gram_tva                         53.2         88.6
+sca_tv                           51.3         87.9
+sca_tva                          51.9         90.0
+
+cosine T-V R@1 (video alone)
+arm                            msrvtt        vatex
+--------------------------------------------------
+gram_tv                          42.1         77.5
+gram_tva                         42.1         77.5
+sca_tv                           41.2         81.2
+sca_tva                          41.2         81.2
+
+GAIN (the aggregation gain, Delta_agg) is the diagnostic: an aggregator that
+scores below the best modality it was built from -- negative gain -- is destroying
+information. Compare an SCA cell against the released-GRAM cell for the SAME
+benchmark: worse gain on equal or better single-modality features is a fusion
+defect, not a representation defect.
+
+ITM is the reported metric. If SCA leads on AGGREG and trails on ITM, the
+reranking stage is where the advantage is lost instead.

@@ -2,7 +2,7 @@ $ python3 scripts/raw_vs_itm.py --root workdir/e1_vgg --pivot
 
 cell                                cos T-V  cos T-A best 1mod   AGGREG     GAIN      ITM
 ----------------------------------------------------------------------------------------
-released_vggsound                        --       --       --     40.5       --       --   <- 2 runs in the log, reporting the LAST
+released_vggsound                        --       --       --     40.5       --       --   <- 3 runs in the log, reporting the LAST
 s1_t9_seed51_vggsound                    --       --       --     34.6       --       --
 s2_t9_seed52_vggsound                    --       --       --     35.1       --       --
 t9_qweight_only_vggsound                 --       --       --     34.9       --       --
@@ -10,7 +10,7 @@ t9_qweight_only_vggsound                 --       --       --     34.9       -- 
 EVAL NOISE FLOOR -- repeated runs of one cell on the SAME checkpoint
 cell                               metric                             runs   spread
 ------------------------------------------------------------------------------------
-released_vggsound                  ret_area_forward              40.5 40.5      0.0
+released_vggsound                  ret_area_forward         40.5 40.5 40.5      0.0
 
 No cell was evaluated twice on one checkpoint -- no floor can be stated, and
 an absent floor is not a floor of zero. Re-run one finished cell to measure it.

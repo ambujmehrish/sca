@@ -1,5 +1,29 @@
 Last lines of the most recent job logs
 
+===== slurm_scripts/logs/tsne_dump_54156425_1.out
+wrote benchmark_eval/vgg_tsne_annotation.json (51 clips: {'cat purring': 17, 'chainsawing trees': 17, 'airplane flyby': 17})
+wrote benchmark_eval/configs_tsne/sca_vggtsne.json (drift-asserted)
+wrote benchmark_eval/configs_tsne/gram_vggtsne.json (drift-asserted)
+== [tsne/gram] START 18:16:42  ckpt=/leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt
+
+08/25/2026 18:18:32 - INFO - __main__ -   {'volume_T2D_r1': 94.1, 'volume_T2D_recall': '94.1/94.1/100.0', 'volume_T2D_ravg': 97.0}
+08/25/2026 18:18:32 - INFO - __main__ -   ==== evaluation--ret%tva--vgg_ret_vgg_diag========
+
+08/25/2026 18:18:32 - INFO - __main__ -   {'video_alone': {'acc1': 94.1, 'acc10': 100.0}, 'audio_alone': {'acc1': 92.2, 'acc10': 100.0}}
+EXIT=0 DONE 18:18:38
+
+===== slurm_scripts/logs/tsne_dump_54156425_0.out
+wrote benchmark_eval/vgg_tsne_annotation.json (51 clips: {'cat purring': 17, 'chainsawing trees': 17, 'airplane flyby': 17})
+wrote benchmark_eval/configs_tsne/sca_vggtsne.json (drift-asserted)
+wrote benchmark_eval/configs_tsne/gram_vggtsne.json (drift-asserted)
+== [tsne/sca] START 18:16:19  ckpt=workdir_pretrain/t9_qweight_only/ckpt/model_step_5330.pt
+
+08/25/2026 18:17:59 - INFO - __main__ -   {'volume_T2D_r1': 96.1, 'volume_T2D_recall': '96.1/96.1/100.0', 'volume_T2D_ravg': 98.0}
+08/25/2026 18:17:59 - INFO - __main__ -   ==== evaluation--ret%tva--vgg_ret_vgg_diag========
+
+08/25/2026 18:17:59 - INFO - __main__ -   {'video_alone': {'acc1': 96.1, 'acc10': 100.0}, 'audio_alone': {'acc1': 94.1, 'acc10': 100.0}, 'uniform_centroid': {'acc1': 94.1, 'acc10': 100.0}, 'max_over_modalities': {'acc1': 96.1, 'acc10': 100.0}}
+EXIT=0 DONE 18:18:03
+
 ===== slurm_scripts/logs/subset_54144400_2.out
 08/25/2026 16:46:36 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_ret_area_forward========
 
@@ -281,39 +305,6 @@ wrote 8 subset configs; only the task string differs from the validated template
 == [sca/msrvtt/tv] already done, skip
 == [sca/msrvtt/tva] already done, skip
 EXIT=0 DONE 16:28:10
-
-===== slurm_scripts/logs/subset_54142375_3.out
-wrote 8 subset configs; only the task string differs from the validated templates (asserted)
-== [gram/vatex/tv] already done, skip
-== [gram/vatex/tva] already done, skip
-EXIT=0 DONE 16:28:10
-
-===== slurm_scripts/logs/subset_54133249_0.out
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'value': 0.5053007006645203}
-08/25/2026 15:57:11 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_ret_area_forward========
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'volume_T2D_r1': 42.1, 'volume_T2D_recall': '42.1/71.1/79.7', 'volume_T2D_ravg': 64.3}
-08/25/2026 15:57:11 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_ret_area_backard========
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'forward_r1': 31.1, 'forward_recall': '31.1/58.5/68.6', 'forward_ravg': 52.7}
-08/25/2026 15:57:11 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_ret_itm_area========
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'volume_ITM_T2D_r1': 51.9, 'volume_ITM_T2D_recall': '51.9/74.6/82.8', 'volume_ITM_T2D_ravg': 69.8, 'volume_ITM_D2T_r1': 47.4, 'volume_ITM_D2T_recall': '47.4/71.4/79.1', 'volume_ITM_D2T_ravg': 66.0}
-08/25/2026 15:57:11 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_cosine_TV========
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'forward_r1': 41.2, 'forward_recall': '41.2/70.4/80.2', 'forward_ravg': 63.9}
-08/25/2026 15:57:11 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_cosine_VT========
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'forward_r1': 31.3, 'forward_recall': '31.3/57.6/68.8', 'forward_ravg': 52.6}
-08/25/2026 15:57:11 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_cosine_TA========
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'forward_r1': 5.4, 'forward_recall': '5.4/13.7/19.9', 'forward_ravg': 13.0}
-08/25/2026 15:57:11 - INFO - __main__ -   ==== evaluation--ret%tva--msrvtt_ret_cosine_AT========
-
-08/25/2026 15:57:11 - INFO - __main__ -   {'forward_r1': 4.2, 'forward_recall': '4.2/14.7/21.5', 'forward_ravg': 13.5}
-== [sca/msrvtt/tva] OK 15:57:16
-EXIT=0 DONE 15:57:16
 
 ===== cell-level status lines from the missing-modality sweep (all logs)
 slurm_scripts/logs/missing_54044665_1.out:== [g10_mask0/didemo/r50] OK 20:06:58

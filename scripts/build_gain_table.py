@@ -114,7 +114,9 @@ def main():
         "$\\star$: authors' released checkpoint; $\\dagger$: trained from the authors' "
         "code. The uniform-weights row is our centroid without query conditioning: it pays "
         "the baselines' penalty on the same trunk, isolating query conditioning as the "
-        "mechanism. These decompositions are not reported in the baselines' papers: both "
+        "mechanism -- jointly with masked-view training: trained without masked views, the "
+        "query-weighted centroid pays the penalty too (Table~\\ref{tab:loss_ablation}). "
+        "These decompositions are not reported in the baselines' papers: both "
         "terms are computed by us from each released model's own embeddings, scored by its "
         "own published scoring function, in one shared evaluation environment. Components "
         "of the subtraction in the supplement.}",

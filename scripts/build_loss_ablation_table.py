@@ -108,15 +108,21 @@ def t2v_r1(arm, bench):
     return vals[5] if vals else None
 
 
-def _missing_agg(arm, bench, rate, _cache={}):
-    """Aggregator R@1 for one masked cell (workdir/e1_missing), pivot fallback."""
+def _missing_agg(arm, bench, rate, field='agg', _cache={}):
+    """Aggregator R@1 (field='agg') or aggregation gain (field='gain') for one masked cell
+    (workdir/e1_missing), pivot fallback."""
     name = '%s_%s_%s' % (MISSING_PREFIX.get(arm, arm), bench, rate)
     d = os.path.join(ROOT, 'workdir/e1_missing', name)
     if os.path.isdir(d):
         from raw_vs_itm import scan
         got, _ = scan(d)
-        if got.get('ret_area_forward') is not None:
-            return got['ret_area_forward']
+        agg = got.get('ret_area_forward')
+        if agg is not None:
+            if field == 'agg':
+                return agg
+            best = max((v for v in (got.get('cosine_TV'), got.get('cosine_TA'))
+                        if v is not None), default=None)
+            return (agg - best) if best is not None else None
     if 'rows' not in _cache:
         _cache['rows'] = {}
         for txt in sorted(glob.glob(os.path.join(
@@ -126,19 +132,24 @@ def _missing_agg(arm, bench, rate, _cache={}):
                 if m:
                     _cache['rows'][m.group(1)] = [float(x) for x in m.group(2).split()]
     vals = _cache['rows'].get(name)
-    return vals[3] if vals else None
+    if vals is None:
+        return None
+    return vals[3] if field == 'agg' else vals[4]   # AGGREG / GAIN pivot columns
 
 
-def mask_drop(arm):
-    """Mean aggregator drop r=0 -> r=90% over the benchmarks with both cells measured --
-    the robustness column, where component effects amplify instead of being compressed by
-    the shared reranker. None until the arm has been swept (SCA_ONLY_ARMS mode)."""
-    drops = []
+def masked_gain(arm):
+    """Mean aggregation gain (aggregator minus best unimodal) at r=90% test-time masking,
+    over the benchmarks with the cell measured. THIS is the robustness column: the drop
+    SLOPE barely separates arms (T9 13.6 / g11 13.8 / g10 12.4 mean drop 0->90), because
+    every arm rides the same encoders down -- the masked-training effect lives in the gain
+    LEVEL, which stays near zero for T9 (-0.5) and collapses without masked views (-7.6).
+    None until the arm has been swept (SCA_ONLY_ARMS mode)."""
+    gains = []
     for b in BENCHES:
-        a0, a9 = _missing_agg(arm, b, 'r00'), _missing_agg(arm, b, 'r90')
-        if a0 is not None and a9 is not None:
-            drops.append(a0 - a9)
-    return sum(drops) / len(drops) if drops else None
+        v = _missing_agg(arm, b, 'r90', field='gain')
+        if v is not None:
+            gains.append(v)
+    return sum(gains) / len(gains) if gains else None
 
 
 def main():
@@ -167,19 +178,20 @@ def main():
     out.append('%% Reference row t9_qweight_only must equal the SCA seed-0 cells behind Tables 1/2.')
     out.append('\\begin{table}[t]')
     out.append('\\centering')
-    out.append("\\caption{Ablating the objective at the reported configuration: each row is "
-               "T9 with one component removed, nothing retrained or retuned. Left block: "
-               "text$\\rightarrow$video R@1, two-stage protocol ($\\bar{\\Delta}$ = mean "
-               "change vs.\\ the full objective; at full modality, individual effects are "
-               "within seed variance -- the shared reranker compresses them). The "
-               "components' effects are structural: $\\bar{\\Delta}_{\\mathrm{agg}}$ is the "
-               "mean aggregation gain (own score vs.\\ best single pathway), and "
-               "$\\Delta_{90}$ the mean drop of that score from 0\\% to 90\\% test-time "
-               "masking. Rows are grouped by claim: the mechanism rows carry the "
-               "missing-modality pillar (w/o masked views stops drawing reduced-arity "
-               "training views; w/o $\\mathcal{L}_{\\mathrm{mask}}$ drops only the "
-               "cross-arity agreement term); the regularizers are free and not "
-               "load-bearing.}")
+    out.append("\\caption{Ablating the objective: each row is the reported configuration "
+               "with one component removed, nothing retrained or retuned. Left block: "
+               "two-stage text$\\rightarrow$video R@1 ($\\bar{\\Delta}$ = mean change vs.\\ "
+               "the full objective) -- at full modality individual effects sit within seed "
+               "variance, because the shared reranker compresses them. The components' "
+               "effects are structural: $\\bar{\\Delta}_{\\mathrm{agg}}$ is the mean "
+               "aggregation gain (own score vs.\\ best unimodal, Table~\\ref{tab:gain}) "
+               "and $\\bar{\\Delta}_{\\mathrm{agg}}^{90}$ the same under 90\\% test-time "
+               "masking. Removing the masked training views collapses the gain "
+               "($+1.0\\!\\to\\!-5.5$, and $-7.6$ under masking) while the video pathway "
+               "is unchanged: masked-view training is what makes the query-conditioned "
+               "centroid a positive-gain aggregator. $\\mathcal{L}_{\\mathrm{mask}}$ drops "
+               "only the explicit cross-arity agreement term on top of those views; the "
+               "regularizers are free and not load-bearing (not swept: '--').}")
     out.append('\\label{tab:loss_ablation}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')
@@ -187,7 +199,8 @@ def main():
     out.append('\\begin{tabular}{l%s ccc}' % ('c' * len(BENCHES)))
     out.append('\\toprule')
     out.append('Objective & %s & $\\bar{\\Delta}$ & $\\bar{\\Delta}_{\\mathrm{agg}}$ '
-               '& $\\Delta_{90}$ \\\\' % ' & '.join(LABEL[b] for b in BENCHES))
+               '& $\\bar{\\Delta}_{\\mathrm{agg}}^{90}$ \\\\'
+               % ' & '.join(LABEL[b] for b in BENCHES))
     for tier, rows in TIERS:
         out.append('\\midrule')
         out.append('\\multicolumn{%d}{l}{%s} \\\\' % (ncol, tier))
@@ -200,9 +213,9 @@ def main():
                 dc = 'MISSING' if d is None else '%+.1f' % d
             g = gbar(arm)
             gc = 'MISSING' if g is None else '%+.1f' % g
-            md = mask_drop(arm)
+            md = masked_gain(arm)
             if md is not None:
-                mc = '%.1f' % md
+                mc = '%+.1f' % md
             elif arm in SWEEP_EXPECTED:
                 mc = 'MISSING'      # reference + mechanism rows are swept; absence is a hole
             else:

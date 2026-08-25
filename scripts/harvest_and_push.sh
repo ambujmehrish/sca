@@ -99,6 +99,9 @@ run raw_vs_itm_subsets "Modality-subset ladder (tv/tva rungs, appendix), pivots"
 run subset_table "Appendix: the modality-subset ladder table" \
     python3 scripts/build_subset_table.py
 
+run vggsound_table "Appendix: VGGSound-5K with the pathway decomposition" \
+    python3 scripts/build_vggsound_table.py
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

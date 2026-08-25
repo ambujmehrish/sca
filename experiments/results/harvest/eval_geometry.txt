@@ -1,6 +1,6 @@
 $ python3 scripts/audit_eval_geometry.py
 
-checked 223 cell(s) across 8 root(s); 131 could not be verified
+checked 223 cell(s) across 8 root(s); 135 could not be verified
 
 GEOMETRY MISMATCH -- these numbers describe a model that was never trained:
 
@@ -17,7 +17,7 @@ Nothing raises when this happens: the shapes match, the run completes, and the
 number is wrong in a way no reader can detect. Re-run these cells against the
 config that matches their arm before any of them reaches a table.
 
-NOT VERIFIED (131) -- absence of a mismatch here is not evidence of one:
+NOT VERIFIED (135) -- absence of a mismatch here is not evidence of one:
   e1_frames        r3_itm_top50_n4_msrvtt             no log/hps.json
   e1_fusion        released_activitynet               no training arm at workdir_pretrain/released
   e1_fusion        released_audiocaps                 no training arm at workdir_pretrain/released
@@ -38,4 +38,4 @@ NOT VERIFIED (131) -- absence of a mismatch here is not evidence of one:
   e1_missing       g10_mask0_didemo_r25               cell name does not end in a known benchmark
   e1_missing       g10_mask0_didemo_r50               cell name does not end in a known benchmark
   e1_missing       g10_mask0_didemo_r75               cell name does not end in a known benchmark
-  ... and 111 more
+  ... and 115 more

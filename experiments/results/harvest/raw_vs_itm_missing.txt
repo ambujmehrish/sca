@@ -57,11 +57,11 @@ gram_activitynet_r25                   33.2      3.2     33.2     27.1     -6.1 
 gram_activitynet_r50                   30.0      2.8     30.0     23.6     -6.4     41.4
 gram_activitynet_r75                   26.8      2.4     26.8     20.8     -6.0     35.5
 gram_activitynet_r90                   24.8      2.2     24.8     19.5     -5.3     32.3
-gram_audiocaps_r00                     13.1     29.0     29.0     22.9     -6.1     32.2
-gram_audiocaps_r25                     12.4     26.8     26.8     20.3     -6.5     26.0
-gram_audiocaps_r50                     11.6     24.4     24.4     17.0     -7.4     21.0
-gram_audiocaps_r75                     10.9     22.0     22.0     12.2     -9.8     15.5
-gram_audiocaps_r90                      9.5     21.4     21.4     10.1    -11.3     11.4
+gram_audiocaps_r00                     13.1     29.0     29.0     22.9     -6.1     32.2   <- 2 runs in the log, reporting the LAST
+gram_audiocaps_r25                     12.4     26.8     26.8     20.3     -6.5     26.0   <- 2 runs in the log, reporting the LAST
+gram_audiocaps_r50                     11.6     24.4     24.4     17.0     -7.4     21.0   <- 2 runs in the log, reporting the LAST
+gram_audiocaps_r75                     10.9     22.0     22.0     12.2     -9.8     15.5   <- 2 runs in the log, reporting the LAST
+gram_audiocaps_r90                      9.5     21.4     21.4     10.1    -11.3     11.4   <- 2 runs in the log, reporting the LAST
 gram_didemo_r00                        32.0      5.1     32.0     28.2     -3.8     50.7
 gram_didemo_r25                        29.1      4.9     29.1     24.8     -4.3     45.0
 gram_didemo_r50                        25.6      4.7     25.6     22.0     -3.6     39.8
@@ -77,7 +77,9 @@ gram_vatex_r25                         75.4     19.7     75.4     69.8     -5.6 
 gram_vatex_r50                         68.9     19.0     68.9     61.7     -7.2     72.9
 gram_vatex_r75                         61.9     17.9     61.9     53.1     -8.8     61.9
 gram_vatex_r90                         58.0     16.9     58.0     51.5     -6.5     57.8
-pmrl_audiocaps_r00                     13.1     32.4     32.4     18.9    -13.5     34.7
+pmrl_audiocaps_r00                     13.1     32.4     32.4     18.9    -13.5     34.7   <- 2 runs in the log, reporting the LAST
+pmrl_audiocaps_r25                     12.6     29.5     29.5      8.1    -21.4     11.6
+pmrl_audiocaps_r50                     12.2     27.4     27.4     12.8    -14.6      8.9
 pmrl_didemo_r00                        37.7      6.6     37.7     17.7    -20.0     49.7
 pmrl_msrvtt_r00                        43.7      6.4     43.7     19.5    -24.2     49.8
 pmrl_vatex_r00                         81.2     20.4     81.2     48.0    -33.2     89.1
@@ -126,6 +128,8 @@ gram_r50                         32.4         22.0         23.6         61.7    
 gram_r75                         29.9         19.7         20.8         53.1         12.2
 gram_r90                         27.9         18.1         19.5         51.5         10.1
 pmrl_r00                         19.5         17.7           --         48.0         18.9
+pmrl_r25                           --           --           --           --          8.1
+pmrl_r50                           --           --           --           --         12.8
 sca_r00                          45.2         34.3         34.4         81.7         27.1
 sca_r25                          42.1         31.1         30.3         78.7         23.7
 sca_r50                          39.2         27.5         27.4         71.5         20.5
@@ -151,6 +155,8 @@ gram_r50                         40.9         39.8         41.4         72.9    
 gram_r75                         35.4         32.7         35.5         61.9         15.5
 gram_r90                         32.9         29.8         32.3         57.8         11.4
 pmrl_r00                         49.8         49.7           --         89.1         34.7
+pmrl_r25                           --           --           --           --         11.6
+pmrl_r50                           --           --           --           --          8.9
 sca_r00                          54.8         51.3         55.8         90.5         35.2
 sca_r25                          47.8         44.2         47.9         85.2         24.6
 sca_r50                          41.1         38.9         40.0         73.3         19.2
@@ -176,11 +182,44 @@ gram_r50                         36.5         25.6         30.0         68.9    
 gram_r75                         34.6         23.4         26.8         61.9         10.9
 gram_r90                         32.8         21.1         24.8         58.0          9.5
 pmrl_r00                         43.7         37.7           --         81.2         13.1
+pmrl_r25                           --           --           --           --         12.6
+pmrl_r50                           --           --           --           --         12.2
 sca_r00                          41.2         35.4         34.1         81.2         12.8
 sca_r25                          38.2         32.1         31.1         78.2         11.9
 sca_r50                          35.7         28.5         28.2         70.5         10.9
 sca_r75                          33.4         25.2         25.4         62.9         10.8
 sca_r90                          32.1         23.2         23.7         58.5         10.2
+
+EVAL NOISE FLOOR -- repeated runs of one cell on the SAME checkpoint
+cell                               metric                             runs   spread
+------------------------------------------------------------------------------------
+gram_audiocaps_r00                 cosine_TA                     29.0 29.0      0.0
+gram_audiocaps_r00                 cosine_TV                     13.1 13.1      0.0
+gram_audiocaps_r00                 ret_area_forward              22.9 22.9      0.0
+gram_audiocaps_r00                 ret_itm_area                  32.2 32.2      0.0
+gram_audiocaps_r25                 cosine_TA                     26.8 26.8      0.0
+gram_audiocaps_r25                 cosine_TV                     12.4 12.4      0.0
+gram_audiocaps_r25                 ret_area_forward              20.3 20.3      0.0
+gram_audiocaps_r25                 ret_itm_area                  26.0 26.0      0.0
+gram_audiocaps_r50                 cosine_TA                     24.4 24.4      0.0
+gram_audiocaps_r50                 cosine_TV                     11.6 11.6      0.0
+gram_audiocaps_r50                 ret_area_forward              17.0 17.0      0.0
+gram_audiocaps_r50                 ret_itm_area                  21.0 21.0      0.0
+gram_audiocaps_r75                 cosine_TA                     22.0 22.0      0.0
+gram_audiocaps_r75                 cosine_TV                     10.9 10.9      0.0
+gram_audiocaps_r75                 ret_area_forward              12.2 12.2      0.0
+gram_audiocaps_r75                 ret_itm_area                  15.5 15.5      0.0
+gram_audiocaps_r90                 cosine_TA                     21.4 21.4      0.0
+gram_audiocaps_r90                 cosine_TV                       9.5 9.5      0.0
+gram_audiocaps_r90                 ret_area_forward              10.1 10.1      0.0
+gram_audiocaps_r90                 ret_itm_area                  11.4 11.4      0.0
+pmrl_audiocaps_r00                 cosine_TA                     32.4 32.4      0.0
+pmrl_audiocaps_r00                 cosine_TV                     13.1 13.1      0.0
+pmrl_audiocaps_r00                 ret_area_forward              18.9 18.9      0.0
+pmrl_audiocaps_r00                 ret_itm_area                  34.7 34.7      0.0
+
+No cell was evaluated twice on one checkpoint -- no floor can be stated, and
+an absent floor is not a floor of zero. Re-run one finished cell to measure it.
 
 GAIN (the aggregation gain, Delta_agg) is the diagnostic: an aggregator that
 scores below the best modality it was built from -- negative gain -- is destroying

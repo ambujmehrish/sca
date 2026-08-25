@@ -96,6 +96,9 @@ run raw_vs_itm_vgg "VGGSound-5K cells (T9 seeds + released GRAM), pivots" \
 run raw_vs_itm_subsets "Modality-subset ladder (tv/tva rungs, appendix), pivots" \
     python3 scripts/raw_vs_itm.py --root workdir/e1_subsets --pivot
 
+run subset_table "Appendix: the modality-subset ladder table" \
+    python3 scripts/build_subset_table.py
+
 run eval_geometry "Was every cell scored with the geometry its arm was TRAINED with?" \
     python3 scripts/audit_eval_geometry.py
 

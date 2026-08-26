@@ -34,8 +34,8 @@ from sklearn.metrics import silhouette_samples
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 FEATS = os.path.join(ROOT, 'experiments/results/tables_final/tsne_feats')
 OUT = os.path.join(ROOT, 'experiments/results/tables_final/fig_tsne_latent')
-PANELS = (('vast', 'VAST (shared init.)'), ('gram', 'GRAM (1.4B full-FT)'),
-          ('sca', 'SCA (4.8M LoRA, ours)'))
+PANELS = (('vast', 'VAST (shared init.)'), ('gram', 'GRAM (full fine-tuned)'),
+          ('sca', 'SCA (LoRA, 4.8M, ours)'))
 HUES = ('#2a78d6', '#eb6834', '#1baf7a')          # validated categorical slots 1-3
 INK, MUTED = '#0b0b0b', '#52514e'
 

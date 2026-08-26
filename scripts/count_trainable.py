@@ -21,6 +21,27 @@ Counts are MEASURED from files, never quoted from a paper:
 Results accumulate in experiments/results/tables_final/trainable_params.json (inside the
 directory the harvest commits), and the table generators read that file -- a row whose key
 is absent prints MISSING, never a number from memory.
+
+WHICH COUNTS THE PAPER PRINTS. Only ours (sca_t9). The baseline keys are kept here as
+provenance, not as table cells, because a key-level diff of the three checkpoints showed the
+two rules are not interchangeable and the checkpoint rule counts things that are not the
+method:
+
+  GRAM (released)   1,396,646,248  over 1286 tensors
+  HyperGRAM (ours)  1,397,367,147  over 1290 tensors
+  SCA full-FT       1,397,367,145  over 1288 tensors
+
+  HyperGRAM - GRAM = contra_head_d.linear.weight (720,896) + curvature + euclidean_weight
+                     + hyperbolic_weight (1 each)
+  SCA full-FT - GRAM = contra_head_d.linear.weight (720,896) + sca_tau (1)
+
+contra_head_d is OUR trunk's depth projection head, built unconditionally at gram.py:33 and
+never called in T-VA/T-VAS eval; it is absent from the released GRAM checkpoint. Printing
+1.4B for HyperGRAM would bill our dead weight to their method, and HyperGRAM's paper claims
+no new parameters beyond a scalar. Separately, the same full-FT model reads 1,242,890,226 by
+the optimizer rule and 1,397,367,145 by the checkpoint rule -- an 11% gap -- so a LoRA count
+from one rule cannot sit in a column beside a baseline count from the other. The tables
+therefore state what each row TRAINS ('full-FT' / 'LoRA, 4.8M'); see build_paper_table.py.
 """
 import argparse
 import json

@@ -23,10 +23,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_paper_table import (ROOT, LABEL, FOUNDATION, _pub, fmt,          # noqa: E402
-                               gram_cell, sca_cell, authors_metrics, params_str)
+                               gram_cell, sca_cell, authors_metrics, trainable_col)
 
 T2_BENCHES = ('didemo', 'activitynet', 'vatex', 'audiocaps')
-NCOL = 4 + 2 * len(T2_BENCHES)
+NCOL = 3 + 2 * len(T2_BENCHES)   # Method | Trainable | Mask | (R@1, R@10) per benchmark
 
 
 def measured_for(b):
@@ -83,6 +83,9 @@ def main():
     out.append('\\begin{table*}[t]')
     out.append('\\centering')
     out.append("\\caption{Zero-shot text-to-video retrieval on the transfer benchmarks. "
+               "\\emph{Trainable} states what each row updates: every baseline fully "
+               "fine-tunes the shared VAST backbone, so a parameter count is given only for "
+               "the rows we trained ourselves and measured. "
                "$\\S$: numbers as published (reference only; not comparable across "
                "environments). $\\star$: the authors' released checkpoint evaluated in our "
                "environment on our protocol. $\\dagger$: trained from the authors' "
@@ -93,13 +96,14 @@ def main():
     out.append('\\label{tab:transfer}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')
-    out.append('\\begin{tabular}{llcc%s}' % ('cc' * len(T2_BENCHES)))
+    out.append('\\begin{tabular}{llc%s}' % ('cc' * len(T2_BENCHES)))
     out.append('\\toprule')
-    out.append(' & & & & %s \\\\' % ' & '.join('\\multicolumn{2}{c}{%s}' % LABEL[b]
-                                             for b in T2_BENCHES))
-    out.append(''.join('\\cmidrule(lr){%d-%d}' % (5 + 2 * i, 6 + 2 * i)
+    out.append(' & & & %s \\\\' % ' & '.join('\\multicolumn{2}{c}{%s}' % LABEL[b]
+                                           for b in T2_BENCHES))
+    out.append(''.join('\\cmidrule(lr){%d-%d}' % (4 + 2 * i, 5 + 2 * i)
                        for i in range(len(T2_BENCHES))))
-    out.append('Method & Adapter & Params & Mask & %s \\\\' % ' & '.join(['R@1 & R@10'] * len(T2_BENCHES)))
+    out.append('Method & Trainable & Mask & %s \\\\'
+               % ' & '.join(['R@1 & R@10'] * len(T2_BENCHES)))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(a) Foundation models}} \\\\' % NCOL)
     for disp, key, adapter in FOUNDATION:
@@ -107,24 +111,37 @@ def main():
         for b in T2_BENCHES:
             v = _pub(pub, key, b, 't2v')
             cells += ['--' if x is None else '%.1f' % x for x in v]
-        out.append('%s$^{\\S}$ & %s & -- & \\xmark & %s \\\\' % (disp, adapter, ' & '.join(cells)))
+        out.append('%s$^{\\S}$ & %s & \\xmark & %s \\\\'
+                   % (disp, trainable_col('fullft' if adapter == 'full-FT' else 'none'),
+                      ' & '.join(cells)))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(b) Gramian-volume alignment}} \\\\' % NCOL)
-    out.append('GRAM$^{\\star}$ & full-FT & %s & \\xmark & %s \\\\'
-               % (params_str('gram_released'), row('GRAM', 'gram')))
-    out.append('HyperGRAM$^{\\dagger}$ & full-FT & %s & \\xmark & %s \\\\'
-               % (params_str('hypergram_trained'), row('HyperGRAM', 'hg')))
+    out.append('GRAM$^{\\star}$ & %s & \\xmark & %s \\\\'
+               % (trainable_col('fullft'), row('GRAM', 'gram')))
+    out.append('HyperGRAM$^{\\dagger}$ & %s & \\xmark & %s \\\\'
+               % (trainable_col('fullft'), row('HyperGRAM', 'hg')))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(c) Leading-eigenvalue alignment}} \\\\' % NCOL)
-    out.append('PMRL$^{\\star}$ & full-FT & %s & \\xmark & %s \\\\'
-               % (params_str('pmrl_released'), row('PMRL', 'pmrl')))
+    out.append('PMRL$^{\\star}$ & %s & \\xmark & %s \\\\'
+               % (trainable_col('fullft'), row('PMRL', 'pmrl')))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(d) Spherical centroid alignment (ours)}} \\\\' % NCOL)
-    out.append('\\textbf{SCA} (ours) & LoRA & %s & \\cmark & %s \\\\'
-               % (params_str('sca_t9'), row('SCA', 'sca', with_sd=True)))
+    out.append('\\textbf{SCA} (ours) & %s & \\cmark & %s \\\\'
+               % (trainable_col('lora', 'sca_t9'), row('SCA', 'sca', with_sd=True)))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')
     out.append('\\end{table*}')
+
+    # FIELD-COUNT GUARD (see build_paper_table.py): a body row with the wrong number of '&'
+    # shifts every later cell one column left without any LaTeX error.
+    for line in out:
+        if not line.endswith('\\\\') or line.lstrip().startswith(('\\multicolumn', '\\cmidrule',
+                                                                  '&')):
+            continue
+        nf = len(line.rsplit('\\\\', 1)[0].split('&'))
+        if nf != NCOL:
+            sys.exit('FATAL: row has %d fields, expected %d -- a column would shift '
+                     'silently:\n  %s' % (nf, NCOL, line))
 
     text = '\n'.join(out) + '\n'
     path = args.out if os.path.isabs(args.out) else os.path.join(ROOT, args.out)

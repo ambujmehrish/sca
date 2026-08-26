@@ -58,6 +58,7 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import VATEX_NOTE                               # noqa: E402
 from raw_vs_itm import scan  # noqa: E402
 
 BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
@@ -112,7 +113,7 @@ MAIN_CAPTION = (
     "clips. Under masking the cross-encoder reranking stage collapses every method onto its "
     "own video-only pathway, which is analyzed in the supplement; PMRL is excluded because its "
     "released scoring does not reproduce at $r{=}0$ through the masking harness, and "
-    "HyperGRAM's release has no missing-modality path.}")
+    "HyperGRAM's release has no missing-modality path. " + VATEX_NOTE + "}")
 
 SUPP_CAPTION = (
     "\\caption{\\textbf{Why the main table reports the representation stage:} two-stage "
@@ -123,7 +124,7 @@ SUPP_CAPTION = (
     "method's two-stage score converges onto its own video-only cosine (last column), "
     "erasing the aggregator differences of Table~\\ref{tab:missing}: end-to-end robustness "
     "in a two-stage pipeline is capped by the reranking stage, so it must originate in the "
-    "representation stage.}")
+    "representation stage. " + VATEX_NOTE + "}")
 
 
 def build(metric, out_rel, caption, label, with_cos90):

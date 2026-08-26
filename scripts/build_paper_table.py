@@ -35,6 +35,7 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import VATEX_NOTE_FULL                          # noqa: E402
 from extract_results import parse_log, r1_r10                     # noqa: E402
 from parse_authors_eval import canon, parse as parse_authors      # noqa: E402
 
@@ -260,7 +261,8 @@ def main():
                "$\\S$: published numbers "
                "(reference only). $\\star$: authors' released checkpoint, evaluated on our "
                "protocol. $\\dagger$: trained from the authors' released code at their "
-               "recipe. SCA: three seeds, $\\pm$ sd on R@1.}" % LABEL[b])
+               "recipe. SCA: three seeds, $\\pm$ sd on R@1. %s}"
+               % (LABEL[b], VATEX_NOTE_FULL if b == 'vatex' else ''))
     out.append('\\label{tab:%s}' % b)
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')

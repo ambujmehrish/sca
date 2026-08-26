@@ -16,6 +16,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import VATEX_NOTE                               # noqa: E402
+
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 HARVEST = os.path.join(ROOT, 'experiments/results/harvest')
 BENCHES = ('msrvtt', 'vatex')
@@ -61,7 +64,7 @@ def main():
            "modality SCA adds helps or holds; every modality the volume adds hurts -- the "
            "ladder form of the aggregation-gain result (Table~\\ref{tab:gain}). The "
            "$\\{V\\}$ rung is a built-in control: a one-element aggregate equals the "
-           "text--video cosine for both geometries, asserted at generation.}",
+           "text--video cosine for both geometries, asserted at generation. " + VATEX_NOTE + "}",
            '\\label{tab:subset_ladder}', '\\small', '\\setlength{\\tabcolsep}{6pt}',
            '\\begin{tabular}{llccc c}', '\\toprule',
            ' & Method & $\\{V\\}$ & $\\{V,A\\}$ & $\\{V,A,S\\}$ & $\\Delta_{V \\to VAS}$ \\\\',

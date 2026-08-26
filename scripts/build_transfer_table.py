@@ -22,6 +22,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import VATEX_NOTE                               # noqa: E402
 from build_paper_table import (ROOT, LABEL, FOUNDATION, _pub, fmt,          # noqa: E402
                                gram_cell, sca_cell, authors_metrics, trainable_col)
 
@@ -92,7 +93,7 @@ def main():
                "unmodified code at their published recipe (no checkpoint is released). SCA "
                "is one configuration over three seeds ($\\pm$ sd on R@1). HyperGRAM's "
                "release does not run the audio-anchor benchmark and its paper reports no "
-               "AudioCaps number.}")
+               "AudioCaps number. " + VATEX_NOTE + "}")
     out.append('\\label{tab:transfer}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{4pt}')

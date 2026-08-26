@@ -26,6 +26,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import VATEX_NOTE                               # noqa: E402
+
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 HARVEST = os.path.join(ROOT, 'experiments/results/harvest')
 BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
@@ -119,7 +122,7 @@ def main():
         "These decompositions are not reported in the baselines' papers: both "
         "terms are computed by us from each released model's own embeddings, scored by its "
         "own published scoring function, in one shared evaluation environment. Components "
-        "of the subtraction in the supplement.}",
+        "of the subtraction in the supplement. " + VATEX_NOTE + "}",
         '\\label{tab:gain}', '\\small', '\\setlength{\\tabcolsep}{5pt}',
         '\\begin{tabular}{l%s}' % ('c' * len(BENCHES)), '\\toprule',
         'Method & %s \\\\' % ' & '.join(LABEL[b] for b in BENCHES), '\\midrule']
@@ -137,7 +140,7 @@ def main():
         '\\begin{table*}[t]', '\\centering',
         "\\caption{Components of the aggregation gain (Table~\\ref{tab:gain}): best "
         "single-modality pathway R@1, the method's own aggregate R@1, and their "
-        "difference, per benchmark.}",
+        "difference, per benchmark. " + VATEX_NOTE + "}",
         '\\label{tab:gain_components}', '\\small', '\\setlength{\\tabcolsep}{3pt}',
         '\\begin{tabular}{l%s}' % ('ccc' * len(BENCHES)), '\\toprule',
         ' & %s \\\\' % ' & '.join('\\multicolumn{3}{c}{%s}' % LABEL[b] for b in BENCHES),

@@ -25,6 +25,7 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import SPLITS_NOTE, VATEX_NOTE_FULL             # noqa: E402
 from raw_vs_itm import BENCHES, scan  # noqa: E402
 from parse_authors_eval import canon, parse as parse_authors  # noqa: E402
 
@@ -204,7 +205,7 @@ def main():
                'reproduces published numbers for reference only: the identical released GRAM '
                'checkpoint reads 54.8 in its paper and 52.5 here, and the same environment '
                'shift moves VATEX the other way, so the two blocks are not comparable in '
-               'absolute terms.}')
+               'absolute terms. ' + SPLITS_NOTE + ' ' + VATEX_NOTE_FULL + '}')
     out.append('\\label{tab:main}')
     out.append('\\small')
     out.append('\\setlength{\\tabcolsep}{5pt}')

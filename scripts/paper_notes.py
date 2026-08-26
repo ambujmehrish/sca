@@ -22,7 +22,7 @@ are not: they are a claim against the baselines in the same rows, on the same cl
 
 # Full form: for tables where VATEX absolute recall is a headline column.
 VATEX_NOTE_FULL = (
-    "Following the released baselines~\\cite{cicchetti2025gram}, our VATEX evaluation uses "
+    "Following the released baselines~\\cite{cicchetti2025gramian}, our VATEX evaluation uses "
     "the 431 test clips that remain downloadable (14{,}060 train / 431 test of the 14{,}491 "
     "recoverable samples), not the $\\sim$1{,}500-clip protocol common in the VATEX "
     "literature. Every row measured here is scored on that identical gallery with the "
@@ -31,12 +31,12 @@ VATEX_NOTE_FULL = (
 
 # Short form: for space-constrained captions where VATEX is one column among several.
 VATEX_NOTE = (
-    "VATEX uses the 431 downloadable test clips of~\\cite{cicchetti2025gram}, not the "
+    "VATEX uses the 431 downloadable test clips of~\\cite{cicchetti2025gramian}, not the "
     "$\\sim$1{,}500-clip protocol; all rows share that gallery, so they compare exactly to "
     "each other but not to VATEX numbers reported on the full test set.")
 
 # Split provenance, for the setup section and any table that states its splits.
 SPLITS_NOTE = (
-    "Splits follow~\\cite{cicchetti2025gram} Table~5: MSR-VTT 9{,}000/1{,}000 (the 9k + "
+    "Splits follow~\\cite{cicchetti2025gramian} Table~5: MSR-VTT 9{,}000/1{,}000 (the 9k + "
     "1k-A protocol), DiDeMo 8{,}394/1{,}065/1{,}003, ActivityNet 10{,}009/4{,}917, VATEX "
     "14{,}060/431, AudioCaps 700 test.")

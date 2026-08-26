@@ -27,6 +27,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import METHOD                                   # noqa: E402
+
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 PIVOT = os.path.join(ROOT, 'experiments/results/harvest/raw_vs_itm_missing.txt')
 OUT = os.path.join(ROOT, 'experiments/results/tables_final/fig_gain_vs_mask')
@@ -36,8 +39,8 @@ PANELS = [('msrvtt', 'MSR-VTT'), ('vatex', 'VATEX')]
 # entity -> (cell prefix, display, color, linestyle, markerfacecolor)
 BLUE, ORANGE, INK, MUTED = '#2a78d6', '#eb6834', '#0b0b0b', '#52514e'
 SERIES = [
-    ('sca', 'SCA (ours)', BLUE, '-', BLUE),
-    ('g11_train_nomask', 'SCA w/o masked training', BLUE, (0, (4, 2)), 'white'),
+    ('sca', '%s (ours)' % METHOD, BLUE, '-', BLUE),
+    ('g11_train_nomask', '%s w/o masked training' % METHOD, BLUE, (0, (4, 2)), 'white'),
     ('gram', 'GRAM (released ckpt)', ORANGE, '-', ORANGE),
 ]
 _LINE = re.compile(r'^(\S+)\s+((?:[-+]?\d+\.\d+\s+){5}[-+]?\d+\.\d+)\s*(?:<-.*)?$')

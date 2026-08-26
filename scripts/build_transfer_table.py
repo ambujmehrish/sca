@@ -22,7 +22,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paper_notes import VATEX_NOTE                               # noqa: E402
+from paper_notes import VATEX_NOTE, METHOD                               # noqa: E402
 from build_paper_table import (ROOT, LABEL, FOUNDATION, _pub, fmt,          # noqa: E402
                                gram_cell, sca_cell, authors_metrics, trainable_col,
                                cell_metrics)
@@ -135,13 +135,13 @@ def main():
                % (trainable_col('fullft'), row('PMRL', 'pmrl')))
     out.append('\\midrule')
     out.append('\\multicolumn{%d}{l}{\\emph{(d) Spherical centroid alignment (ours)}} \\\\' % NCOL)
-    out.append('\\textbf{SCA} (ours) & %s & \\cmark & %s \\\\'
+    out.append('\\textbf{' + METHOD + '} (ours) & %s & \\cmark & %s \\\\'
                % (trainable_col('lora', 'sca_t9'), row('SCA', 'sca', with_sd=True)))
     # Printed only once every cell exists, as in the per-benchmark tables: an absent optional
     # control is silence, not MISSING, because the LoRA row above is the reported
     # configuration either way.
     if all(data[bb]['fullft'] for bb in T2_BENCHES):
-        out.append('SCA, full-FT (same recipe) & %s & \\cmark & %s \\\\'
+        out.append(METHOD + ', full-FT (same recipe) & %s & \\cmark & %s \\\\'
                    % (trainable_col('fullft'), row('SCA full-FT', 'fullft')))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')

@@ -22,6 +22,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paper_notes import METHOD                                   # noqa: E402
+
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 HARVEST = os.path.join(ROOT, 'experiments/results/harvest')
 _PIVOT = re.compile(r'^(\S+)\s+((?:[-+]?\d+\.\d+\s+){5}[-+]?\d+\.\d+)\s*(?:<-.*)?$')
@@ -100,7 +103,7 @@ def main():
            'GRAM (paper)$^{\\S}$ & 40.6 & 78.1 \\\\',
            'GRAM$^{\\star}$ & %.1f & %s \\\\' % (gram_a1,
                '%.1f' % acc10['gram'] if 'gram' in acc10 else 'MISSING'),
-           '\\textbf{SCA} (ours) & %.1f\\tiny{$\\pm$%.1f} & %s \\\\' % (mean, sd,
+           '\\textbf{' + METHOD + '} (ours) & %.1f\\tiny{$\\pm$%.1f} & %s \\\\' % (mean, sd,
                '%.1f' % acc10['sca'] if 'sca' in acc10 else 'MISSING'),
            '\\midrule',
            '\\multicolumn{3}{l}{\\emph{decomposition (Acc@1 / Acc@10)}} \\\\',
@@ -114,7 +117,7 @@ def main():
                          + cell('gram', 'audio_alone').split(' & ')[0],
                          cell('sca', 'audio_alone').split(' & ')[1] + ' / '
                          + cell('gram', 'audio_alone').split(' & ')[1]]),
-           '\\quad SCA, uniform weights & %s \\\\' % cell('sca', 'uniform_centroid'),
+           '\\quad ' + METHOD + ', uniform weights & %s \\\\' % cell('sca', 'uniform_centroid'),
            '\\bottomrule', '\\end{tabular}', '\\end{table}']
 
     path = os.path.join(ROOT, 'experiments/results/tables_final/table_vggsound.tex')

@@ -58,7 +58,7 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paper_notes import VATEX_NOTE                               # noqa: E402
+from paper_notes import VATEX_NOTE, METHOD                               # noqa: E402
 from raw_vs_itm import scan  # noqa: E402
 
 BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
@@ -66,7 +66,7 @@ LABEL = {'msrvtt': 'MSR-VTT', 'didemo': 'DiDeMo', 'activitynet': 'ActivityNet',
          'vatex': 'VATEX', 'audiocaps': 'AudioCaps'}
 RATES = ('r00', 'r25', 'r50', 'r75', 'r90')
 RATE_LABEL = {'r00': '0\\%', 'r25': '25\\%', 'r50': '50\\%', 'r75': '75\\%', 'r90': '90\\%'}
-ROWS = [('\\textbf{SCA} (ours)', 'sca'), ('GRAM$^{\\star}$', 'gram')]
+ROWS = [('\\textbf{%s} (ours)' % METHOD, 'sca'), ('GRAM$^{\\star}$', 'gram')]
 
 # harvest-pivot fallback: <cell>  cosTV cosTA best1mod AGGREG GAIN ITM [<- note]
 # (older committed pivots title the GAIN column TAX; the parse is positional either way)

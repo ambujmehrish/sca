@@ -40,3 +40,9 @@ SPLITS_NOTE = (
     "Splits follow~\\cite{cicchetti2025gramian} Table~5: MSR-VTT 9{,}000/1{,}000 (the 9k + "
     "1k-A protocol), DiDeMo 8{,}394/1{,}065/1{,}003, ActivityNet 10{,}009/4{,}917, VATEX "
     "14{,}060/431, AudioCaps 700 test.")
+
+# The method's paper-facing name. Every table row label and figure legend entry uses this, so
+# a rename is one edit and cannot leave half the paper calling it something else. Internal
+# arm names (t9_qweight_only, sca_*, workdir paths) are NOT renamed -- they identify runs on
+# disk, and rewriting them would break every extractor.
+METHOD = 'SCALAR'

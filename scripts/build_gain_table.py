@@ -27,7 +27,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paper_notes import VATEX_NOTE                               # noqa: E402
+from paper_notes import VATEX_NOTE, METHOD                               # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 HARVEST = os.path.join(ROOT, 'experiments/results/harvest')
@@ -81,9 +81,9 @@ ROWS = [
     ('GRAM$^{\\star}$', lambda: pivot_cells('raw_vs_itm_missing.txt', 'gram')),
     ('PMRL$^{\\star}$', lambda: authors_cells('pmrl_released.txt')),
     ('HyperGRAM$^{\\dagger}$', lambda: authors_cells('hypergram_authors.txt')),
-    ('SCA, uniform weights', lambda: pivot_cells('raw_vs_itm_final.txt', 'b1_bs128_r8')),
-    ('\\textbf{SCA, query-weighted (ours)}', lambda: pivot_cells('raw_vs_itm_frames.txt',
-                                                                 't9_qweight_only')),
+    ('%s, uniform weights' % METHOD, lambda: pivot_cells('raw_vs_itm_final.txt', 'b1_bs128_r8')),
+    ('\\textbf{%s, query-weighted (ours)}' % METHOD,
+     lambda: pivot_cells('raw_vs_itm_frames.txt', 't9_qweight_only')),
 ]
 # HyperGRAM's release does not run the audio-anchor benchmark: '--' by decision.
 ABSENT = {('HyperGRAM$^{\\dagger}$', 'audiocaps')}

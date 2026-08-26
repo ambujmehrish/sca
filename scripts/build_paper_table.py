@@ -35,7 +35,7 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paper_notes import VATEX_NOTE_FULL                          # noqa: E402
+from paper_notes import VATEX_NOTE_FULL, METHOD                          # noqa: E402
 from extract_results import parse_log, r1_r10                     # noqa: E402
 from parse_authors_eval import canon, parse as parse_authors      # noqa: E402
 
@@ -320,14 +320,14 @@ def main():
         sca_cells = ' & '.join(['MISSING'] * 4)
     else:
         sca_cells = mcells('SCA', tuple(sca_cols), tuple(sca_sd))
-    out.append('\\textbf{SCA} (ours) & %s & \\cmark & %s \\\\'
+    out.append('\\textbf{' + METHOD + '} (ours) & %s & \\cmark & %s \\\\'
                % (trainable_col('lora', 'sca_t9'), sca_cells))
     # the full-FT control: T9's exact recipe with use_lora=false (arm f1_t9_fullft), one
     # run. Printed only once its cell exists -- an absent optional row is silence, not a
     # MISSING, because the LoRA row above is the reported configuration either way.
     fullft = cell_metrics(os.path.join(ROOT, 'workdir/e1_frames', 'f1_t9_fullft_%s' % b))
     if fullft:
-        out.append('SCA, full-FT (same recipe) & %s & \\cmark & %s \\\\'
+        out.append(METHOD + ', full-FT (same recipe) & %s & \\cmark & %s \\\\'
                    % (trainable_col('fullft'), ' & '.join('%.1f' % v for v in fullft)))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')

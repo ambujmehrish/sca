@@ -17,7 +17,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paper_notes import VATEX_NOTE                               # noqa: E402
+from paper_notes import VATEX_NOTE, METHOD                               # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 HARVEST = os.path.join(ROOT, 'experiments/results/harvest')
@@ -70,7 +70,7 @@ def main():
            ' & Method & $\\{V\\}$ & $\\{V,A\\}$ & $\\{V,A,S\\}$ & $\\Delta_{V \\to VAS}$ \\\\',
            '\\midrule']
     for b in BENCHES:
-        for i, (name, model) in enumerate((('\\textbf{SCA} (ours)', 'sca'),
+        for i, (name, model) in enumerate((('\\textbf{' + METHOD + '} (ours)', 'sca'),
                                            ('GRAM$^{\\star}$', 'gram'))):
             cells = [agg(model, b, r) for r in ('tv', 'tva', 'tvas')]
             cs = ['MISSING' if v is None else '%.1f' % v for v in cells]

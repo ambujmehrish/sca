@@ -24,7 +24,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from paper_notes import VATEX_NOTE                               # noqa: E402
 from build_paper_table import (ROOT, LABEL, FOUNDATION, _pub, fmt,          # noqa: E402
-                               gram_cell, sca_cell, authors_metrics, trainable_col)
+                               gram_cell, sca_cell, authors_metrics, trainable_col,
+                               cell_metrics)
 
 T2_BENCHES = ('didemo', 'activitynet', 'vatex', 'audiocaps')
 NCOL = 3 + 2 * len(T2_BENCHES)   # Method | Trainable | Mask | (R@1, R@10) per benchmark
@@ -36,7 +37,14 @@ def measured_for(b):
     return {'gram': gram, 'gram_src': gram_src,
             'hg': authors_metrics(os.path.join(ROOT, 'workdir/hgeval', b, 'run.log')),
             'pmrl': authors_metrics(os.path.join(ROOT, 'workdir/pmrl_released', b, 'run.log')),
-            'sca': sca, 'sca_sd': sca_sd, 'seeds': seeds}
+            'sca': sca, 'sca_sd': sca_sd, 'seeds': seeds,
+            # The full-FT control: T9's exact recipe with use_lora=false (arm f1_t9_fullft).
+            # It exists for ALL FIVE benchmarks and the per-benchmark tables already print
+            # it. Omitting it here made the transfer table imply the control was run only on
+            # MSR-VTT, which understates the result: LoRA beats full fine-tuning on the
+            # reported metric on every benchmark, not just one.
+            'fullft': cell_metrics(os.path.join(ROOT, 'workdir/e1_frames',
+                                                'f1_t9_fullft_%s' % b))}
 
 
 def main():
@@ -129,6 +137,12 @@ def main():
     out.append('\\multicolumn{%d}{l}{\\emph{(d) Spherical centroid alignment (ours)}} \\\\' % NCOL)
     out.append('\\textbf{SCA} (ours) & %s & \\cmark & %s \\\\'
                % (trainable_col('lora', 'sca_t9'), row('SCA', 'sca', with_sd=True)))
+    # Printed only once every cell exists, as in the per-benchmark tables: an absent optional
+    # control is silence, not MISSING, because the LoRA row above is the reported
+    # configuration either way.
+    if all(data[bb]['fullft'] for bb in T2_BENCHES):
+        out.append('SCA, full-FT (same recipe) & %s & \\cmark & %s \\\\'
+                   % (trainable_col('fullft'), row('SCA full-FT', 'fullft')))
     out.append('\\bottomrule')
     out.append('\\end{tabular}')
     out.append('\\end{table*}')

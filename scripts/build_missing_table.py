@@ -14,9 +14,27 @@ Two tables from the same 50 cells (workdir/e1_missing/<model>_<bench>_r<RR>):
   table3_supp_twostage.tex  SUPPLEMENT: the two-stage (reranked) metric on the identical
                             cells, with each method's own video-only cosine at r=90%
                             alongside. It documents WHY the main table is stage-1: the
-                            shared frozen cross-encoder, trained only on complete pairs,
-                            collapses every method onto its video pathway under masking
-                            (ITM ~ cos T-V at r=90 for all), erasing aggregator differences.
+                            cross-encoder reranker collapses every method onto its video
+                            pathway under masking (ITM ~ cos T-V at r=90 for all), erasing
+                            aggregator differences.
+
+WORDING OF THE RERANKER CLAIM -- do not restore the old phrasing. These captions used to say
+"one frozen cross-encoder shared by all methods". Both halves are false and a reviewer can
+check either one:
+
+  NOT FROZEN.  itm_head is not in backbone_prefixes, so it receives gradients whenever
+               itm_ratio > 0 (0.1 in our config, matching GRAM Eq. 8 and HyperGRAM Eq. 11).
+               A checkpoint diff shows itm_head deltas of 0.002-0.009 after training.
+  NOT SHARED.  Each method reranks with the head in ITS OWN checkpoint. Only the VAST
+               foundation checkpoint they all start from is common.
+
+What IS true, and is what the argument actually needs:
+  - Neither method's reranker is ever trained on an incomplete modality set. Ours conditions
+    on condition_feats_{va,vas} built from the UNMASKED encoder outputs (sca.py:_itm_loss);
+    the masking lives on the centroid via present_M and never reaches that branch. GRAM's
+    trivially never sees one either, since its pipeline discards incomplete clips.
+  - MEASURED: as r grows, each method's two-stage R@1 converges to its own video-only cosine
+    (the cos_TV@90% column) -- which is the fact the supplement table shows.
 
 Never phrase this as removing the reported metric: the two-stage numbers are all published
 in the supplement; the main table reports the stage the manipulation actually measures.
@@ -91,19 +109,21 @@ MAIN_CAPTION = (
     "complementary question, answered in Fig.~\\ref{fig:gain_vs_mask}. $\\star$: authors' "
     "released checkpoint, its volume reduced exactly to each clip's present modalities -- "
     "the released implementation cannot represent missing modalities and discards such "
-    "clips. The shared frozen reranker collapses all methods onto their video-only pathway "
-    "under masking and is analyzed in the supplement; PMRL is excluded because its "
+    "clips. Under masking the cross-encoder reranking stage collapses every method onto its "
+    "own video-only pathway, which is analyzed in the supplement; PMRL is excluded because its "
     "released scoring does not reproduce at $r{=}0$ through the masking harness, and "
     "HyperGRAM's release has no missing-modality path.}")
 
 SUPP_CAPTION = (
     "\\caption{\\textbf{Why the main table reports the representation stage:} two-stage "
     "(reranked) R@1 on the identical masked cells of Table~\\ref{tab:missing}, with each "
-    "method's own video-only cosine at $r{=}90\\%$. The reranker -- one frozen "
-    "cross-encoder shared by all methods, trained only on complete pairs -- converges "
-    "every method onto its video pathway as $r$ grows, erasing the aggregator differences "
-    "of Table~\\ref{tab:missing}: end-to-end robustness in a two-stage pipeline is capped "
-    "by the shared reranker.}")
+    "method's own video-only cosine at $r{=}90\\%$. Each method reranks with the "
+    "cross-encoder in its own checkpoint, all descending from the same VAST foundation "
+    "model and none of them ever trained on an incomplete modality set. As $r$ grows every "
+    "method's two-stage score converges onto its own video-only cosine (last column), "
+    "erasing the aggregator differences of Table~\\ref{tab:missing}: end-to-end robustness "
+    "in a two-stage pipeline is capped by the reranking stage, so it must originate in the "
+    "representation stage.}")
 
 
 def build(metric, out_rel, caption, label, with_cos90):

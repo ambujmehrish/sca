@@ -15,7 +15,7 @@ minus three tenths. On AudioCaps the same channel works: +2.4 recall, +3.0 R@1.
 
 Two explanations survive that, and they demand opposite responses:
 
-  RERANKER-LIMITED   The recovered clips are fine; the frozen cross-encoder simply cannot
+  RERANKER-LIMITED   The recovered clips are fine; the cross-encoder simply cannot
                      rank them first. Then no amount of stage-1 work will show up, and the
                      effort belongs in the reranking stage or in a protocol that does not
                      discard the dual score.
@@ -84,7 +84,7 @@ def one(d, label, out=sys.stdout):
 
 
 def paired(a, b, name_a, name_b, out=sys.stdout):
-    """The queries B recovers and A does not: what does the shared reranker do with them?"""
+    """The queries B recovers and A does not: what does B's reranking stage do with them?"""
     if a['ids'] != b['ids'] or a['ids_txt'] != b['ids_txt']:
         print('\nREFUSING to pair %s with %s: the two dumps do not enumerate the same gallery '
               'in the same order, so query i is not the same query in both. Comparing them '
@@ -126,7 +126,7 @@ def paired(a, b, name_a, name_b, out=sys.stdout):
     print('  Median rank of those recovered clips: %d of %d.' % (med + 1, b['k']), file=out)
     if base > 0 and conv < 0.5 * base:
         print('\n  RERANKER-LIMITED. The recovered clips are reranked far worse than the ones', file=out)
-        print('  both methods already had, on the same frozen cross-encoder. Stage-1 recall is', file=out)
+        print('  both methods already had, under the same run\'s own cross-encoder. Stage-1 recall is', file=out)
         print('  not the binding constraint, and more of it will not move the reported number.', file=out)
     elif conv >= 0.8 * base:
         print('\n  The recovered clips rerank about as well as any other. The extra recall IS', file=out)
@@ -177,9 +177,9 @@ def main():
     saturation(b, args.name_b)
     paired(a, b, args.name_a, args.name_b)
     print('\nThe two stages answer to different things. Stage-1 recall is what SCA moves;')
-    print('R@1-given-candidate is the frozen reranker and is the same component for every')
-    print('method in the table. Whichever of the two is the smaller number is the one worth')
-    print('a GPU night.')
+    print('R@1-given-candidate is the reranking stage -- a per-method cross-encoder, all of')
+    print('them descended from the same VAST checkpoint. Whichever of the two is the smaller')
+    print('number is the one worth a GPU night.')
     return 0
 
 

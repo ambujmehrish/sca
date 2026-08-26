@@ -2,7 +2,7 @@
 %% CONTROL: the 0%% column must agree with the main tables per model.
 \begin{table}[t]
 \centering
-\caption{\textbf{Why the main table reports the representation stage:} two-stage (reranked) R@1 on the identical masked cells of Table~\ref{tab:missing}, with each method's own video-only cosine at $r{=}90\%$. The reranker -- one frozen cross-encoder shared by all methods, trained only on complete pairs -- converges every method onto its video pathway as $r$ grows, erasing the aggregator differences of Table~\ref{tab:missing}: end-to-end robustness in a two-stage pipeline is capped by the shared reranker.}
+\caption{\textbf{Why the main table reports the representation stage:} two-stage (reranked) R@1 on the identical masked cells of Table~\ref{tab:missing}, with each method's own video-only cosine at $r{=}90\%$. Each method reranks with the cross-encoder in its own checkpoint, all descending from the same VAST foundation model and none of them ever trained on an incomplete modality set. As $r$ grows every method's two-stage score converges onto its own video-only cosine (last column), erasing the aggregator differences of Table~\ref{tab:missing}: end-to-end robustness in a two-stage pipeline is capped by the reranking stage, so it must originate in the representation stage.}
 \label{tab:missing_twostage}
 \small
 \setlength{\tabcolsep}{4.5pt}

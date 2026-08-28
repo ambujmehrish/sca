@@ -251,6 +251,7 @@ Gradient-norm clip & 2.0 \\
 Schedule & linear, warm-up ratio 0.1 \\
 Batch size & 128 \\
 Epochs / steps & 5 / 5{,}330 \\
+Frames sampled (training) & 2 \\
 Precision & fp16, DDP over 4 GPUs \\
 Seeds & 50, 51, 52 \\
 \midrule
@@ -275,7 +276,7 @@ Modalities dropped & exactly 1, uniform over $\mathcal{K}$ \\
 Minimum retained & 2 \\
 \midrule
 \multicolumn{2}{l}{\emph{Inference}} \\
-Frames sampled & 8 \\
+Frames sampled (evaluation) & 8 \\
 Rerank depth & top 50 \\
 Eval batch size & 64 \\
 Test-time mask rates $r$ & 0, 25, 50, 75, 90\% \\
@@ -283,6 +284,16 @@ Mask seed & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\paragraph{Frame budget.}
+We sample 2 frames per clip during continued pretraining and 8 at evaluation.
+The compared methods use 8 for both~\cite{cicchetti2025gramian}, so our
+adaptation sees a quarter of their visual input per clip while every reported
+comparison is made at the same 8 evaluation frames for all methods. The
+reduced training budget is applied identically to the reported configuration,
+the full-fine-tuning control, the uniform-weights control and every ablation,
+so the comparisons among them are unaffected; we did not sweep the training
+frame count and therefore make no claim about its effect.
 
 \paragraph{Temperature fixed by construction.}
 $\tau$ must not be learnable in this objective. The calibration term of

@@ -41,7 +41,7 @@ BLUE, ORANGE, INK, MUTED = '#2a78d6', '#eb6834', '#0b0b0b', '#52514e'
 SERIES = [
     ('sca', '%s (ours)' % METHOD, BLUE, '-', BLUE),
     ('g11_train_nomask', '%s w/o masked training' % METHOD, BLUE, (0, (4, 2)), 'white'),
-    ('gram', 'GRAM (released ckpt)', ORANGE, '-', ORANGE),
+    ('gram', 'GRAM', ORANGE, '-', ORANGE),
 ]
 _LINE = re.compile(r'^(\S+)\s+((?:[-+]?\d+\.\d+\s+){5}[-+]?\d+\.\d+)\s*(?:<-.*)?$')
 

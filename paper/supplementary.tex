@@ -606,7 +606,26 @@ text--video cosine rises on four of five benchmarks at 4 frames ($41.2
 \rightarrow 34.5$ on ActivityNet, $81.2 \rightarrow 81.4$ on VATEX). That
 improvement does not survive into the aggregate or the reranked metric. We
 therefore report the 2-frame configuration, and note that the frame budget is
-not where the gap between aggregation geometries lives.
+not where the difference between aggregation geometries lives.
+
+Two further points bound what this choice can and cannot affect. First, it is
+not a reduction in visual training data: at 2 frames over five epochs the
+reported configuration processes $1.37$M frame-images, against $1.20$M for the
+baselines' single epoch at 8 frames and the corpus size they report. The two
+alternatives in Table~\ref{tab:frames} spend $2\times$ and $4\times$ the
+visual compute of the reported run and buy nothing. Under a fixed memory
+budget, frames trade against in-batch negatives; a contrastive retrieval
+objective benefits more from the negatives, and the sweep bears that out.
+
+Second, and more importantly, the central measurement of this paper is
+insensitive to it. Aggregation gain is a within-method comparison of a
+method's joint score against its own best single-modality pathway, so a weaker
+visual pathway cannot manufacture a positive gain---it makes one harder to
+obtain. Section~\ref{sec:gaincomp} shows this directly: on ActivityNet the
+released GRAM checkpoint's best single pathway is $36.8$ against our $34.1$,
+and on AudioCaps $29.0$ against our $25.7$. Its unimodal pathways are stronger
+than ours on those two benchmarks, and its aggregation still loses to them
+while ours does not.
 
 \begin{table}[t]
 \centering

@@ -1,0 +1,715 @@
+% =====================================================================
+%  SCALAR -- Supplementary Material
+%  WACV 2027 Submission #2556, Algorithms Track
+%
+%  STANDALONE: compiles on its own with pdflatex.
+%  To match the main paper, replace the \documentclass line and preamble
+%  with the wacv class:   \documentclass[10pt,twocolumn,letterpaper]{article}
+%                         \usepackage{wacv}          % or \usepackage[review]{wacv}
+%  and delete the \geometry line below.
+% =====================================================================
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage[margin=0.75in]{geometry}
+\usepackage{times}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{url}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue]{hyperref}
+
+\usepackage{pifont}
+
+\newcommand{\ours}{SCALAR}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+\renewcommand{\thesection}{\Alph{section}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\theequation}{S\arabic{equation}}
+
+\title{\Large Query-Conditioned Spherical Centroid Aggregation for\\
+       Multimodal Retrieval\\[2mm]
+       \large Supplementary Material}
+\author{Anonymous WACV Algorithms Track submission\\Paper ID 2556}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+This supplement is organised as follows. Section~\ref{sec:llm} states our use of
+large language models and Section~\ref{sec:repro} our reproducibility protocol.
+Section~\ref{sec:algo} gives the aggregation and training procedures in
+pseudocode, Section~\ref{sec:impl} the complete hyperparameter set, and
+Section~\ref{sec:data} the dataset statistics. Section~\ref{sec:extra} reports
+the additional results referenced from the main paper: the components of the
+aggregation gain, the full two-stage results under masking, the modality-subset
+ladder, a latent-space analysis, a negative result on VGGSound, an
+evaluation-environment audit, and the statistical tests behind every count in
+the main text. Section~\ref{sec:limits} states the limitations.
+
+% =====================================================================
+\section{Use of Large Language Models}
+\label{sec:llm}
+% =====================================================================
+
+Large language models were used in the preparation of this paper for two
+purposes: (i) polishing the writing---grammar, phrasing and consistency of
+terminology---in text whose technical content was written by the authors, and
+(ii) compressing existing passages so that the paper fits the page limit. They
+were not used to generate research ideas, to design or run experiments, to
+produce or interpret results, or to write code that produced any reported
+number. Every claim, table, figure and analysis in this paper was derived from
+experiments the authors designed and executed, and was checked by the authors
+against the underlying logs. The authors take full responsibility for the
+entire content of the paper, including any text that passed through such a
+tool.
+
+% =====================================================================
+\section{Reproducibility}
+\label{sec:repro}
+% =====================================================================
+
+\paragraph{What is released.}
+We will release the full training and evaluation code, every configuration file
+used to produce a reported number, the scripts that extract each table and
+figure directly from the evaluation logs, and the adapter weights for the
+reported configuration. Every table in the paper is emitted by a generator that
+reads evaluation logs; no number is transcribed by hand, and a cell that cannot
+be read from a log is printed as \texttt{MISSING} and aborts generation rather
+than being filled in.
+
+\paragraph{Single reported configuration.}
+All \ours{} numbers in the paper come from one configuration, applied unchanged
+to every benchmark. We do not tune per benchmark, and no benchmark-specific
+learning rate, temperature or schedule is used anywhere. The three seeds
+(50/51/52) differ only in the seed value. The full-fine-tuning control is that
+same configuration with the adapters disabled; the uniform-weights control is
+that same configuration with query conditioning disabled. Each ablation in
+Table~5 of the main paper removes exactly one component and retunes nothing.
+
+\paragraph{Baseline artifacts.}
+GRAM and PMRL are their authors' released checkpoints, evaluated by us.
+HyperGRAM releases no checkpoint, so it is trained from its authors' unmodified
+code at their published recipe. No baseline number in the measured blocks is
+taken from a paper. All methods start from the same VAST foundation checkpoint
+and are evaluated in one environment under one protocol.
+
+\paragraph{Determinism.}
+The missing-modality masks are fully deterministic and reproducible without
+storing them: for clip identifier $c$ and seed $\sigma$ we take
+$h = \mathrm{md5}(\sigma \,\|\, c)$, drop a modality iff
+$h_{[0:4]}/2^{32} < r$, and select the dropped index as
+$h_{[4:8]} \bmod |M|$. Because the dropped index does not depend on $r$, the
+masked sets are \emph{nested} across rates: every clip masked at $r$ is masked
+at every $r' > r$. All methods receive byte-identical masks, so the comparison
+is paired rather than two independent draws.
+
+\paragraph{Evaluation noise.}
+Repeated evaluation of identical checkpoints across 15 cells bounds the
+observed spread at $0.2$ R@1. We treat this as a floor: no margin at or below
+$0.2$ is reported as a result, and every headline margin in the paper is quoted
+against it. Training itself is not bit-deterministic (mixed precision, four-way
+data-parallel reduction), which is why \ours{} rows are reported as a mean over
+three seeds with the standard deviation.
+
+\paragraph{Compute.}
+Each \ours{} pretraining run takes approximately 11 hours on four NVIDIA A100
+64\,GB GPUs. The complete set of experiments in the paper---three seeds, the
+full-fine-tuning control, the uniform-weights control, four objective
+ablations, the $5\times5$ missing-modality grid for two methods, and the
+baseline evaluations---amounts to roughly 900 GPU-hours.
+
+% =====================================================================
+\section{Algorithms}
+\label{sec:algo}
+% =====================================================================
+
+Algorithm~\ref{alg:score} gives inference. The centroid is query-dependent, but
+it is never materialised per query--candidate pair: the within-sample Gram
+matrix $[\langle z_m, z_n\rangle]$ is $|M|\times|M|$ and is computed once per
+candidate, after which scoring a query against a candidate costs $O(|M|^2)$
+regardless of the embedding dimension. A missing modality is simply absent from
+$M$; nothing is imputed and no candidate is discarded.
+
+\begin{algorithm}[t]
+\caption{\ours{} scoring for one query--candidate pair}
+\label{alg:score}
+\begin{algorithmic}[1]
+\Require query embedding $z^T\!\in\!\mathbb{S}^{d-1}$; observed modality
+         embeddings $\{z_m\}_{m\in M}$, $M\subseteq\{V,A,S\}$, $M\neq\emptyset$;
+         temperature $\tau_w$
+\Ensure  score $s\in[-1,1]$
+\State $a_m \gets \langle z^T\!, z_m\rangle$ \Comment{query agreement, $m\in M$}
+\State $w_m \gets \dfrac{\exp(a_m/\tau_w)}{\sum_{n\in M}\exp(a_n/\tau_w)}$
+       \Comment{softmax over the \emph{observed} set only}
+\State $G_{mn} \gets \langle z_m, z_n\rangle$ \Comment{cached per candidate}
+\State $s \gets \dfrac{\sum_{m} w_m a_m}
+                     {\sqrt{\sum_{m,n} w_m w_n G_{mn}}}$
+       \Comment{$=\langle z^T\!, \mu_M(z^T)\rangle$}
+\State \Return $s$
+\end{algorithmic}
+\end{algorithm}
+
+Algorithm~\ref{alg:train} gives one training step. The two views---complete and
+reduced---come from a single forward pass: masking is applied after encoding, so
+the reduced-arity view costs one extra centroid, not one extra encoder pass.
+
+\begin{algorithm}[t]
+\caption{One \ours{} training step}
+\label{alg:train}
+\begin{algorithmic}[1]
+\Require batch of $B$ matched (text, clip) pairs; step $t$; complete modality
+         set $\mathcal{K}$ per clip
+\State encode all modalities once; L2-normalise
+\State $p_{\mathrm{full}} \gets \max(0.5,\, 1 - 0.5\,t/2000)$
+\For{each clip in the batch}
+  \If{$\mathrm{Bernoulli}(p_{\mathrm{full}})$ \textbf{or} $|\mathcal{K}|<3$}
+     \State $\mathcal{M} \gets \mathcal{K}$
+  \Else
+     \State $m^\dagger \sim \mathrm{Unif}(\mathcal{K})$;\;
+            $\mathcal{M} \gets \mathcal{K}\setminus\{m^\dagger\}$
+  \EndIf
+\EndFor
+\State $\mu_{\mathcal{M}}, \mu_{\mathcal{K}} \gets$ query-weighted centroids
+       (Alg.~\ref{alg:score}, lines 1--4) for both views
+\State $C_{ij} \gets \langle z^T_i, \mu_{\mathcal{M}_j}(z^T_i)\rangle$;\quad
+       $\tilde{C}_{ij} \gets \langle z^T_i, \mu_{\mathcal{M}_j}(z^T_j)\rangle$
+\State $\mathcal{L}_{\mathrm{align}} \gets
+        \tfrac12[\mathrm{InfoNCE}(C/\tau) + \mathrm{InfoNCE}(C^\top\!/\tau)]$
+\State $\mathcal{L}_{\mathrm{mask}} \gets
+        1-\langle\mu_{\mathcal{M}},\mu_{\mathcal{K}}\rangle
+        + (s_{\mathcal{M}}-\mathrm{sg}[s_{\mathcal{K}}])^2$
+\If{$t > 500$} \Comment{warm-up gate}
+  \State $\mathcal{L}_{\mathrm{sem}}, \mathcal{L}_{\mathrm{unif}} \gets$
+         Eqs.~(8), (9) of the main paper, using $\tilde{C}$ for
+         $\mathcal{L}_{\mathrm{sem}}$
+\Else
+  \State $\mathcal{L}_{\mathrm{sem}}, \mathcal{L}_{\mathrm{unif}} \gets 0$
+\EndIf
+\State $\mathcal{L}_{\mathrm{DAM}} \gets$ hard-negative matching loss, negatives
+       drawn from $C$
+\State \Return $\mathcal{L}_{\mathrm{align}} + \mathcal{L}_{\mathrm{sem}}
+        + \mathcal{L}_{\mathrm{mask}} + 0.1\,\mathcal{L}_{\mathrm{unif}}
+        + 0.1\,\mathcal{L}_{\mathrm{DAM}}$
+\end{algorithmic}
+\end{algorithm}
+
+Two details in Algorithm~\ref{alg:train} are load-bearing and easy to get wrong.
+First, $C$ and $\tilde{C}$ differ in \emph{which} text conditions the weights:
+in $C$ every candidate is re-aggregated with respect to the query that scores
+it, which is what inference does, whereas $\tilde{C}$ aggregates each candidate
+once using its own paired text. Using $\tilde{C}$ for retrieval would let the
+model win by sharpening weights rather than by learning features, because the
+positive pair alone would receive a centroid built for its own text. Second,
+only $s_{\mathcal{K}}$ is stop-gradiented in
+$\mathcal{L}_{\mathrm{mask}}$---the complete-set score is the fixed reference
+that the reduced-arity score is pulled towards, not a symmetric penalty.
+
+% =====================================================================
+\section{Implementation Details}
+\label{sec:impl}
+% =====================================================================
+
+Table~\ref{tab:hparams} lists every hyperparameter of the reported
+configuration. All values are shared across the five benchmarks.
+
+\begin{table}[t]
+\centering
+\caption{Complete hyperparameters for the reported \ours{} configuration.
+Identical for every benchmark; the three seeds differ only in the seed value.}
+\label{tab:hparams}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll}
+\toprule
+\multicolumn{2}{l}{\emph{Backbone (frozen)}} \\
+Initialisation & VAST foundation checkpoint \\
+Vision encoder & EVA-CLIP ViT-g/14 \\
+Audio encoder & BEATs \\
+Text encoder & BERT-base (subtitle + query) \\
+Projection dimension $d$ & 512 \\
+\midrule
+\multicolumn{2}{l}{\emph{Adaptation}} \\
+LoRA rank $r$ & 8 \\
+LoRA $\alpha$ & 16 \\
+LoRA dropout & 0.0 \\
+LoRA target modules & query, value projections \\
+Trainable parameters & 4{,}763{,}650 \\
+\midrule
+\multicolumn{2}{l}{\emph{Optimisation}} \\
+Optimiser & AdamW, $\beta=(0.9, 0.98)$ \\
+Learning rate & $2\times10^{-5}$ \\
+Weight decay & 0.01 \\
+Gradient-norm clip & 2.0 \\
+Schedule & linear, warm-up ratio 0.1 \\
+Batch size & 128 \\
+Epochs / steps & 5 / 5{,}330 \\
+Precision & fp16, DDP over 4 GPUs \\
+Seeds & 50, 51, 52 \\
+\midrule
+\multicolumn{2}{l}{\emph{Aggregation and losses}} \\
+Query-weight temperature $\tau_w$ & 0.1 \\
+Contrastive temperature $\tau$ & 0.07 (fixed, not learned) \\
+Label smoothing & 0.1 \\
+$\mathcal{L}_{\mathrm{sem}}$ weight $\alpha$ & 1.0 \\
+$\mathcal{L}_{\mathrm{mask}}$ weight $\beta$ & 1.0 \\
+$\mathcal{L}_{\mathrm{unif}}$ weight $\lambda$ & 0.1 \\
+$\mathcal{L}_{\mathrm{unif}}$ scale $t$ & 2.0 \\
+$\mathcal{L}_{\mathrm{DAM}}$ weight & 0.1 \\
+Semantic temperature $\tau^*$ & 0.5 \\
+Semantic neighbours kept & top 64 \\
+Calibration weight & 1.0 (observed pairs only) \\
+Loss warm-up ($\mathcal{L}_{\mathrm{sem}},\mathcal{L}_{\mathrm{unif}}$) & 500 steps \\
+\midrule
+\multicolumn{2}{l}{\emph{Reduced-arity views}} \\
+$p_{\mathrm{full}}$ schedule & $1.0 \rightarrow 0.5$, linear \\
+Anneal length & 2{,}000 steps \\
+Modalities dropped & exactly 1, uniform over $\mathcal{K}$ \\
+Minimum retained & 2 \\
+\midrule
+\multicolumn{2}{l}{\emph{Inference}} \\
+Frames sampled & 8 \\
+Rerank depth & top 50 \\
+Eval batch size & 64 \\
+Test-time mask rates $r$ & 0, 25, 50, 75, 90\% \\
+Mask seed & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Temperature fixed by construction.}
+$\tau$ must not be learnable in this objective. The calibration term of
+$\mathcal{L}_{\mathrm{sem}}$ pins the absolute cosine scale to the target
+affinity, whereas softmax is shift- and scale-invariant, so a learnable $\tau$
+would silently re-absorb the calibration and void the claim. Our configuration
+layer raises an error if calibration is requested together with a learnable
+temperature.
+
+\paragraph{Aggregation and the semantic objective use different score
+matrices.}
+$\mathcal{L}_{\mathrm{sem}}$ operates on $\tilde{C}$, not $C$, so the graded
+targets shape the embedding geometry independently of the query-conditioned
+weighting. This keeps the semantic supervision from interacting with the
+mechanism the paper is testing.
+
+% =====================================================================
+\section{Data Statistics}
+\label{sec:data}
+% =====================================================================
+
+\begin{table}[t]
+\centering
+\caption{Benchmark statistics. Modalities and splits follow the released
+baselines. VATEX is evaluated on the 431 test clips that remain downloadable;
+absolute VATEX recalls are therefore comparable within our tables but not to
+numbers reported on the full test set.}
+\label{tab:datastats}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
+\toprule
+Benchmark & Modalities & Train & Val & Test & Frames \\
+\midrule
+MSR-VTT & V, A, S & 9{,}000 & -- & 1{,}000 & 8 \\
+DiDeMo & V, A & 8{,}394 & 1{,}065 & 1{,}003 & 8 \\
+ActivityNet & V, A & 10{,}009 & -- & 4{,}917 & 8 \\
+VATEX & V, A, S & 14{,}060 & -- & 431 & 8 \\
+AudioCaps & V, A & -- & -- & 700 & 8 \\
+\midrule
+VGGSound-5K & V, A & -- & -- & 5{,}000 & 8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Training corpus.}
+All compared methods continue-pretrain from the same VAST checkpoint on the
+same 150k-clip subset of VAST-27M. Of the nominal 150k clips, 136{,}674 remain
+downloadable and form the effective training set for every arm in this paper;
+five epochs at batch size 128 over that set is 5{,}330 optimizer steps. We
+report the effective size because it fixes the training budget: the compared
+papers report the nominal 150k figure, and the same source attrition affects
+them.
+
+\paragraph{Modality availability.}
+The five benchmarks span two arities, which is why arity-invariance is a
+practical requirement rather than a formal nicety: MSR-VTT and VATEX are scored
+with three gallery modalities and the remaining three benchmarks with two. A
+single reported configuration is therefore evaluated at both $|M|=2$ and
+$|M|=3$ with no change, and the same construction serves the reduced arities
+produced by test-time masking.
+
+% =====================================================================
+\section{Additional Results and Analysis}
+\label{sec:extra}
+% =====================================================================
+
+\subsection{Components of the Aggregation Gain}
+\label{sec:gaincomp}
+
+Table~\ref{tab:gain_components} decomposes every cell of the aggregation-gain
+table in the main paper into its two terms, so the subtraction is checkable.
+Two rows deserve comment.
+
+On ActivityNet, GRAM's best single pathway is $36.8$ against our $34.1$: its
+unimodal features are $2.7$ points \emph{better} than ours. Its volume
+aggregate is $31.0$ and ours is $34.4$. The volume gives up $5.8$ points
+relative to the best input it was handed; the centroid gains $0.3$. AudioCaps
+has the same shape---best single pathway $29.0$ for GRAM against $25.7$ for us,
+aggregate $22.9$ against $27.1$. This rules out the obvious alternative
+explanation for our results: \ours{} is not ahead because low-rank adaptation
+produced better encoders. On two of five benchmarks its encoders are measurably
+worse. It is ahead because the aggregation step does not discard the
+information they provide.
+
+\begin{table*}[t]
+\centering
+\caption{Components of the aggregation gain: best single-modality pathway R@1,
+the method's own aggregate R@1, and their difference, per benchmark.}
+\label{tab:gain_components}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccccccccccccc}
+\toprule
+ & \multicolumn{3}{c}{MSR-VTT} & \multicolumn{3}{c}{DiDeMo} & \multicolumn{3}{c}{ActivityNet} & \multicolumn{3}{c}{VATEX} & \multicolumn{3}{c}{AudioCaps} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}\cmidrule(lr){14-16}
+Method & best & agg. & gain & best & agg. & gain & best & agg. & gain & best & agg. & gain & best & agg. & gain \\
+\midrule
+GRAM$^{\star}$ & 42.1 & 38.7 & -3.4 & 32.0 & 28.2 & -3.8 & 36.8 & 31.0 & -5.8 & 77.5 & 75.6 & -1.9 & 29.0 & 22.9 & -6.1 \\
+PMRL$^{\star}$ & 43.7 & 31.5 & -12.2 & 38.3 & 28.7 & -9.6 & 39.8 & 30.0 & -9.8 & 81.2 & 53.6 & -27.6 & 32.0 & 33.4 & +1.4 \\
+HyperGRAM$^{\dagger}$ & 42.5 & 39.1 & -3.4 & 32.1 & 32.0 & -0.1 & 36.3 & 34.3 & -2.0 & 78.0 & 78.0 & +0.0 & -- & -- & -- \\
+\ours{}, uniform weights & 41.1 & 34.1 & -7.0 & 34.5 & 27.0 & -7.5 & 30.0 & 26.0 & -4.0 & 80.3 & 69.1 & -11.2 & 28.6 & 28.8 & +0.2 \\
+\textbf{\ours{}, query-weighted (ours)} & 41.2 & 45.2 & +4.0 & 35.3 & 34.2 & -1.1 & 34.1 & 34.4 & +0.3 & 81.2 & 81.7 & +0.5 & 25.7 & 27.1 & +1.4 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Two-Stage Results Under Masking}
+\label{sec:twostage}
+
+Table~\ref{tab:missing_twostage} reports the reranked metric on the identical
+masked cells of the main paper's Table~3, alongside each method's own video-only
+cosine at $r{=}90\%$. It is the evidence for reporting the representation stage
+in the main text.
+
+Each method reranks with the cross-encoder in its own checkpoint, all descended
+from the same VAST foundation model, and none of them was ever trained on an
+incomplete modality set: the reranking branch conditions on the full encoder
+outputs, and the baselines' pipelines discard incomplete clips before training.
+As $r$ grows, every method's two-stage score converges onto its own video-only
+cosine---at $r{=}90\%$, $33.2$ against $32.1$ for \ours{} and $32.9$ against
+$32.8$ for GRAM on MSR-VTT---and the between-method spread collapses from $2.3$
+points at $r{=}0$ to within evaluation noise. Beyond the $r{=}0$ anchor the
+two-stage number therefore measures the reranker's behaviour on zeroed inputs
+rather than the aggregation geometries under comparison. We report it here in
+full rather than omitting it: on DiDeMo, ActivityNet and AudioCaps the reranked
+ordering under masking favours GRAM, and that is a consequence of the same
+collapse, not a contradiction of the representation-level result.
+
+\begin{table}[t]
+\centering
+\caption{Two-stage (reranked) R@1 on the identical masked cells of the main
+paper's Table~3, with each method's own video-only cosine at $r{=}90\%$. The
+reranking stage converges every method onto that pathway as $r$ grows, erasing
+the aggregator differences: end-to-end robustness in a two-stage pipeline is
+capped by the reranking stage.}
+\label{tab:missing_twostage}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccccc}
+\toprule
+ & Method & 0\% & 25\% & 50\% & 75\% & 90\% & cos$_{TV}$@90\% \\
+\midrule
+MSR-VTT & \textbf{\ours{}} & \textbf{54.8} & \textbf{47.8} & \textbf{41.1} & \textbf{37.0} & \textbf{33.2} & 32.1 \\
+ & GRAM$^{\star}$ & 52.5 & 47.0 & 40.9 & 35.4 & 32.9 & 32.8 \\
+\rowcolor{gray!10} & \emph{margin} & +2.3 & +0.8 & +0.2 & +1.6 & +0.3 &  \\
+\midrule
+DiDeMo & \textbf{\ours{}} & \textbf{51.3} & 44.2 & 38.9 & 32.1 & 29.5 & 23.2 \\
+ & GRAM$^{\star}$ & 50.7 & \textbf{45.0} & \textbf{39.8} & \textbf{32.7} & \textbf{29.8} & 21.1 \\
+\rowcolor{gray!10} & \emph{margin} & +0.6 & -0.8 & -0.9 & -0.6 & -0.3 &  \\
+\midrule
+ActivityNet & \textbf{\ours{}} & 55.8 & 47.9 & 40.0 & 33.8 & 30.7 & 23.7 \\
+ & GRAM$^{\star}$ & \textbf{56.3} & \textbf{48.3} & \textbf{41.4} & \textbf{35.5} & \textbf{32.3} & 24.8 \\
+\rowcolor{gray!10} & \emph{margin} & -0.5 & -0.4 & -1.4 & -1.7 & -1.6 &  \\
+\midrule
+VATEX & \textbf{\ours{}} & \textbf{90.5} & \textbf{85.2} & \textbf{73.3} & \textbf{61.9} & 57.3 & 58.5 \\
+ & GRAM$^{\star}$ & 90.0 & 82.8 & 72.9 & \textbf{61.9} & \textbf{57.8} & 58.0 \\
+\rowcolor{gray!10} & \emph{margin} & +0.5 & +2.4 & +0.4 & +0.0 & -0.5 &  \\
+\midrule
+AudioCaps & \textbf{\ours{}} & \textbf{35.2} & 24.6 & 19.2 & 13.2 & 9.9 & 10.2 \\
+ & GRAM$^{\star}$ & 32.2 & \textbf{26.0} & \textbf{21.0} & \textbf{15.5} & \textbf{11.4} & 9.5 \\
+\rowcolor{gray!10} & \emph{margin} & +3.0 & -1.4 & -1.8 & -2.3 & -1.5 &  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Modality-Subset Ladder}
+\label{sec:ladder}
+
+Table~\ref{tab:subset_ladder} evaluates the same checkpoints with a fixed
+modality set for the whole gallery---$\{V\}$, $\{V,A\}$, $\{V,A,S\}$---on the
+two benchmarks that carry three gallery modalities. It answers a different
+question from the missing-modality experiment and the two should not be
+conflated. The ladder fixes arity for the entire gallery and therefore measures
+each modality's \emph{contribution}; because arity is constant within a run, an
+arity-dependent score is a global rescaling that leaves the ranking unchanged.
+The masking experiment instead degrades clips \emph{independently}, so
+candidates of different arity compete in one ranked list, which is the setting
+in which cross-arity comparability becomes a ranking property rather than a
+cosmetic one.
+
+The ladder makes the mechanism visible constructively: every modality \ours{}
+adds helps or holds, while every modality the volume adds hurts. The $\{V\}$
+rung doubles as a control---a one-element aggregate must equal the text--video
+cosine for both geometries, which we assert at generation.
+
+\begin{table}[t]
+\centering
+\caption{Modality-subset ladder: each method's own aggregation score
+(T$\rightarrow$V R@1) as modalities are added at test time, using the same
+checkpoints as the main tables. $\{V,A,S\}$ \emph{is} the main-table cell.}
+\label{tab:subset_ladder}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{llccc c}
+\toprule
+ & Method & $\{V\}$ & $\{V,A\}$ & $\{V,A,S\}$ & $\Delta_{V \to VAS}$ \\
+\midrule
+MSR-VTT & \textbf{\ours{}} & 41.2 & 42.1 & 45.2 & +4.0 \\
+ & GRAM$^{\star}$ & 42.1 & 39.7 & 38.7 & -3.4 \\
+\midrule
+VATEX & \textbf{\ours{}} & 81.2 & 81.9 & 81.7 & +0.5 \\
+ & GRAM$^{\star}$ & 77.5 & 75.6 & 75.6 & -1.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Latent-Space Analysis}
+\label{sec:tsne}
+
+Figure~\ref{fig:tsne} visualises the embedding space of three models that share
+an initialisation: the VAST foundation checkpoint both adapted models start
+from, the fully fine-tuned GRAM checkpoint, and \ours{}. Because t-SNE is
+qualitative and the display is a subset, we separate the two layers explicitly.
+The numbers printed on each panel are computed in the \emph{original} embedding
+space using cosine distance and over \emph{all eight} dumped classes---never
+over the displayed subset and never in t-SNE coordinates. The display shows the
+three classes with the largest gain of both adapted models over the shared
+initialisation on text-centroid cosine, a deterministic rule fixed before
+looking at the panels.
+
+Mean text-centroid cosine---how tightly a class's text embedding anchors the
+mean of that class's video and audio embeddings---is $0.34$ for VAST, $0.48$ for
+GRAM and $0.44$ for \ours{}. Mean audio silhouette by class is $0.21$, $0.26$
+and $0.20$ respectively. The reading is deliberately modest: alignment training
+relocates text anchors substantially relative to the shared initialisation, and
+4.8M adapter parameters recover most, though not all, of what full fine-tuning
+of 1.4B parameters buys on this axis. We report the axis on which we do not
+lead rather than selecting one on which we do.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_tsne_latent.pdf}
+\caption{Joint t-SNE of text, video and audio embeddings on a VGGSound subset,
+for the shared VAST initialisation, the fully fine-tuned GRAM checkpoint and
+\ours{}. Stars are class text embeddings, squares video, triangles audio.
+Panel annotations are computed in the original cosine space over all eight
+classes, not over the displayed three.}
+\label{fig:tsne}
+\end{figure}
+
+\subsection{VGGSound: A Negative Result and a Protocol Check}
+\label{sec:vggsound}
+
+Table~\ref{tab:vggsound} reports audio-anchored classification-as-retrieval on
+VGGSound-5K, where \ours{} does not lead. We include it for two reasons.
+
+First, the decomposition locates the deficit. \ours{}'s video pathway is weaker
+than the fully fine-tuned baseline's ($31.3$ against $35.0$) while its audio
+pathway is slightly stronger ($27.0$ against $26.3$); its fusion still adds
+$+3.6$ over its own best pathway, so the aggregation behaves as the rest of the
+paper predicts even where the adapted pathways are not competitive. Short
+label-style queries---310 class names rather than sentences---are the regime in
+which rank-8 adaptation of a frozen backbone is weakest, and we do not claim
+otherwise. Notably, the uniform-weights control is \emph{stronger} here
+($35.9$), the one setting in the paper where query conditioning does not help;
+with a single-word query there is little for the weights to condition on.
+
+Second, the GRAM$^{\star}$ row is the strongest protocol validation in the
+paper. The released checkpoint reproduces its published VGGSound number to
+within $0.1$ in our environment ($40.5$ measured against $40.6$ published),
+which bounds the environment offset on this benchmark far more tightly than the
+retrieval benchmarks do.
+
+\begin{table}[t]
+\centering
+\caption{VGGSound-5K, audio-anchored classification-as-retrieval: 310 class
+labels as queries over 5{,}000 clips, Acc@1/Acc@10, no reranking stage---not
+comparable to the retrieval tables. \ours{} Acc@1 is three seeds ($\pm$ sd).}
+\label{tab:vggsound}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lcc}
+\toprule
+Method & Acc@1 & Acc@10 \\
+\midrule
+GRAM (paper)$^{\S}$ & 40.6 & 78.1 \\
+GRAM$^{\star}$ & 40.5 & 77.3 \\
+\textbf{\ours{}} & 34.9\tiny{$\pm$0.3} & 71.2 \\
+\midrule
+\multicolumn{3}{l}{\emph{decomposition} (\ours{} / GRAM$^{\star}$)} \\
+\quad video pathway alone & 31.3 / 35.0 & 63.9 / 68.4 \\
+\quad audio pathway alone & 27.0 / 26.3 & 63.3 / 66.4 \\
+\quad \ours{}, uniform weights & 35.9 & 72.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation-Environment Audit}
+\label{sec:envaudit}
+
+Table~\ref{tab:envaudit} evaluates \emph{the same released GRAM checkpoint} in
+three environments. The spread is $2.3$ R@1 between the published number and
+ours, which is an order of magnitude larger than our evaluation-noise floor and
+comparable to the margins the field reports as contributions. This is why the
+main paper compares only artifacts evaluated in one environment and retains
+published numbers for reference only.
+
+The offset is also not sign-consistent, so it cannot be corrected by a constant.
+HyperGRAM trained from its authors' unmodified code at their recipe measures
+$-2.6$, $-2.4$ and $-4.5$ R@1 against its published numbers on MSR-VTT, DiDeMo
+and ActivityNet, but $+9.9$ on VATEX; GRAM's released checkpoint measures
+$-2.3$ on MSR-VTT and $+6.5$ on VATEX.
+
+\begin{table}[t]
+\centering
+\caption{Evaluation-environment audit. The first three rows evaluate the same
+released GRAM checkpoint in three environments; the fourth is our own retraining
+of GRAM evaluated in ours. MSR-VTT T-VAS, two-stage R@1.}
+\label{tab:envaudit}
+\small
+\begin{tabular}{llr}
+\toprule
+Weights & Evaluation environment & R@1 \\
+\midrule
+GRAM, released checkpoint & as published & 54.8 \\
+GRAM, released checkpoint & HyperAlign & 53.4 \\
+GRAM, released checkpoint & ours & 52.5 \\
+GRAM, our retraining & ours & 52.4\,\tiny{$\pm$0.21} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Statistical Support}
+\label{sec:stats}
+
+Every count stated in the main paper is accompanied by an exact test here.
+
+\paragraph{Missing-modality sweep.}
+\ours{} exceeds GRAM in 25 of 25 rate$\times$benchmark cells; exact one-sided
+sign test $p = 2.98\times10^{-8}$. Cells within a benchmark share nested masks
+and are therefore not independent, so we also report the conservative version
+that treats each benchmark as a single unit: 5 of 5, $p = 0.031$.
+
+\paragraph{Aggregation gain.}
+12 of the 14 measurable baseline method$\times$benchmark cells are negative;
+against a null in which fusion helps or hurts with equal probability, exact
+one-sided $p = 0.0065$. Method rows share checkpoints across benchmarks, so
+these cells are not fully independent either; the count itself is the primary
+evidence and the test is reported for calibration.
+
+\paragraph{Seed variance versus baseline gaps.}
+Table~\ref{tab:seedci} gives the three-seed mean, standard deviation and 95\%
+interval for \ours{} against each single-run baseline. Released checkpoints are
+$n{=}1$ by nature, so no two-sample test exists; ``outside'' states only that
+the observed ordering is not explained by \ours{}'s seed variance, and says
+nothing about the baseline's own variance.
+
+\begin{table}[t]
+\centering
+\caption{\ours{} seed statistics against single-run baselines (two-stage
+T$\rightarrow$V R@1). Baselines are released checkpoints or single training
+runs, so only \ours{} has a variance estimate.}
+\label{tab:seedci}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccc}
+\toprule
+Benchmark & \ours{} $\pm$ sd & 95\% CI & GRAM$^{\star}$ & PMRL$^{\star}$ & HyperGRAM$^{\dagger}$ \\
+\midrule
+MSR-VTT & 54.6 $\pm$ 0.2 & [54.1, 55.2] & 52.5 & 54.3 & 54.0 \\
+DiDeMo & 51.2 $\pm$ 0.3 & [50.6, 51.9] & 50.7 & 52.5 & 48.9 \\
+ActivityNet & 55.9 $\pm$ 0.2 & [55.6, 56.3] & 56.3 & 54.1 & 53.7 \\
+VATEX & 90.6 $\pm$ 0.1 & [90.3, 90.9] & 90.0 & 89.6 & 89.8 \\
+AudioCaps & 35.0 $\pm$ 0.4 & [34.0, 36.0] & 32.2 & 34.4 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Trainable-Parameter Accounting}
+\label{sec:params}
+
+We report a trainable-parameter count only for configurations we trained
+ourselves, and describe the baselines as pretraining the full backbone rather
+than assigning them a number. Two measurements motivate this.
+
+First, the two available counting rules are not interchangeable. For a low-rank
+run the honest count is the set of parameters the optimizer updated; for a
+released checkpoint the only available count is every floating-point tensor in
+the file, which also includes buffers and heads that never receive gradients.
+Our own full-fine-tuning control is measurable both ways and reads
+$1{,}242{,}890{,}226$ by the first rule against $1{,}397{,}367{,}145$ by the
+second---an $11\%$ gap on one identical model. A count from one rule cannot sit
+in a column beside a count from the other.
+
+Second, the checkpoint rule also counts trunk artifacts that are not part of the
+method. A key-level comparison of the checkpoints shows that our HyperGRAM
+training arm and our full-fine-tuning arm each carry a $720{,}896$-parameter
+depth projection head that the shared trunk builds unconditionally and that is
+never invoked in the modality configurations evaluated here; the released GRAM
+checkpoint does not contain it. Reporting that as HyperGRAM's parameter count
+would attribute our trunk's unused weights to their method.
+
+The comparison the paper makes is therefore stated in the form it can support:
+\ours{} trains 4{,}763{,}650 parameters, and every baseline pretrains the full
+backbone.
+
+% =====================================================================
+\section{Limitations}
+\label{sec:limits}
+% =====================================================================
+
+\paragraph{One retrieval direction.}
+The aggregation is conditioned on the text query, so the mechanism has no
+purchase on video-to-text retrieval, where \ours{} is mid-field. We report that
+direction rather than omit it.
+
+\paragraph{Short queries.}
+Query conditioning requires a query with enough content to condition on. On
+VGGSound, where queries are single class names, the uniform-weights control is
+stronger than the query-weighted model (Section~\ref{sec:vggsound}).
+
+\paragraph{One backbone.}
+All results use the VAST backbone, because that is what makes the comparison to
+GRAM, PMRL and HyperGRAM an artifact-level comparison rather than a comparison
+across training pipelines. Whether the aggregation-gain deficit reproduces on
+other multimodal backbones is untested here.
+
+\paragraph{Two-stage ceiling.}
+Our representation-level gains are compressed by the reranking stage, and under
+masking they are erased by it (Section~\ref{sec:twostage}). We diagnose this
+bottleneck but do not fix it; a reranker trained on incomplete modality sets is
+the obvious next step and is out of scope here.
+
+\paragraph{Corpus scale.}
+Following the compared methods, continued pretraining uses a 150k-clip subset
+rather than full VAST-27M, so all conclusions are drawn in the small-budget
+adaptation regime that this family of methods operates in.
+
+\end{document}

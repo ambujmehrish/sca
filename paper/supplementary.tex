@@ -292,8 +292,9 @@ adaptation sees a quarter of their visual input per clip while every reported
 comparison is made at the same 8 evaluation frames for all methods. The
 reduced training budget is applied identically to the reported configuration,
 the full-fine-tuning control, the uniform-weights control and every ablation,
-so the comparisons among them are unaffected; we did not sweep the training
-frame count and therefore make no claim about its effect.
+so the comparisons among them are unaffected. We swept the training frame
+count rather than assuming it was harmless; Section~\ref{sec:frames} reports
+the result.
 
 \paragraph{Temperature fixed by construction.}
 $\tau$ must not be learnable in this objective. The calibration term of
@@ -578,6 +579,51 @@ GRAM$^{\star}$ & 40.5 & 77.3 \\
 \quad video pathway alone & 31.3 / 35.0 & 63.9 / 68.4 \\
 \quad audio pathway alone & 27.0 / 26.3 & 63.3 / 66.4 \\
 \quad \ours{}, uniform weights & 35.9 & 72.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Training Frame Budget}
+\label{sec:frames}
+
+The compared methods sample 8 frames per clip for both training and
+inference~\cite{cicchetti2025gramian}; we sample 2 for training and 8 for
+inference. Because this is the one recipe element where we depart from the
+baselines, we measured its cost directly rather than arguing it away.
+
+Table~\ref{tab:frames} reports two additional pretraining runs of the reported
+configuration, changing only the frame budget. At a fixed batch size of 128,
+doubling the training frames from 2 to 4 changes the mean two-stage
+R@1 by $+0.04$---inside the $0.2$ evaluation-noise floor---and the mean
+aggregator R@1 by $-0.22$. Reaching the baselines' 8 frames requires halving
+the batch to 64 to fit in memory, and therefore halves the in-batch negatives;
+that run trains to completion over 10{,}670 steps and its MSR-VTT validation
+tops out at $53.0$ against the reported configuration's $54.8$.
+
+More frames do improve the visual pathway, in the expected direction: the
+text--video cosine rises on four of five benchmarks at 4 frames ($41.2
+\rightarrow 41.6$ on MSR-VTT, $35.3 \rightarrow 35.5$ on DiDeMo, $34.1
+\rightarrow 34.5$ on ActivityNet, $81.2 \rightarrow 81.4$ on VATEX). That
+improvement does not survive into the aggregate or the reranked metric. We
+therefore report the 2-frame configuration, and note that the frame budget is
+not where the gap between aggregation geometries lives.
+
+\begin{table}[t]
+\centering
+\caption{Training frame budget. All three runs are the reported configuration
+with only the frame count (and, for 8 frames, the batch size that makes it fit)
+changed. $\bar{\Delta}$ columns are means over the five benchmarks; the
+8-frame run has in-training validation only.}
+\label{tab:frames}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
+\toprule
+Training frames & Batch & Steps & MSR-VTT & $\bar{\Delta}$ two-stage & $\bar{\Delta}$ agg. \\
+\midrule
+2 (reported) & 128 & 5{,}330 & 54.8 & -- & -- \\
+4 & 128 & 5{,}330 & 54.2 & +0.04 & -0.22 \\
+8 & 64 & 10{,}670 & 53.0 & n/a & n/a \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -71,6 +71,12 @@ run score_fusion "Candidate recall@k (the ceiling) and the fusion-weight sweep" 
 run main_table "The main table, generated from measured cells (MISSING where unmeasured)" \
     python3 scripts/build_main_table.py --out experiments/results/tables_final/table1_main_all.tex
 
+# Runs LAST among the table steps in spirit but cheap enough to run here too: nothing in
+# tables_final/ may be hand-maintained. A stale hand-edited table put "53.4 vs 53.5 R@1" into
+# a draft's Contribution 1 while the generated tables said 50.4 vs 54.6.
+run tables_generated "Guard: every table in tables_final/ is generator output" \
+    python3 scripts/check_tables_generated.py
+
 run paper_tables "Per-benchmark paper tables (both directions, R@1/R@10, sectioned by geometry)" \
     python3 scripts/build_paper_table.py --all
 

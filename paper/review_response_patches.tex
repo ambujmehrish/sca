@@ -169,57 +169,73 @@ explanation for the gap in Table~3 rather than an artefact of it.
 
 
 % ---------------------------------------------------------------------
-% PATCH 4  [PASTE]   main.tex, Section 3, the sentence(s) immediately
-%                    after Eq. 7 (the masking-consistency loss).
-%                    REPLACE the existing description of the
-%                    stop-gradient with this.
+% PATCH 4  [PASTE]   main.tex, Sec. 3, "Cross-arity consistency", the
+%                    sentence immediately after Eq. 7.
 %
-% WHY. model/losses_sca.py:73-76 detaches in the score term and NOT in
-% the direction term:
+% CORRECTION to an earlier reading of this patch. Eq. 7 is typeset as
+%
+%     L_mask = 1 - <mu_M, mu_K> + (s_M - sg[s_K])^2
+%
+% with sg[.] on s_K ONLY, which is exactly what model/losses_sca.py:73-76
+% does:
 %     if term1: loss += (1.0 - (mu_M * mu_K).sum(-1)).mean()
 %     if term2: loss += ((s_M - s_K.detach()) ** 2).mean()
-% The main paper described the stop-gradient as applying to both. Note
-% the SUPPLEMENT is already correct here -- its Algorithms section says
-% "only $s_{\mathcal{K}}$ is stop-gradiented" -- so this patch also
-% removes a main/supplement contradiction, which is worth more than the
-% point itself.
 %
-% Adjust the symbol names to match your Eq. 7 if they differ.
+% So the EQUATION IS CORRECT AS PRINTED and needs no change. What the
+% paper does not do is give any reason for the asymmetry, which is why it
+% reads as an inconsistency rather than a decision, and why the review
+% treated it as an oversight. This is therefore an addition, not a fix.
+%
+% REPLACES: "where $\mathrm{sg}[\cdot]$ is the stop-gradient. The first
+% term preserves the direction of the representation and the second
+% preserves the calibration of the score when a modality is removed."
 % ---------------------------------------------------------------------
 
-The two terms are stop-gradiented differently, and deliberately. The
-score term treats the complete-set score as a fixed reference,
-$\big(s_{\mathcal{M}} - \mathrm{sg}[s_{\mathcal{K}}]\big)^{2}$, so
-calibration moves the reduced view onto the complete one rather than
-letting the two meet in the middle. The direction term carries gradient
-through both centroids: consistency between arities is a property of the
-representation, not a target that one view holds for the other, and
-freezing $\mu_{\mathcal{K}}$ would exempt the complete-modality view
-from the very constraint it imposes.
+where $\mathrm{sg}[\cdot]$ is the stop-gradient. The two terms are
+gradient-coupled differently, and deliberately. The score term treats the
+complete-set score as a fixed reference, so calibration moves the reduced
+view onto the complete one rather than letting the two meet at some
+intermediate value that neither view would produce at test time. The
+direction term carries gradient through both centroids: agreement across
+arities is a property the representation must have, not a target that one
+view holds for the other, and freezing $\mu_{\mathcal{K}}$ would exempt
+the complete-modality view from the constraint it imposes.
 
 
 % ---------------------------------------------------------------------
-% PATCH 5  [PASTE]   main.tex, Section 3, the sentence after Eq. 8 (the
-%                    semantic target / sparsity claim). REPLACE the
-%                    existing "absent means unknown, not zero" claim.
+% PATCH 5  [PASTE]   main.tex, Sec. 3, "Graded semantic supervision".
+%                    TWO edits, one before Eq. 8 and one after it.
 %
 % WHY. sharpen_targets (model/losses_sca.py:28) is
 %     F.softmax(s_star / tau_star, dim=-1)
 % over ALL entries, so an entry sparsified away receives logit 0 and is
 % treated as a value. cal_known_only (losses_sca.py:55-57) masks the
-% CALIBRATION term only, not the KL term. The claim as written is true
-% of half the loss. The scoped version below is what the code does, and
-% it reads as a considered design decision rather than an oversight.
+% CALIBRATION term only, not the KL term. The paper's "an absent entry
+% means unknown rather than zero" is stated generally but is true of half
+% the loss.
+%
+% Both edits are needed. 5a alone leaves the overclaim standing in weaker
+% form; 5b alone contradicts the sentence above it.
 % ---------------------------------------------------------------------
 
-$S^{\star}$ is top-$k$ sparsified, so an absent entry means the affinity
-is unknown, not that it is zero. The calibration term therefore
-regresses only the retained entries. The KL term does not admit the same
-treatment --- it is normalised over the full row, and renormalising it
-over a support that varies per row would make the objective incomparable
-across rows --- so absent entries there enter with the softmax's uniform
-baseline weight. In effect the ranking term treats an unknown affinity
-as unremarkable, and the calibration term abstains on it.
+% 5a. REPLACES: "Let $\Omega = \{(i,j) : S^\star_{ij} > 0\}$ denote the
+%     pairs with an observed target; the cache is sparsified, so an
+%     absent entry means unknown rather than zero."
+
+Let $\Omega = \{(i,j) : S^{\star}_{ij} > 0\}$ denote the pairs with an
+observed target. The cache is sparsified, so an absent entry means the
+affinity is unknown rather than zero, and the calibration term below is
+therefore restricted to $\Omega$.
+
+% 5b. APPENDS after: "where the rescaling $2S^\star - 1$ maps affinities
+%     onto the cosine range $[-1,1]$."
+
+The KL term does not admit the same restriction: it is normalised over
+the full row, and renormalising over a support that varies per row would
+make the objective incomparable across rows. Absent entries there
+consequently enter at the softmax's uniform baseline weight. The ranking
+term thus treats an unknown affinity as unremarkable, while the
+calibration term abstains on it.
 
 
 % ---------------------------------------------------------------------

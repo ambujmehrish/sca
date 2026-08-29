@@ -18,41 +18,81 @@
 
 
 % ---------------------------------------------------------------------
-% PATCH 1  [PASTE]   main.tex, Section 4 (experimental protocol), in the
-%                    paragraph that introduces the missing-modality
-%                    masking. Add as the last sentence of that paragraph.
+% PATCH 1  [PASTE]   main.tex, Sec. 4.3 "Robustness to Test-Time Missing
+%                    Modalities", the \paragraph{Protocol.} block.
+%                    Two REPLACEMENTS in place, not an addition.
 %
 % WHY. The review's most damaging claim was that the headline robustness
 % experiment is invalid, on the reasoning that a masked modality reaches
-% GRAM's Gram matrix as a zero vector, which puts a zero row AND column
+% the Gramian baseline as a zero vector, which puts a zero row AND column
 % into G, forces det(G)=0 for every masked clip, and reduces the ranking
-% among masked clips to tie-breaking. The code does not do this
-% (utils/volume.py:266-267 builds the phantom-identity Gramian), but the
-% paper never said so concretely enough to prevent the assumption. This
-% sentence closes it at the point of first contact.
-% ---------------------------------------------------------------------
-
-A masked modality is dropped from that clip's aggregate, never imputed
-and never zero-filled; for the Gramian baseline this means the absent
-axis is made orthonormal, so the determinant reduces exactly to the
-sub-Gramian over the modalities the clip retains. This is a strictly
-more capable treatment than its released implementation supports, which
-cannot represent an incomplete clip and discards it
-(Sec.~\ref{sec:maskedvol}).
-
-
-% ---------------------------------------------------------------------
-% PATCH 2  [DONE, verify after regenerating]   Table 3 caption.
+% among masked clips to tie-breaking.
 %
-% Lives in scripts/build_missing_table.py (MAIN_CAPTION), not in the
-% .tex, because everything in tables_final/ must be generator output --
-% scripts/check_tables_generated.py enforces it. Regenerate with
+% The reviewer was not careless. The Protocol paragraph already contains
+% BOTH halves of the answer, three lines apart, and they read as a
+% contradiction:
+%
+%   "A masked modality is represented by zeros in the common trunk ..."
+%   "... In GRAM, a missing modality contributes a unit factor to the
+%    determinant ..."
+%
+% Zeros cannot produce a unit factor, so a reader who knows Gramians
+% believes the first sentence and treats the second as wishful. Both are
+% in fact true: the loader writes zeros, and presence is RECOVERED from
+% them by a norm test (utils/volume.py:220, present_from_feats, ||z||>0.5)
+% before the Gramian is built (utils/volume.py:266-267). That middle step
+% appears nowhere in the paper. Adding a sentence elsewhere does not help;
+% the two sentences below have to stop contradicting each other.
+% ---------------------------------------------------------------------
+
+% 1a. REPLACES: "A masked modality is represented by zeros in the common
+%     trunk, consistent with the input produced by a loader for an absent
+%     stream."
+
+A masked modality is written as zeros in the common trunk, matching what
+a loader produces for an absent stream; presence is then recovered from
+the embedding norm before any score is formed, so the zeros are a
+transport convention and never reach an aggregation function as a vector.
+
+% 1b. REPLACES: "In GRAM, a missing modality contributes a unit factor to
+%     the determinant, resulting in the method's lower-arity formula,
+%     which is already implemented at arities 2 to 4 across datasets."
+%
+%     Keep the sentence that follows it in the paper ("The r=0 setting is
+%     byte-identical to the standard protocol ..."): it is correct, and
+%     after this replacement it reads as the consequence rather than as an
+%     unsupported assurance.
+
+In \textsc{Gram}, the absent axis is made orthonormal rather than
+zero-filled: it contributes a factor of exactly one to the determinant,
+which therefore reduces to the sub-Gramian over the modalities the clip
+retains --- the method's own lower-arity formula, already implemented at
+arities 2 to 4 across datasets. Zero-filling instead would place a zero
+row \emph{and} column in the Gram matrix and force $\det G = 0$ for
+\emph{every} masked clip, collapsing the ranking among them. We do not do
+this: the baseline is given a treatment its release does not support,
+which discards incomplete clips outright (Sec.~\ref{sec:maskedvol}).
+
+
+% ---------------------------------------------------------------------
+% PATCH 2  [PASTE]   Table 3 caption.
+%
+% The canonical text lives in scripts/build_missing_table.py
+% (MAIN_CAPTION), because everything in tables_final/ must be generator
+% output -- scripts/check_tables_generated.py enforces it. Regenerating
+% with
 %   python3 scripts/build_missing_table.py --all
-% on the cluster and the caption below is what lands in
+% puts the text below into
 % experiments/results/tables_final/table3_missing.tex.
 %
-% Reproduced here only so the wording can be reviewed without running
-% the generator. DO NOT paste this into the .tex by hand.
+% BUT: the submitted PDF's Table 3 caption reads "For GRAM, the volume is
+% computed over the modalities remaining in each clip", which the
+% generator has never emitted -- it is a hand-shortened paraphrase. So
+% Table 3 in Overleaf is NOT \input from tables_final/, and regenerating
+% will not reach it. Either paste the clause below into the Overleaf
+% caption, or re-sync the whole table from the generator so the two stop
+% drifting. The shortened paraphrase is precisely the version that leaves
+% the zero-fill reading open.
 % ---------------------------------------------------------------------
 
 % $\star$: authors' released checkpoint. Its release cannot represent a

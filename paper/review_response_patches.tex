@@ -1,0 +1,224 @@
+% =====================================================================
+%  PASTE-READY PATCHES FOR THE REVIEW RESPONSE
+%
+%  This file is NOT part of the build. Nothing \input's it. It is a
+%  working document: each block below is text to paste into main.tex or
+%  supplementary.tex, with the location and the reason recorded beside
+%  it, so that a change made in Overleaf can be traced back to the code
+%  fact that motivated it.
+%
+%  Assumes \newcommand{\ours}{SCALAR} is in the preamble (it is, in
+%  supplementary.tex line 27). If main.tex uses a different macro,
+%  substitute it.
+%
+%  STATUS KEY
+%    [DONE]  already committed to the repo on this branch
+%    [PASTE] you must paste this into Overleaf
+% =====================================================================
+
+
+% ---------------------------------------------------------------------
+% PATCH 1  [PASTE]   main.tex, Section 4 (experimental protocol), in the
+%                    paragraph that introduces the missing-modality
+%                    masking. Add as the last sentence of that paragraph.
+%
+% WHY. The review's most damaging claim was that the headline robustness
+% experiment is invalid, on the reasoning that a masked modality reaches
+% GRAM's Gram matrix as a zero vector, which puts a zero row AND column
+% into G, forces det(G)=0 for every masked clip, and reduces the ranking
+% among masked clips to tie-breaking. The code does not do this
+% (utils/volume.py:266-267 builds the phantom-identity Gramian), but the
+% paper never said so concretely enough to prevent the assumption. This
+% sentence closes it at the point of first contact.
+% ---------------------------------------------------------------------
+
+A masked modality is dropped from that clip's aggregate, never imputed
+and never zero-filled; for the Gramian baseline this means the absent
+axis is made orthonormal, so the determinant reduces exactly to the
+sub-Gramian over the modalities the clip retains. This is a strictly
+more capable treatment than its released implementation supports, which
+cannot represent an incomplete clip and discards it
+(Sec.~\ref{sec:maskedvol}).
+
+
+% ---------------------------------------------------------------------
+% PATCH 2  [DONE, verify after regenerating]   Table 3 caption.
+%
+% Lives in scripts/build_missing_table.py (MAIN_CAPTION), not in the
+% .tex, because everything in tables_final/ must be generator output --
+% scripts/check_tables_generated.py enforces it. Regenerate with
+%   python3 scripts/build_missing_table.py --all
+% on the cluster and the caption below is what lands in
+% experiments/results/tables_final/table3_missing.tex.
+%
+% Reproduced here only so the wording can be reviewed without running
+% the generator. DO NOT paste this into the .tex by hand.
+% ---------------------------------------------------------------------
+
+% $\star$: authors' released checkpoint. Its release cannot represent a
+% missing modality at all and discards such clips, so we extend it
+% rather than penalise it: a missing modality is \emph{not} zero-filled
+% --- which would place a zero row and column in the Gram matrix and
+% force $\det G {=} 0$ for \emph{every} masked clip, collapsing the
+% ranking --- but is made an orthonormal phantom axis contributing a
+% factor of exactly $1$, so the score reduces to that clip's volume over
+% the modalities it retains (Sec.~\ref{sec:maskedvol}).
+
+
+% ---------------------------------------------------------------------
+% PATCH 3  [DONE]   supplementary.tex, new subsection inserted before
+%                   \subsection{Two-Stage Results Under Masking}.
+%
+% Reproduced in full so the whole response reads in one place. Already
+% committed; pull rather than paste.
+%
+% The last paragraph is the load-bearing one. It concedes the correct,
+% stronger version of the reviewer's concern -- mixed-arity volumes
+% share no common scale, a cosine does -- which costs nothing because it
+% explains the gap in Table 3 rather than undermining it.
+% ---------------------------------------------------------------------
+
+\subsection{How the Gramian Baseline Sees a Missing Modality}
+\label{sec:maskedvol}
+
+The missing-modality comparison is only meaningful if the Gramian
+baseline is given a competent way to score an incomplete clip, so we
+state the construction explicitly.
+
+The obvious implementation is to zero-fill: substitute $z_m = 0$ for the
+absent modality and compute the volume unchanged. This is catastrophic,
+and not in an interesting way. A zero vector puts a zero row \emph{and}
+a zero column into the Gram matrix $G$, so $\det G = 0$ \emph{exactly},
+for every masked clip regardless of its content. Every masked clip
+receives the same constant score, the ranking among them is decided by
+tie-breaking, and any resulting number would measure the tie-break rule
+rather than the aggregator. We do not do this.
+
+Instead, an absent modality is turned into an orthonormal phantom axis.
+Writing $p \in \{0,1\}^{|M|+1}$ for the presence indicator (the query is
+always present), the masked Gramian is
+\begin{equation}
+\tilde{G} = G \odot (p\,p^{\!\top}) + \operatorname{diag}(\mathbf{1} - p),
+\label{eq:maskedgram}
+\end{equation}
+which zeroes the absent row and column and then writes a $1$ on its
+diagonal. Expanding the determinant along that row gives
+$\det \tilde{G} = 1 \cdot \det G_{P}$, where $G_{P}$ is the sub-Gramian
+over the present modalities: the absent axis contributes a factor of
+exactly one and the clip is scored at its own lower arity, with no
+imputed content and no discarded candidate. With $p = \mathbf{1}$ the
+construction reproduces the unmasked volume bit-for-bit, so the $r{=}0$
+row of the table is the released baseline's own protocol, unmodified.
+
+The same routine and the same presence rule ($\|z_m\| \le 0.5$, since
+present embeddings are unit-norm and the loader zero-fills what it
+cannot load) are used for training, validation and every evaluation, for
+every method. Both identities are asserted in the unit tests: that the
+masked volume equals the directly computed lower-arity volume, and that
+it is separated from the degenerate zero-fill case.
+
+Two consequences are worth stating plainly. First, this treatment is
+\emph{more} favourable than the released implementation supports, which
+cannot represent an incomplete clip and discards it; the baseline is
+therefore not handicapped by the harness. Second, it leaves a genuine
+asymmetry that the scores themselves cannot remove: volumes at different
+arities are not on a common scale, so a mixed-arity gallery is ranked by
+a quantity whose units vary across candidates, whereas \ours{} returns a
+cosine in $[-1,1]$ at every arity. We regard this as part of the
+explanation for the gap in Table~3 rather than an artefact of it.
+
+
+% ---------------------------------------------------------------------
+% PATCH 4  [PASTE]   main.tex, Section 3, the sentence(s) immediately
+%                    after Eq. 7 (the masking-consistency loss).
+%                    REPLACE the existing description of the
+%                    stop-gradient with this.
+%
+% WHY. model/losses_sca.py:73-76 detaches in the score term and NOT in
+% the direction term:
+%     if term1: loss += (1.0 - (mu_M * mu_K).sum(-1)).mean()
+%     if term2: loss += ((s_M - s_K.detach()) ** 2).mean()
+% The main paper described the stop-gradient as applying to both. Note
+% the SUPPLEMENT is already correct here -- its Algorithms section says
+% "only $s_{\mathcal{K}}$ is stop-gradiented" -- so this patch also
+% removes a main/supplement contradiction, which is worth more than the
+% point itself.
+%
+% Adjust the symbol names to match your Eq. 7 if they differ.
+% ---------------------------------------------------------------------
+
+The two terms are stop-gradiented differently, and deliberately. The
+score term treats the complete-set score as a fixed reference,
+$\big(s_{\mathcal{M}} - \mathrm{sg}[s_{\mathcal{K}}]\big)^{2}$, so
+calibration moves the reduced view onto the complete one rather than
+letting the two meet in the middle. The direction term carries gradient
+through both centroids: consistency between arities is a property of the
+representation, not a target that one view holds for the other, and
+freezing $\mu_{\mathcal{K}}$ would exempt the complete-modality view
+from the very constraint it imposes.
+
+
+% ---------------------------------------------------------------------
+% PATCH 5  [PASTE]   main.tex, Section 3, the sentence after Eq. 8 (the
+%                    semantic target / sparsity claim). REPLACE the
+%                    existing "absent means unknown, not zero" claim.
+%
+% WHY. sharpen_targets (model/losses_sca.py:28) is
+%     F.softmax(s_star / tau_star, dim=-1)
+% over ALL entries, so an entry sparsified away receives logit 0 and is
+% treated as a value. cal_known_only (losses_sca.py:55-57) masks the
+% CALIBRATION term only, not the KL term. The claim as written is true
+% of half the loss. The scoped version below is what the code does, and
+% it reads as a considered design decision rather than an oversight.
+% ---------------------------------------------------------------------
+
+$S^{\star}$ is top-$k$ sparsified, so an absent entry means the affinity
+is unknown, not that it is zero. The calibration term therefore
+regresses only the retained entries. The KL term does not admit the same
+treatment --- it is normalised over the full row, and renormalising it
+over a support that varies per row would make the objective incomparable
+across rows --- so absent entries there enter with the softmax's uniform
+baseline weight. In effect the ranking term treats an unknown affinity
+as unremarkable, and the calibration term abstains on it.
+
+
+% ---------------------------------------------------------------------
+% PATCH 6  [DONE]   Anonymity. Two leaks, both fixed on the branch.
+%
+%  (a) supplementary.tex, the evaluation-environment audit table, had a
+%      row naming the third-party reimplementation by project name. It
+%      now reads:
+%
+%          GRAM, released checkpoint & third-party reimplementation & 53.4 \\
+%
+%      If you have edited that table in Overleaf since, re-check the
+%      second column of the second row.
+%
+%  (b) experiments/results/tables_final/trainable_params.json recorded
+%      absolute cluster paths, which embed the allocation account. The
+%      committed entries are rewritten and scripts/count_trainable.py
+%      now anonymises new ones via anon_source(). Not in the PDF, but it
+%      is in the repo, and a repo link in the submission would carry it.
+% ---------------------------------------------------------------------
+
+
+% ---------------------------------------------------------------------
+% STILL OPEN -- both need cluster time, neither is a paste
+%
+%  (i) MAX-OVER-MODALITIES BASELINE ROW. The review asks for it and the
+%      ask is fair: the query-weighted centroid does tend to argmax as
+%      $\tau_w \to 0$, and tests/test_query_centroid.py proves the limit
+%      exactly. It is cheap -- $\tau = 10^{-5}$ through
+%      scripts/try_query_centroid.py on the cached features, no
+%      retraining. Our own committed sweep already refutes the strong
+%      form of the claim: at $\tau{=}0.01$ (effectively the max) R@1 is
+%      at or below $\tau{=}0.1$ on 9 of 9 feature dumps, by up to 9.6
+%      points, and on AudioCaps the max limit loses 6--12 points against
+%      the best single modality. Both endpoints of the temperature range
+%      are worse than the operating point, which is the strongest form
+%      of the answer -- but it should be a table row, not a sweep buried
+%      in the harvest.
+%
+% (ii) 54.6 vs 54.8 LABELLING. Three-seed mean against the seed-0
+%      reference, never labelled as such. One clause in the table note.
+% ---------------------------------------------------------------------

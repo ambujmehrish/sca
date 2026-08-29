@@ -1,7 +1,7 @@
 {
  "gram_released": {
   "method": "all floating tensors in checkpoint (full-FT)",
-  "source": "/leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt",
+  "source": "<external>/GRAM_pretrained_TVAS/ckpt/model_step_459.pt",
   "trainable": 1396646248
  },
  "hypergram_trained": {
@@ -11,7 +11,7 @@
  },
  "pmrl_released": {
   "method": "all floating tensors in checkpoint (full-FT)",
-  "source": "/leonardo_work/AIFAC_S07_041/pmrl_weights/model_ckpts/pmrl_base.pt",
+  "source": "<external>/pmrl_weights/model_ckpts/pmrl_base.pt",
   "trainable": 1396646248
  },
  "sca_fullft": {

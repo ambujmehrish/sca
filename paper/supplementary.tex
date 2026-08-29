@@ -402,6 +402,54 @@ HyperGRAM$^{\dagger}$ & 42.5 & 39.1 & -3.4 & 32.1 & 32.0 & -0.1 & 36.3 & 34.3 & 
 \end{tabular}
 \end{table*}
 
+\subsection{How the Gramian Baseline Sees a Missing Modality}
+\label{sec:maskedvol}
+
+The missing-modality comparison is only meaningful if the Gramian baseline is
+given a competent way to score an incomplete clip, so we state the construction
+explicitly.
+
+The obvious implementation is to zero-fill: substitute $z_m = 0$ for the absent
+modality and compute the volume unchanged. This is catastrophic, and not in an
+interesting way. A zero vector puts a zero row \emph{and} a zero column into the
+Gram matrix $G$, so $\det G = 0$ \emph{exactly}, for every masked clip
+regardless of its content. Every masked clip receives the same constant score,
+the ranking among them is decided by tie-breaking, and any resulting number
+would measure the tie-break rule rather than the aggregator. We do not do this.
+
+Instead, an absent modality is turned into an orthonormal phantom axis. Writing
+$p \in \{0,1\}^{|M|+1}$ for the presence indicator (the query is always
+present), the masked Gramian is
+\begin{equation}
+\tilde{G} = G \odot (p\,p^{\!\top}) + \operatorname{diag}(\mathbf{1} - p),
+\label{eq:maskedgram}
+\end{equation}
+which zeroes the absent row and column and then writes a $1$ on its diagonal.
+Expanding the determinant along that row gives
+$\det \tilde{G} = 1 \cdot \det G_{P}$, where $G_{P}$ is the sub-Gramian over the
+present modalities: the absent axis contributes a factor of exactly one and the
+clip is scored at its own lower arity, with no imputed content and no
+discarded candidate. With $p = \mathbf{1}$ the construction reproduces the
+unmasked volume bit-for-bit, so the $r{=}0$ row of the table is the released
+baseline's own protocol, unmodified.
+
+The same routine and the same presence rule ($\|z_m\| \le 0.5$, since present
+embeddings are unit-norm and the loader zero-fills what it cannot load) are used
+for training, validation and every evaluation, for every method. Both identities
+are asserted in the unit tests: that the masked volume equals the directly
+computed lower-arity volume, and that it is separated from the degenerate
+zero-fill case.
+
+Two consequences are worth stating plainly. First, this treatment is
+\emph{more} favourable than the released implementation supports, which cannot
+represent an incomplete clip and discards it; the baseline is therefore not
+handicapped by the harness. Second, it leaves a genuine asymmetry that the
+scores themselves cannot remove: volumes at different arities are not on a
+common scale, so a mixed-arity gallery is ranked by a quantity whose units vary
+across candidates, whereas \ours{} returns a cosine in $[-1,1]$ at every arity.
+We regard this as part of the explanation for the gap in Table~3 rather than an
+artefact of it.
+
 \subsection{Two-Stage Results Under Masking}
 \label{sec:twostage}
 
@@ -675,7 +723,7 @@ of GRAM evaluated in ours. MSR-VTT T-VAS, two-stage R@1.}
 Weights & Evaluation environment & R@1 \\
 \midrule
 GRAM, released checkpoint & as published & 54.8 \\
-GRAM, released checkpoint & HyperAlign & 53.4 \\
+GRAM, released checkpoint & third-party reimplementation & 53.4 \\
 GRAM, released checkpoint & ours & 52.5 \\
 GRAM, our retraining & ours & 52.4\,\tiny{$\pm$0.21} \\
 \bottomrule

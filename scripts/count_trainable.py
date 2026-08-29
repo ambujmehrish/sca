@@ -52,6 +52,23 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 OUT = os.path.join(ROOT, 'experiments/results/tables_final/trainable_params.json')
 
 
+def anon_source(path):
+    """Provenance string for the JSON, with the cluster identity stripped.
+
+    A checkpoint outside the repo is recorded by its ABSOLUTE path, which on our cluster
+    embeds the allocation account and the parent project directory. This file is committed
+    and the paper is reviewed anonymously, so the absolute prefix is a de-anonymisation
+    channel for a string that carries no information the reader needs: what identifies a
+    checkpoint is its filename and the directory it sits in, not the scratch mount above it.
+    Keep the last three components, drop the rest.
+    """
+    p = os.path.relpath(path, ROOT)
+    if not p.startswith(os.pardir):
+        return p                                  # inside the repo: already anonymous
+    parts = os.path.normpath(path).split(os.sep)
+    return os.path.join('<external>', *parts[-3:])
+
+
 def load_sd(path):
     import torch
     sd = torch.load(path, map_location='cpu', weights_only=False)
@@ -110,7 +127,7 @@ def main():
 
     data = json.load(open(OUT)) if os.path.exists(OUT) else {}
     data[args.key] = {'trainable': n,
-                      'source': os.path.relpath(path, ROOT) if path.startswith(ROOT) else path,
+                      'source': anon_source(path),
                       'method': 'optimizer state (exp_avg)' if args.optimizer
                                 else 'all floating tensors in checkpoint (full-FT)'}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

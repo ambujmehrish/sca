@@ -66,6 +66,29 @@ class TestGramRegression:
         want = volume_computation_masked(t, [v, a], present=None)
         assert torch.allclose(got, want, atol=1e-5)
 
+    def test_masked_is_not_the_degenerate_zero_fill(self):
+        """The baseline in the missing-modality table is NOT scored by zero-filling.
+
+        This is the misreading the table invites, and it would invalidate the whole
+        experiment: feeding a zero vector to the Gramian puts a zero row AND a zero column
+        into G, so det(G) = 0 for every masked clip, every clip scores the same constant,
+        and the ranking among them is arbitrary. What the baseline is actually given is the
+        phantom-identity construction of volume_computation_masked (utils/volume.py): the
+        missing axis is made orthonormal, contributes a factor of exactly 1 to the
+        determinant, and the score reduces to that clip's volume over the modalities it
+        still has -- strictly positive and still discriminative. test_masked_reduces_arity
+        above proves the identity; this proves the contrast with the degenerate case."""
+        t = unit(6, 16)
+        v, a, s = unit(9, 16), unit(9, 16), unit(9, 16)
+        present = torch.ones(9, 3)
+        present[:, 2] = 0.0                               # every gallery clip loses S
+        got = volume_computation_masked(t, [v, a, s], present=present)
+        assert (got > 1e-2).all(), 'masked volume collapsed toward zero'
+        assert got.std(dim=1).min() > 1e-2, 'masked volume is constant across the gallery'
+        # the degenerate alternative, for contrast: zero-filled S, no presence mask
+        degenerate = volume_computation_masked(t, [v, a, torch.zeros_like(s)], present=None)
+        assert degenerate.max() < 1e-3, 'fixture does not exhibit the degenerate case'
+
     def test_fixed_arity_functions_match_generic(self):
         t = unit(3, 24)
         mods = [unit(4, 24) for _ in range(4)]

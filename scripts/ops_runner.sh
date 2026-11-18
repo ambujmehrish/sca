@@ -25,6 +25,15 @@ STATE=${OPS_STATE:-$SCA_OPS_BASE/ops_state/state.json}
 LOG=$OPS_LOGS/ops_runner.log
 mkdir -p "$(dirname "$STATE")" "$OPS_LOGS"
 
+# sbatch hands this shell's environment to every job, so the runner must run in the sca env
+if [ -n "${VIRTUAL_ENV:-}" ]; then
+    echo "a virtualenv is active ($VIRTUAL_ENV): run 'deactivate', activate the sca env, start again"; exit 1
+fi
+if ! python3 -c "import torch, decord, easydict" 2>/dev/null; then
+    echo "python3 ($(command -v python3)) cannot import torch/decord/easydict: activate the sca env first"; exit 1
+fi
+echo "runner: python3=$(command -v python3) CONDA_PREFIX=${CONDA_PREFIX:-none}"
+
 cur=$(git rev-parse --abbrev-ref HEAD)
 if [ "$cur" != "$BRANCH" ]; then
     echo "checkout is on '$cur', not '$BRANCH' - see ops/README.md (first-time setup)"; exit 1

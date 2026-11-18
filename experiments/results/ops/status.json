@@ -133,6 +133,14 @@
     "jobid": "64760107",
     "name": "fact-wavedec",
     "state": "CANCELLED"
+   },
+   {
+    "elapsed": "00:00:45",
+    "end": "2026-11-18T18:24:53",
+    "exit": "1:0",
+    "jobid": "64774366",
+    "name": "audit_vatex",
+    "state": "FAILED"
    }
   ],
   "squeue": [
@@ -407,7 +415,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "6:55:48",
+    "elapsed": "7:18:50",
     "jobid": "64736614",
     "name": "paperA_nclips",
     "nodes": "1",
@@ -417,7 +425,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "7:13:43",
+    "elapsed": "7:36:45",
     "jobid": "64735276",
     "name": "paperA_nclips",
     "nodes": "1",
@@ -441,6 +449,7 @@
  "holds": {},
  "queue": [
   "2026-11-18-audit-vatex",
+  "2026-11-18-audit-vatex-now",
   "2026-11-18-fsparity",
   "2026-11-18-rrswap-dump",
   "2026-11-18-rrswap-swap"
@@ -458,6 +467,20 @@
    ],
    "submit_error": null,
    "submitted": "2026-11-18T16:05:40",
+   "waiting_for": null
+  },
+  "2026-11-18-audit-vatex-now": {
+   "collected": "2026-11-18T18:31:01",
+   "finished": "2026-11-18T18:31:01",
+   "invalid": null,
+   "jobid": "64774366",
+   "post_error": null,
+   "post_output_tail": "",
+   "states": [
+    "FAILED"
+   ],
+   "submit_error": null,
+   "submitted": "2026-11-18T18:18:12",
    "waiting_for": null
   },
   "2026-11-18-fsparity": {
@@ -503,5 +526,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-18T18:07:59"
+ "updated": "2026-11-18T18:31:01"
 }

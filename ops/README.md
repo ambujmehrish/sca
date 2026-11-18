@@ -14,7 +14,8 @@ Claude <-- experiments/results/ (+ ops/status.json) <-- scripts/ops_collect.sh <
   Override with `OPS_BRANCH`.
 - **Account:** `AIFAC_S07_041`, fixed in `scripts/ops_queue.py`; never taken from a request.
 - **Limits:** a script is refused if its `#SBATCH` header names another account, more than
-  4 GPUs per node, or more than 24:00:00; a request's `sbatch.time` is capped at 24:00:00.
+  4 GPUs per node, or more than 24:00:00 (4:00:00 on `lrd_all_serial`); a request's `sbatch.time`
+  is capped the same way.
 - **Slurm scripts:** `slurm_scripts/*.sh` with an `#SBATCH` header, run with the repo as
   working directory.
 

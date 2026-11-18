@@ -539,12 +539,22 @@ def test_hold_and_release_pending_jobs_once(repo):
     ("#!/bin/bash\n#SBATCH -A AIFAC_S07_041\n#SBATCH --time=1-00:00:01\n", "exceeds 24:00:00"),
     ("#!/bin/bash\n#SBATCH -A AIFAC_S07_041\n#SBATCH -t 30:00:00\n", "exceeds 24:00:00"),
     ("#!/bin/bash\n#SBATCH -A AIFAC_S07_041\n#SBATCH --gres=gpu:8\n", "at most 4 GPUs"),
+    ("#!/bin/bash\n#SBATCH -A AIFAC_S07_041\n#SBATCH -p lrd_all_serial\n#SBATCH --time=04:00:01\n", "exceeds 4:00:00"),
+    ("#!/bin/bash\n#SBATCH --partition=lrd_all_serial\n#SBATCH --time=06:00:00\n", "exceeds 4:00:00"),
     ("#!/bin/bash\n#SBATCH -A AIFAC_S07_041\n#SBATCH --gpus-per-node=8\n", "at most 4 GPUs"),
 ])
 def test_scripts_breaking_cluster_limits_are_refused(repo, header, needle):
     (repo / "slurm_scripts" / "bad.sh").write_text(header)
     errs = q.validate(dict(GOOD, script="bad.sh"), "r1", repo)
     assert any(needle in e for e in errs), errs
+
+
+def test_serial_partition_time_override_is_capped_at_four_hours(repo):
+    (repo / "slurm_scripts" / "cpu.sh").write_text(
+        "#!/bin/bash\n#SBATCH -A AIFAC_S07_041\n#SBATCH -p lrd_all_serial\n#SBATCH --time=04:00:00\n")
+    assert q.validate(dict(GOOD, script="cpu.sh", sbatch={"time": "04:00:00"}), "r1", repo) == []
+    errs = q.validate(dict(GOOD, script="cpu.sh", sbatch={"time": "05:00:00"}), "r1", repo)
+    assert any("at most 4:00:00" in e for e in errs), errs
 
 
 def test_account_is_fixed_and_not_requestable(repo):

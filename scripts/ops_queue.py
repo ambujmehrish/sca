@@ -37,6 +37,7 @@ from typing import Callable, Optional
 ACCOUNT = "AIFAC_S07_041"           # the only account; never taken from a request
 MAX_GPUS_PER_NODE = 4
 MAX_TIME_S = 24 * 3600
+PARTITION_MAX_S = {"lrd_all_serial": 4 * 3600}   # partitions with a tighter wall-time limit
 SLURM_DIR = "slurm_scripts"
 POST_DIR = "scripts"
 STATUS_REL = "results/ops/status.json"      # under $SCA_OPS_BASE, rsynced to experiments/
@@ -115,8 +116,22 @@ def time_seconds(v: str) -> Optional[int]:
     return int(d or 0) * 86400 + h * 3600 + mi * 60 + se
 
 
+def script_partition(path: Path) -> Optional[str]:
+    """The partition a script's #SBATCH header asks for, if any."""
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        m = re.match(r"^#SBATCH\s+(?:-p\s+|--partition[= ])(\S+)", line.strip())
+        if m:
+            return m.group(1)
+    return None
+
+
+def max_time_s(path: Path) -> int:
+    return PARTITION_MAX_S.get(script_partition(path) or "", MAX_TIME_S)
+
+
 def script_limits(path: Path) -> list[str]:
     """Violations of the cluster limits in a script's #SBATCH header."""
+    limit = max_time_s(path)
     opts = []
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         m = SBATCH_LINE_RE.match(line.strip())
@@ -138,8 +153,9 @@ def script_limits(path: Path) -> list[str]:
             errs.append(f"script: account {v!r} in {path.name}; only {ACCOUNT}")
         if k in ("-t", "--time"):
             t = time_seconds(v)
-            if t is None or t > MAX_TIME_S:
-                errs.append(f"script: time {v!r} in {path.name} exceeds 24:00:00")
+            if t is None or t > limit:
+                errs.append(f"script: time {v!r} in {path.name} exceeds {limit // 3600}:00:00"
+                            f" (partition {script_partition(path) or 'default'})")
         if k == "--gres":
             g = re.search(r"gpu(?::[A-Za-z0-9_]+)?:(\d+)", v)
             if g and int(g.group(1)) > MAX_GPUS_PER_NODE:
@@ -233,8 +249,12 @@ def validate(req, stem: str, repo: Path, known_ids: Optional[set] = None) -> lis
                 errs.append(f"sbatch: key {k!r} not allowed; only {sorted(SBATCH_RULES)}")
             elif not isinstance(v, str) or not rule.match(v):
                 errs.append(f"sbatch.{k}: must match {rule.pattern}")
-            elif k == "time" and time_seconds(v) > MAX_TIME_S:
-                errs.append("sbatch.time: at most 24:00:00")
+            elif k == "time":
+                script = req.get("script")
+                sp = repo / SLURM_DIR / script if isinstance(script, str) and SCRIPT_RE.match(script) else None
+                limit = max_time_s(sp) if sp is not None and sp.is_file() else MAX_TIME_S
+                if time_seconds(v) > limit:
+                    errs.append(f"sbatch.time: at most {limit // 3600}:00:00 for this script's partition")
 
     after = req.get("after", [])
     if not isinstance(after, list):

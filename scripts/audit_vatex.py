@@ -20,7 +20,6 @@ import os
 import random
 import re
 import statistics
-import subprocess
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
@@ -72,12 +71,12 @@ def annotation_report(rel, name):
 
 
 def duration(path):
+    """Seconds of video as decord (the data loader's reader) sees it, None if unreadable."""
+    from decord import VideoReader
     try:
-        r = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-                            '-of', 'default=nw=1:nk=1', path], capture_output=True, text=True,
-                           timeout=60)
-        return float(r.stdout.strip())
-    except (ValueError, subprocess.TimeoutExpired, FileNotFoundError):
+        vr = VideoReader(path)
+        return len(vr) / float(vr.get_avg_fps())
+    except Exception:  # noqa: BLE001 - counted and reported as unreadable
         return None
 
 

@@ -1,0 +1,10 @@
+{
+ "id": "2026-11-18-audit-vatex",
+ "what": "VATEX audit: captions, subtitle overlap, clip durations, id overlap, gallery-size effect",
+ "script": "audit_vatex.sh",
+ "after": [
+  "2026-11-18-rrswap-dump"
+ ],
+ "after_mode": "afterany",
+ "collect": true
+}

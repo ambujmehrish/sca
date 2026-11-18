@@ -1,0 +1,16 @@
+{
+ "id": "2026-11-18-fsparity",
+ "what": "SCALAR T9 and GRAM at BaryBind test frames (MSR-VTT 8, DiDeMo 32, ActivityNet 32, VATEX 16, AudioCaps 8)",
+ "script": "frames_parity.sh",
+ "env": {
+  "GRAM_RELEASED_CKPT": "${WORK}/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt"
+ },
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

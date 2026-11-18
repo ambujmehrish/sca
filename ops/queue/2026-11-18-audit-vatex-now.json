@@ -1,0 +1,6 @@
+{
+ "id": "2026-11-18-audit-vatex-now",
+ "what": "VATEX audit without the gallery-size part (annotations, subtitles, clip durations, id overlap), not waiting for the GPU jobs",
+ "script": "audit_vatex.sh",
+ "collect": true
+}

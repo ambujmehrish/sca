@@ -422,7 +422,21 @@ def evaluate_ret(model, tasks, val_loader, global_step):
         # two matrices side by side lets that be quantified (recall@k of the candidate set) and
         # lets score fusion be evaluated post hoc, without re-running this ITM pass.
         _dump_rerank(task, area, itm_fwd, itm_bwd, ids, ids_txt, itm_rerank_num, global_step)
-    
+
+        # reranker swap: this model's cross-encoder reranks ANOTHER run's top-k candidates
+        _ext = _external_candidates(task, ids, ids_txt, area)
+        if _ext is not None:
+            if _qw_kw:
+                raise RuntimeError('SCA_EXTERNAL_CANDIDATES with sca_itm_qw_gamma > 0 is not supported')
+            ext_fwd = refine_score_matrix(store_dict[f'condition_feats_{task}'], input_ids, attention_mask,
+                                          _ext, model, itm_rerank_num, direction='forward')
+            log = compute_metric_ret(ext_fwd, ids, ids_txt, direction='forward')
+            val_log['ret_itm_ext'] = {k.replace('forward', 'volume_ITM_T2D'): v for k, v in log.items()}
+            cand = compute_metric_ret(_ext, ids, ids_txt, direction='forward')
+            val_log['ret_ext_candidates'] = {k.replace('forward', 'volume_T2D'): v for k, v in cand.items()}
+            LOGGER.info(f"[EXT] own-candidates ITM T2D R@1 {val_log['ret_itm_area'].get('volume_ITM_T2D_r1')} | "
+                        f"external-candidates ITM T2D R@1 {val_log['ret_itm_ext'].get('volume_ITM_T2D_r1')}")
+
     
         cosine_TV = torch.matmul(feat_t, feat_v.permute(1,0))
         cosine_TV = compute_metric_ret(cosine_TV, ids, ids_txt, direction='forward')
@@ -511,6 +525,32 @@ def _dump_rerank(task, area, itm_fwd, itm_bwd, ids, ids_txt, itm_rerank_num, glo
                 'itm_rerank_num': int(itm_rerank_num),
                 'global_step': int(global_step)}, path)
     LOGGER.info(f'[DUMP] rerank matrices -> {path}')
+
+
+def _external_candidates(task, ids, ids_txt, area):
+    """Stage-1 score matrix of another run (SCA_EXTERNAL_CANDIDATES = its rerank dump), or None.
+
+    The dump must come from the same annotation file, task and GPU count, so its rows and
+    columns are this run's in the same order; anything else raises instead of re-aligning.
+    """
+    path = os.environ.get('SCA_EXTERNAL_CANDIDATES', '')
+    if not path:
+        return None
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f'SCA_EXTERNAL_CANDIDATES={path} does not exist')
+    d = torch.load(path, map_location='cpu')
+    if d.get('task') != task:
+        raise RuntimeError(f"external candidates are for task {d.get('task')!r}, this eval is {task!r}")
+    if list(d['ids']) != list(ids) or list(d['ids_txt']) != list(ids_txt):
+        raise RuntimeError(
+            'external candidate dump does not list the same gallery/queries in the same order '
+            f"({len(d['ids'])}x{len(d['ids_txt'])} vs {len(ids)}x{len(ids_txt)}); run both evals "
+            'with the same annotation file and the same GPU count')
+    dual = d['dual'].to(device=area.device, dtype=torch.float32)
+    if dual.shape != area.shape:
+        raise RuntimeError(f'external score matrix {tuple(dual.shape)} != {tuple(area.shape)}')
+    LOGGER.info(f'[EXT] reranking external candidates from {path}')
+    return dual
 
 
 def _qw_weights(model, feat_t_rows, z_clip, pres_clip):

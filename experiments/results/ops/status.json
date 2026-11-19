@@ -14,14 +14,6 @@
     "state": "COMPLETED"
    },
    {
-    "elapsed": "01:32:21",
-    "end": "2026-11-18T12:44:33",
-    "exit": "0:0",
-    "jobid": "64736612",
-    "name": "paperA_ms",
-    "state": "COMPLETED"
-   },
-   {
     "elapsed": "02:58:58",
     "end": "2026-11-18T14:11:10",
     "exit": "0:0",
@@ -600,5 +592,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-19T12:25:08"
+ "updated": "2026-11-19T13:25:57"
 }

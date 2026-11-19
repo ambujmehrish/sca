@@ -2,8 +2,7 @@
  "cancels": {},
  "cluster": {
   "counts": {
-   "PENDING": 28,
-   "RUNNING": 1
+   "PENDING": 28
   },
   "ended_24h": [
    {
@@ -68,6 +67,14 @@
     "exit": "0:0",
     "jobid": "64868223",
     "name": "diag_jobs",
+    "state": "COMPLETED"
+   },
+   {
+    "elapsed": "00:42:49",
+    "end": "2026-11-19T18:48:12",
+    "exit": "0:0",
+    "jobid": "64868224",
+    "name": "diag_t9",
     "state": "COMPLETED"
    }
   ],
@@ -351,16 +358,6 @@
     "start": "N/A",
     "state": "PENDING",
     "time_limit": "4:00:00"
-   },
-   {
-    "elapsed": "25:17",
-    "jobid": "64868224",
-    "name": "diag_t9",
-    "nodes": "1",
-    "reason_or_nodelist": "login13",
-    "start": "2026-11-19T18:05:23",
-    "state": "RUNNING",
-    "time_limit": "2:00:00"
    }
   ]
  },
@@ -515,19 +512,19 @@
    "waiting_for": null
   },
   "2026-11-19-diag-t9": {
-   "collected": null,
-   "finished": null,
+   "collected": "2026-11-19T18:50:56",
+   "finished": "2026-11-19T18:50:56",
    "invalid": null,
    "jobid": "64868224",
    "post_error": null,
    "post_output_tail": "",
    "states": [
-    "RUNNING"
+    "COMPLETED"
    ],
    "submit_error": null,
    "submitted": "2026-11-19T18:05:21",
    "waiting_for": null
   }
  },
- "updated": "2026-11-19T18:30:40"
+ "updated": "2026-11-19T18:50:56"
 }

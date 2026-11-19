@@ -1,0 +1,155 @@
+== .pt files over 1 GB (modified, size, path)
+2026-10-24   5593450263 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_bal/code/workdir_k12/ckpt/model_step_519.pt
+2026-10-24   5593497131 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itc_tvas.pt
+2026-10-24   5593497131 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itm_tvas.pt
+2026-10-24   5593497131 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_bal/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itc_tvas.pt
+2026-10-24   5593497131 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_bal/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itm_tvas.pt
+2026-10-24   9956409899 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_wHyVol/code/workdir_k12/ckpt/optimizer_step_519.pt
+2026-10-24   9956409899 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_wHyVol_bal/code/workdir_k12/ckpt/optimizer_step_519.pt
+2026-10-24   9956412815 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_HyVol/code/workdir_k12/ckpt/optimizer_step_519.pt
+2026-10-24   9956412815 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_HyVol_bal/code/workdir_k12/ckpt/optimizer_step_519.pt
+2026-10-24   9956661063 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol/code/workdir_k12/ckpt/optimizer_step_519.pt
+2026-10-24   9956661063 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_bal/code/workdir_k12/ckpt/optimizer_step_519.pt
+2026-10-25   4364449882 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/ft_c8_rd05_chunk2/step_0100000.pt
+2026-10-25   4364449882 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/ft_c8_rd05_chunk4/step_0100000.pt
+2026-10-25   4364453210 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/noncausal_c8_rd05/step_0400000.pt
+2026-10-25   4364453274 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/main_c8_rd05_disjref/step_0400000.pt
+2026-10-25   4373902002 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/ft_c8_rd05_chunk2_distill3/step_0100000.pt
+2026-10-25   4373902002 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/ft_c8_rd05_distill10/step_0100000.pt
+2026-10-25   4373902322 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/ssl_nc_c8_rd05/step_0400000.pt
+2026-10-27   4364453210 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/c8_rd05_chunk2/step_0400000.pt
+2026-10-27   4373905394 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/c8_rd05_distill1/step_0400000.pt
+2026-10-27   5587028133 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_noGraph_v2/code/workdir_k12/ckpt/model_step_524.pt
+2026-10-27   5587074336 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_noGraph_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itc_tvas.pt
+2026-10-27   5587074336 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_noGraph_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itm_tvas.pt
+2026-10-27   5593324705 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_wHyVol_v2/code/workdir_k12/ckpt/model_step_524.pt
+2026-10-27   5593326165 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_HyVol_v2/code/workdir_k12/ckpt/model_step_524.pt
+2026-10-27   5593371194 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_wHyVol_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itc_tvas.pt
+2026-10-27   5593371194 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_wHyVol_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itm_tvas.pt
+2026-10-27   5593372584 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_HyVol_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itc_tvas.pt
+2026-10-27   5593372584 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_HyVol_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itm_tvas.pt
+2026-10-27   5593450263 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_v2/code/workdir_k12/ckpt/model_step_524.pt
+2026-10-27   5593497131 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itc_tvas.pt
+2026-10-27   5593497131 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_v2/code/workdir_k12/ckpt/best_ret%tvas--msrvtt_ret_msrvtt_ret_ret_itm_tvas.pt
+2026-10-27   9964798391 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_noGraph_v2/code/workdir_k12/ckpt/optimizer_step_524.pt
+2026-10-27   9977391475 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_wHyVol_v2/code/workdir_k12/ckpt/optimizer_step_524.pt
+2026-10-27   9977394379 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_HyVol_v2/code/workdir_k12/ckpt/optimizer_step_524.pt
+2026-10-27   9977642639 /leonardo_work/AIFAC_S07_041/anag0000/PMRL_all/PMRL_RwHyVol_v2/code/workdir_k12/ckpt/optimizer_step_524.pt
+2026-11-02   3733381242 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/tts_mimi2_b1r/step_0200000.pt
+2026-11-02   3849404666 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/tts_fact_b1r/step_0200000.pt
+2026-11-03   1244451217 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/tts_mimi2_b1r/step_0200000.pt
+2026-11-03   1283125713 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/tts_fact_b1r/step_0200000.pt
+2026-11-03   1454808467 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/fact_main/step_0400000.pt
+2026-11-03   1454808467 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/main_c16_rd05/step_0400000.pt
+2026-11-03   1454808467 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/main_c8_rd03/step_0400000.pt
+2026-11-03   1454808467 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/main_c8_rd05/step_0400000.pt
+2026-11-03   1454808723 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/c8_rd05_chunk2/step_0400000.pt
+2026-11-03   1454808723 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/main_c8_rd05_disjref/step_0400000.pt
+2026-11-03   1454808723 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/noncausal_c8_rd05/step_0400000.pt
+2026-11-03   1454808787 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ft_c8_rd05_chunk2/step_0100000.pt
+2026-11-03   1454808787 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ft_c8_rd05_chunk4/step_0100000.pt
+2026-11-03   1454808787 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ft_c8_rd05_ctrl/step_0100000.pt
+2026-11-03   1457958317 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ssl_nc_c8_rd05/step_0400000.pt
+2026-11-03   1457959277 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/c8_rd05_distill1/step_0400000.pt
+2026-11-03   1457959405 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ft_c8_rd05_chunk2_distill3/step_0100000.pt
+2026-11-03   1457959405 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ft_c8_rd05_distill1/step_0100000.pt
+2026-11-03   1457959405 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ft_c8_rd05_distill10/step_0100000.pt
+2026-11-03   1457959405 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-03/checkpoints/ft_c8_rd05_distill3/step_0100000.pt
+2026-11-08   4364453338 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/noncausal_c8_rd05_pfix/step_0400000.pt
+2026-11-10   1454809104 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-10/checkpoints/noncausal_c8_rd05_pfix/step_0400000.pt
+2026-11-10   1457958764 /leonardo_work/AIFAC_S07_041/fact/archive/2026-11-10/checkpoints/ssl_nc_c8_rd05_pfix/step_0400000.pt
+2026-11-10   4373902450 /leonardo_work/AIFAC_S07_041/fact/rebuttal_backup/2026-11-10/scratch/large/userexternal/amehrish/fact/runs/ssl_nc_c8_rd05_pfix/step_0400000.pt
+2026-07-07   1863587645 /leonardo_scratch/fast/AIFAC_S07_041/envs/echo/lib/python3.10/site-packages/laion_clap/630k-audioset-best.pt
+2026-08-16   2273012515 /leonardo_scratch/fast/AIFAC_S07_041/models/sca_pretrained_weights/clip/EVA01_CLIP_g_14_psz14_s11B.pt
+2026-10-01   1863587645 /leonardo_scratch/fast/AIFAC_S07_041/envs/echo/lib/python3.10/site-packages/laion_clap/630k-best.pt
+2026-10-01   1863889051 /leonardo_scratch/fast/AIFAC_S07_041/envs/echo/lib/python3.10/site-packages/laion_clap/630k-audioset-fusion-best.pt
+2026-10-01   1863894120 /leonardo_scratch/fast/AIFAC_S07_041/envs/echo/lib/python3.10/site-packages/laion_clap/630k-fusion-best.pt
+(no /leonardo_scratch/fast/amehrish)
+
+== other workdir_pretrain folders / sca checkouts
+2026-08-15 l /leonardo_work/AIFAC_S07_041/sca/workdir_pretrain -> /leonardo_scratch/large/userexternal/amehrish/sca_runs/workdir_pretrain
+2026-08-23 d /leonardo_work/AIFAC_S07_041/anag0000/triangle_implement_2/code/workdir_pretrain -> 
+2026-08-01 l /leonardo/home/userexternal/amehrish/HyperAlign/workdir_pretrain -> /leonardo_work/AIFAC_S07_041/HyperAlign/workdir_pretrain
+
+== Slurm records of training jobs since 2026-07-01 (b_grid / pretrain names)
+51452906|pretrain|COMPLETED|2026-08-01T13:42:40|2026-08-01T17:15:38|/leonardo/home/userexternal/amehrish/HyperAlign
+51452907|pretrain|COMPLETED|2026-08-01T17:16:17|2026-08-01T17:18:03|/leonardo/home/userexternal/amehrish/HyperAlign
+51800869|pretrain|COMPLETED|2026-08-10T23:51:51|2026-08-11T03:22:19|/leonardo/home/userexternal/amehrish/HyperAlign
+51807121|pretrain|COMPLETED|2026-08-11T10:01:54|2026-08-11T13:33:36|/leonardo/home/userexternal/amehrish/HyperAlign
+51829958|pretrain|COMPLETED|2026-08-11T18:48:16|2026-08-11T21:05:58|/leonardo/home/userexternal/amehrish/HyperAlign
+52114243|pretrain|CANCELLED by 131765|2026-08-12T18:26:37|2026-08-12T18:27:21|/leonardo/home/userexternal/amehrish/HyperAlign
+52114676|pretrain|COMPLETED|2026-08-12T18:27:23|2026-08-12T20:13:15|/leonardo/home/userexternal/amehrish/HyperAlign
+52126679|pretrain|CANCELLED by 131765|2026-08-12T20:08:35|2026-08-12T20:09:26|/leonardo/home/userexternal/amehrish/HyperAlign
+52144710|pretrain|COMPLETED|2026-08-13T07:51:26|2026-08-13T10:15:03|/leonardo/home/userexternal/amehrish/HyperAlign
+52147031|pretrain|COMPLETED|2026-08-13T10:15:55|2026-08-13T10:17:22|/leonardo/home/userexternal/amehrish/HyperAlign
+52147735|pretrain|COMPLETED|2026-08-13T10:26:53|2026-08-13T12:44:09|/leonardo/home/userexternal/amehrish/HyperAlign
+52157079|pretrain|COMPLETED|2026-08-13T13:05:52|2026-08-13T15:24:00|/leonardo/home/userexternal/amehrish/HyperAlign
+52225965|pretrain|COMPLETED|2026-08-13T21:31:20|2026-08-13T23:50:28|/leonardo/home/userexternal/amehrish/HyperAlign
+52295324|pretrain|CANCELLED by 131765|2026-08-14T09:23:29|2026-08-14T09:23:53|/leonardo/home/userexternal/amehrish/HyperAlign
+52333935|pretrain|COMPLETED|2026-08-14T19:36:04|2026-08-14T21:51:41|/leonardo/home/userexternal/amehrish/HyperAlign
+52333938|pretrain|COMPLETED|2026-08-14T19:36:04|2026-08-14T21:51:40|/leonardo/home/userexternal/amehrish/HyperAlign
+52365562|pretrain|COMPLETED|2026-08-15T10:43:41|2026-08-15T13:04:00|/leonardo/home/userexternal/amehrish/HyperAlign
+52387671|pretrain|COMPLETED|2026-08-15T15:51:28|2026-08-15T18:09:12|/leonardo/home/userexternal/amehrish/HyperAlign
+52387672|pretrain|COMPLETED|2026-08-15T15:51:28|2026-08-15T18:09:03|/leonardo/home/userexternal/amehrish/HyperAlign
+52458187|pretrain|COMPLETED|2026-08-16T12:13:35|2026-08-16T14:29:53|/leonardo/home/userexternal/amehrish/HyperAlign
+52458188|pretrain|COMPLETED|2026-08-16T12:13:35|2026-08-16T14:29:30|/leonardo/home/userexternal/amehrish/HyperAlign
+52458189|pretrain|COMPLETED|2026-08-16T12:13:35|2026-08-16T14:29:33|/leonardo/home/userexternal/amehrish/HyperAlign
+52514112|pretrain|CANCELLED by 131765|None|2026-08-16T22:59:08|/leonardo/home/userexternal/amehrish/HyperAlign
+52518684|sca_pretrain|COMPLETED|2026-08-16T23:36:07|2026-08-17T02:42:53|/leonardo_work/AIFAC_S07_041/sca
+52587854|pretrain|COMPLETED|2026-08-17T13:33:01|2026-08-17T15:48:21|/leonardo/home/userexternal/amehrish/HyperAlign
+52593027|e4_grid|FAILED|2026-08-17T15:14:01|2026-08-17T15:14:14|/leonardo_work/AIFAC_S07_041/sca
+52593441|e4_grid|FAILED|2026-08-17T15:25:10|2026-08-17T15:30:23|/leonardo_work/AIFAC_S07_041/sca
+52634335|e4_grid|CANCELLED by 131765|None|2026-08-18T12:20:58|/leonardo_work/AIFAC_S07_041/sca
+52640199|e4_grid|COMPLETED|2026-08-18T19:32:04|2026-08-18T19:40:42|/leonardo_work/AIFAC_S07_041/sca
+52662175|e4_grid|COMPLETED|2026-08-19T09:11:10|2026-08-19T09:31:57|/leonardo_work/AIFAC_S07_041/sca
+53345535_0|b_grid|COMPLETED|2026-08-21T13:49:15|2026-08-21T16:54:30|/leonardo_work/AIFAC_S07_041/sca
+53345535_1|b_grid|COMPLETED|2026-08-21T13:49:26|2026-08-21T16:54:36|/leonardo_work/AIFAC_S07_041/sca
+53345535_2|b_grid|COMPLETED|2026-08-21T13:49:28|2026-08-21T16:51:54|/leonardo_work/AIFAC_S07_041/sca
+53345535_3|b_grid|COMPLETED|2026-08-21T13:49:28|2026-08-21T16:51:54|/leonardo_work/AIFAC_S07_041/sca
+53372778|b_grid_eval|FAILED|2026-08-21T17:03:38|2026-08-21T18:34:36|/leonardo_work/AIFAC_S07_041/sca
+53391957|b_grid_eval|COMPLETED|2026-08-21T19:03:33|2026-08-21T20:27:54|/leonardo_work/AIFAC_S07_041/sca
+53391964_4|b_grid|COMPLETED|2026-08-21T19:04:31|2026-08-21T22:12:31|/leonardo_work/AIFAC_S07_041/sca
+53391964_5|b_grid|FAILED|2026-08-21T19:04:31|2026-08-21T19:08:19|/leonardo_work/AIFAC_S07_041/sca
+53394996_[6]|b_grid|CANCELLED by 131765|None|2026-08-21T19:16:02|/leonardo_work/AIFAC_S07_041/sca
+53396388_6|b_grid|FAILED|2026-08-21T19:20:46|2026-08-21T19:24:06|/leonardo_work/AIFAC_S07_041/sca
+53399829_6|b_grid|FAILED|2026-08-21T19:52:56|2026-08-21T19:56:07|/leonardo_work/AIFAC_S07_041/sca
+53406626_7|b_grid|FAILED|2026-08-21T20:40:54|2026-08-21T20:41:02|/leonardo_work/AIFAC_S07_041/sca
+53406626_8|b_grid|FAILED|2026-08-21T20:40:54|2026-08-21T20:40:58|/leonardo_work/AIFAC_S07_041/sca
+53416202_7|b_grid|COMPLETED|2026-08-21T21:15:12|2026-08-21T22:30:53|/leonardo_work/AIFAC_S07_041/sca
+53416202_8|b_grid|COMPLETED|2026-08-21T21:15:39|2026-08-21T22:58:14|/leonardo_work/AIFAC_S07_041/sca
+53417887_6|b_grid|COMPLETED|2026-08-21T21:28:57|2026-08-22T00:33:41|/leonardo_work/AIFAC_S07_041/sca
+53422060_6|b_grid|CANCELLED by 131765|2026-08-21T21:48:20|2026-08-21T21:48:46|/leonardo_work/AIFAC_S07_041/sca
+53432533_9|b_grid|COMPLETED|2026-08-21T22:47:28|2026-08-22T02:40:07|/leonardo_work/AIFAC_S07_041/sca
+53432533_10|b_grid|COMPLETED|2026-08-21T22:47:35|2026-08-22T01:20:18|/leonardo_work/AIFAC_S07_041/sca
+53432533_11|b_grid|COMPLETED|2026-08-21T22:49:18|2026-08-22T01:21:06|/leonardo_work/AIFAC_S07_041/sca
+53432533_12|b_grid|COMPLETED|2026-08-21T22:52:21|2026-08-22T01:26:12|/leonardo_work/AIFAC_S07_041/sca
+53432533_13|b_grid|COMPLETED|2026-08-21T22:52:50|2026-08-22T01:27:23|/leonardo_work/AIFAC_S07_041/sca
+53582651_14|b_grid|COMPLETED|2026-08-22T11:33:20|2026-08-22T15:28:02|/leonardo_work/AIFAC_S07_041/sca
+53582651_15|b_grid|COMPLETED|2026-08-22T11:33:20|2026-08-22T17:59:02|/leonardo_work/AIFAC_S07_041/sca
+53620809_17|b_grid|CANCELLED by 131765|2026-08-22T17:46:05|2026-08-22T18:27:28|/leonardo_work/AIFAC_S07_041/sca
+53620809_18|b_grid|CANCELLED by 131765|2026-08-22T17:46:05|2026-08-22T18:27:28|/leonardo_work/AIFAC_S07_041/sca
+53621049_17|b_grid|CANCELLED by 131765|2026-08-22T17:51:00|2026-08-22T18:27:28|/leonardo_work/AIFAC_S07_041/sca
+53621049_18|b_grid|CANCELLED by 131765|2026-08-22T17:51:05|2026-08-22T18:27:28|/leonardo_work/AIFAC_S07_041/sca
+53621053_19|b_grid|COMPLETED|2026-08-22T17:51:44|2026-08-22T20:26:03|/leonardo_work/AIFAC_S07_041/sca
+53621053_20|b_grid|COMPLETED|2026-08-22T17:52:40|2026-08-22T20:24:24|/leonardo_work/AIFAC_S07_041/sca
+
+== scratch usage now
+total 676
+drwx------.    17 amehrish interactive  32768 Nov 18 16:04 .
+drwxr-xr-x. 11369 nobody   nobody      593920 Nov 19 14:31 ..
+drwxr-xr-x.    13 amehrish interactive   4096 Nov 10 18:10 PaperA_OT_Video
+drwxr-xr-x.     4 amehrish interactive   4096 Oct 25 02:45 conda_envs
+drwxr-xr-x.    19 amehrish interactive   4096 Oct 25 05:08 echo_aaai27_archive
+drwxr-xr-x.     4 amehrish interactive   4096 Oct  8 12:07 echo_music
+drwxr-xr-x.    10 amehrish interactive   4096 Nov  2 20:03 fact
+drwxr-xr-x.    26 amehrish interactive   4096 Nov 10 17:42 hf_cache
+drwxr-xr-x.    15 amehrish interactive   4096 Oct 11 10:11 memory-agent
+drwxr-xr-x.     2 amehrish interactive   4096 Oct  2 12:23 modelscope_probe
+drwxr-xr-x.     3 amehrish interactive   4096 Nov 18 16:04 sca_runs
+drwxr-xr-x.     2 amehrish interactive   4096 Sep 22 21:47 share
+drwxr-xr-x.    13 amehrish interactive   4096 Nov  9 12:39 sm2
+drwxr-xr-x.     3 amehrish interactive   4096 Oct 25 05:08 sonicmaster
+drwxr-xr-x.    32 amehrish interactive   4096 Oct  1 22:46 templateflow
+drwxr-xr-x.     2 amehrish interactive   4096 Oct 25 05:08 templateflow.purged
+drwxr-xr-x.     4 amehrish interactive   4096 Oct 19 15:50 treeground
+(end)

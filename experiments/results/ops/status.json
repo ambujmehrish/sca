@@ -22,38 +22,6 @@
     "state": "COMPLETED"
    },
    {
-    "elapsed": "00:37:36",
-    "end": "2026-11-18T15:48:27",
-    "exit": "0:0",
-    "jobid": "64760054",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:36:13",
-    "end": "2026-11-18T15:47:55",
-    "exit": "0:0",
-    "jobid": "64760056",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:36:49",
-    "end": "2026-11-18T15:48:31",
-    "exit": "0:0",
-    "jobid": "64760058",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:37:22",
-    "end": "2026-11-18T15:49:04",
-    "exit": "0:0",
-    "jobid": "64760073",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
     "elapsed": "01:51:14",
     "end": "2026-11-18T17:02:56",
     "exit": "0:0",
@@ -84,54 +52,6 @@
     "jobid": "64760099",
     "name": "fact-eval-base",
     "state": "COMPLETED"
-   },
-   {
-    "elapsed": "01:00:03",
-    "end": "2026-11-18T16:12:37",
-    "exit": "0:0",
-    "jobid": "64760101",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:57:04",
-    "end": "2026-11-18T16:09:38",
-    "exit": "0:0",
-    "jobid": "64760102",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:57:06",
-    "end": "2026-11-18T16:09:40",
-    "exit": "0:0",
-    "jobid": "64760103",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:57:47",
-    "end": "2026-11-18T16:10:21",
-    "exit": "0:0",
-    "jobid": "64760104",
-    "name": "fact-eval-base",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:00:00",
-    "end": "2026-11-18T15:29:46",
-    "exit": "0:0",
-    "jobid": "64760105",
-    "name": "fact-wavedec",
-    "state": "CANCELLED"
-   },
-   {
-    "elapsed": "00:00:00",
-    "end": "2026-11-18T15:29:46",
-    "exit": "0:0",
-    "jobid": "64760107",
-    "name": "fact-wavedec",
-    "state": "CANCELLED"
    },
    {
     "elapsed": "00:00:45",
@@ -584,5 +504,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-19T15:27:59"
+ "updated": "2026-11-19T16:29:03"
 }

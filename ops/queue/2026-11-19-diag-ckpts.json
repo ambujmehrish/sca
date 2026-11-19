@@ -1,0 +1,6 @@
+{
+ "id": "2026-11-19-diag-ckpts",
+ "what": "read-only: what is left of workdir_pretrain/workdir and where T9, GRAM, VAST and S* checkpoints still exist",
+ "script": "diag_ckpts.sh",
+ "collect": true
+}

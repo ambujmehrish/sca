@@ -1,0 +1,6 @@
+{
+ "id": "2026-11-19-diag-t9",
+ "what": "read-only wide search for a surviving T9 checkpoint: .pt over 1 GB, other run folders, sacct records of the T9 training jobs",
+ "script": "diag_t9.sh",
+ "collect": true
+}

@@ -172,6 +172,14 @@
     "jobid": "64824024",
     "name": "diag_paths",
     "state": "COMPLETED"
+   },
+   {
+    "elapsed": "00:08:09",
+    "end": "2026-11-19T10:01:15",
+    "exit": "0:0",
+    "jobid": "64824828",
+    "name": "diag_ckpts",
+    "state": "COMPLETED"
    }
   ],
   "squeue": [
@@ -475,6 +483,7 @@
   "2026-11-18-rrswap-dump",
   "2026-11-18-rrswap-swap",
   "2026-11-19-audit-vatex-rerun",
+  "2026-11-19-diag-ckpts",
   "2026-11-19-diag-paths"
  ],
  "requests": {
@@ -562,6 +571,20 @@
    "submitted": "2026-11-19T09:42:30",
    "waiting_for": null
   },
+  "2026-11-19-diag-ckpts": {
+   "collected": "2026-11-19T10:02:47",
+   "finished": "2026-11-19T10:02:47",
+   "invalid": null,
+   "jobid": "64824828",
+   "post_error": null,
+   "post_output_tail": "",
+   "states": [
+    "COMPLETED"
+   ],
+   "submit_error": null,
+   "submitted": "2026-11-19T09:52:41",
+   "waiting_for": null
+  },
   "2026-11-19-diag-paths": {
    "collected": "2026-11-19T09:47:34",
    "finished": "2026-11-19T09:47:34",
@@ -577,5 +600,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-19T09:47:34"
+ "updated": "2026-11-19T10:02:47"
 }

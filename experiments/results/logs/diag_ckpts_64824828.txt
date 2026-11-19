@@ -1,0 +1,22 @@
+== /leonardo_scratch/large/userexternal/amehrish/sca_runs/workdir_pretrain
+ls: cannot access '/leonardo_scratch/large/userexternal/amehrish/sca_runs/workdir_pretrain': No such file or directory
+
+== /leonardo_scratch/large/userexternal/amehrish/sca_runs/workdir (first level, count)
+1
+ls: cannot access '/leonardo_scratch/large/userexternal/amehrish/sca_runs/workdir': No such file or directory
+
+== sca_runs folder
+total 40
+drwxr-xr-x.  3 amehrish interactive  4096 Nov 18 16:04 .
+drwx------. 17 amehrish interactive 32768 Nov 18 16:04 ..
+drwxr-xr-x.  2 amehrish interactive  4096 Nov 19 09:53 slurm_logs
+
+== model checkpoints named like T9 (model_step_5330.pt) or under *t9*/*seed* folders
+
+== GRAM, VAST and S* files the configs name
+-rw-------. 1 amehrish interactive 5587058804 Dec 18  2024 /leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt
+lrwxrwxrwx. 1 amehrish interactive 114 Aug 16 13:46 /leonardo_work/AIFAC_S07_041/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/model_step_204994.pt -> /leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/VAST_foundation/pretrain_vast/ckpt/model_step_204994.pt
+-rw-r--r--. 1 amehrish interactive 99658992 Aug 16 22:17 /leonardo_work/AIFAC_S07_041/sca_caches/s_star_150k.pt
+
+== backups or archives of run folders
+(end)

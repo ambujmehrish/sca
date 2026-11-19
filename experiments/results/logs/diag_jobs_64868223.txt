@@ -1,0 +1,28 @@
+JobId=64764274 ArrayJobId=64764274 ArrayTaskId=0-1 JobName=fsparity
+   Priority=0 Nice=0 Account=aifac_s07_041 QOS=normal
+   JobState=PENDING Reason=JobHeldUser Dependency=(null)
+   SubmitTime=2026-11-18T16:05:44 EligibleTime=Unknown
+   Command=/leonardo_work/AIFAC_S07_041/sca/slurm_scripts/frames_parity.sh
+   WorkDir=/leonardo_work/AIFAC_S07_041/sca
+
+JobId=64764275 ArrayJobId=64764275 ArrayTaskId=0-2 JobName=rrswap
+   Priority=0 Nice=0 Account=aifac_s07_041 QOS=normal
+   JobState=PENDING Reason=JobHeldUser Dependency=(null)
+   SubmitTime=2026-11-18T16:05:47 EligibleTime=Unknown
+   Command=/leonardo_work/AIFAC_S07_041/sca/slurm_scripts/rerank_swap.sh
+   WorkDir=/leonardo_work/AIFAC_S07_041/sca
+
+JobId=64764279 ArrayJobId=64764279 ArrayTaskId=0-2 JobName=rrswap
+   Priority=144053 Nice=0 Account=aifac_s07_041 QOS=normal
+   JobState=PENDING Reason=Dependency Dependency=afterok:64764275_*(unfulfilled)
+   SubmitTime=2026-11-18T16:05:49 EligibleTime=Unknown
+   Command=/leonardo_work/AIFAC_S07_041/sca/slurm_scripts/rerank_swap.sh
+   WorkDir=/leonardo_work/AIFAC_S07_041/sca
+
+JobId=64764285 JobName=audit_vatex
+   Priority=144060 Nice=0 Account=aifac_s07_041 QOS=normal
+   JobState=PENDING Reason=Dependency Dependency=afterany:64764275_*(unfulfilled)
+   SubmitTime=2026-11-18T16:05:52 EligibleTime=Unknown
+   Command=/leonardo_work/AIFAC_S07_041/sca/slurm_scripts/audit_vatex.sh
+   WorkDir=/leonardo_work/AIFAC_S07_041/sca
+

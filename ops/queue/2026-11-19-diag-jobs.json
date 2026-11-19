@@ -1,0 +1,9 @@
+{
+ "id": "2026-11-19-diag-jobs",
+ "what": "read-only: scontrol show job for the four held/dependent parity jobs",
+ "script": "diag_jobs.sh",
+ "env": {
+  "DIAG_JOBS": "64764274 64764275 64764279 64764285"
+ },
+ "collect": true
+}

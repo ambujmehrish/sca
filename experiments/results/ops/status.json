@@ -156,6 +156,22 @@
     "jobid": "64774366",
     "name": "audit_vatex",
     "state": "FAILED"
+   },
+   {
+    "elapsed": "00:00:49",
+    "end": "2026-11-19T09:44:53",
+    "exit": "0:0",
+    "jobid": "64824022",
+    "name": "audit_vatex",
+    "state": "COMPLETED"
+   },
+   {
+    "elapsed": "00:00:07",
+    "end": "2026-11-19T09:43:20",
+    "exit": "0:0",
+    "jobid": "64824024",
+    "name": "diag_paths",
+    "state": "COMPLETED"
    }
   ],
   "squeue": [
@@ -174,26 +190,6 @@
     "jobid": "64761463",
     "name": "fact-wavedec",
     "nodes": "2",
-    "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
-    "jobid": "64764275_[0-2]",
-    "name": "rrswap",
-    "nodes": "1",
-    "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
-    "jobid": "64764274_[0-1]",
-    "name": "fsparity",
-    "nodes": "1",
     "reason_or_nodelist": "(Priority)",
     "start": "N/A",
     "state": "PENDING",
@@ -431,6 +427,26 @@
    },
    {
     "elapsed": "0:00",
+    "jobid": "64764275_[0-2]",
+    "name": "rrswap",
+    "nodes": "1",
+    "reason_or_nodelist": "(JobHeldUser)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "64764274_[0-1]",
+    "name": "fsparity",
+    "nodes": "1",
+    "reason_or_nodelist": "(JobHeldUser)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
     "jobid": "64764285",
     "name": "audit_vatex",
     "nodes": "1",
@@ -441,13 +457,25 @@
    }
   ]
  },
- "holds": {},
+ "holds": {
+  "2026-11-19-hold-t9-jobs": {
+   "action": "hold",
+   "at": "2026-11-19T09:42:30",
+   "jobs": [
+    "64764275",
+    "64764274"
+   ],
+   "skipped": {}
+  }
+ },
  "queue": [
   "2026-11-18-audit-vatex",
   "2026-11-18-audit-vatex-now",
   "2026-11-18-fsparity",
   "2026-11-18-rrswap-dump",
-  "2026-11-18-rrswap-swap"
+  "2026-11-18-rrswap-swap",
+  "2026-11-19-audit-vatex-rerun",
+  "2026-11-19-diag-paths"
  ],
  "requests": {
   "2026-11-18-audit-vatex": {
@@ -519,7 +547,35 @@
    "submit_error": null,
    "submitted": "2026-11-18T16:05:40",
    "waiting_for": null
+  },
+  "2026-11-19-audit-vatex-rerun": {
+   "collected": "2026-11-19T09:47:34",
+   "finished": "2026-11-19T09:47:34",
+   "invalid": null,
+   "jobid": "64824022",
+   "post_error": null,
+   "post_output_tail": "",
+   "states": [
+    "COMPLETED"
+   ],
+   "submit_error": null,
+   "submitted": "2026-11-19T09:42:30",
+   "waiting_for": null
+  },
+  "2026-11-19-diag-paths": {
+   "collected": "2026-11-19T09:47:34",
+   "finished": "2026-11-19T09:47:34",
+   "invalid": null,
+   "jobid": "64824024",
+   "post_error": null,
+   "post_output_tail": "",
+   "states": [
+    "COMPLETED"
+   ],
+   "submit_error": null,
+   "submitted": "2026-11-19T09:42:30",
+   "waiting_for": null
   }
  },
- "updated": "2026-11-19T09:22:10"
+ "updated": "2026-11-19T09:47:34"
 }

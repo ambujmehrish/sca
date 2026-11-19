@@ -1,0 +1,21 @@
+no workdir/rerank_swap/dumps/sca_msrvtt yet: gallery-size part skipped
+$ python3 scripts/audit_vatex.py 
+
+[VATEX test] datasets/annotations/vatex/descs_ret_test_431.json
+  entries 431   unique clips 431   captions/entry min 10 median 10 max 10
+  keys in first entry: ['desc', 'subtitle', 'video_id']
+  entries with a non-empty subtitle: 431 / 431
+  caption-vs-subtitle token Jaccard: mean 0.033  p90 0.087  max 0.400   caption contained verbatim in subtitle: 0
+[MSR-VTT test (reference)] datasets/annotations/msrvtt/descs_ret_test.json
+  entries 1000   unique clips 1000   captions/entry min 1 median 1.0 max 1
+  keys in first entry: ['desc', 'subtitle', 'video_id']
+  entries with a non-empty subtitle: 762 / 1000
+  caption-vs-subtitle token Jaccard: mean 0.044  p90 0.114  max 0.250   caption contained verbatim in subtitle: 0
+[media] /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/VATEX/videos_raw: 431 test clips found, 0 missing, 0 unreadable
+  duration s: min 1.1 median 10.0 p90 10.0 max 10.1
+  matches its 10 s id window (+-1.5 s): 381   longer than the window (untrimmed): 0
+[media] /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/VATEX/videos: not present
+[overlap] test YouTube ids 431, also in the VATEX train file: 0
+[overlap] pretraining id samples: ['G1DRYgjsZTw.63', 'dGKjwnqs3AA.0', '2HeT-FgC1rw.8']
+[overlap] test YouTube ids also in pretraining file /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/vast27m_150k/annotations150k.json: 0
+EXIT=0 DONE 09:44:51

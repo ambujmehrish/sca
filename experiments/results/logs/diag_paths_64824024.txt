@@ -1,0 +1,67 @@
+== symlinks
+workdir                          -> /leonardo_scratch/large/userexternal/amehrish/sca_runs/workdir
+workdir_pretrain                 -> /leonardo_scratch/large/userexternal/amehrish/sca_runs/workdir_pretrain
+slurm_scripts/logs               -> /leonardo_scratch/large/userexternal/amehrish/sca_runs/slurm_logs
+workdir_pretrain/t9_qweight_only -> MISSING
+
+== workdir_pretrain/t9_qweight_only (top two levels)
+ls: cannot access 'workdir_pretrain/t9_qweight_only': No such file or directory
+ls: cannot access 'workdir_pretrain/t9_qweight_only/log': No such file or directory
+ls: cannot access 'workdir_pretrain/t9_qweight_only/ckpt': No such file or directory
+
+== training arms that still have log/hps.json
+
+== eval cells of T9 that recorded their resolved config
+
+== data loader: caption choice and test-time resampling (data/IndexAnno.py)
+32:        self.annos_new = []
+36:        # A clip that passes the .wav filter but has no loadable video makes read() return None,
+37:        # and __getitem__ then resamples a RANDOM other clip -> that clip appears twice and this
+52:                path = os.path.join(d_cfg['audio'],f"{key['video_id']}.wav")
+54:                    self.annos_new.append(key)
+55:            # video-retrieval sets: require ONLY the anchor modality (video); a missing .wav is
+59:                    self.annos_new.append(key)
+62:                    self.annos_new.append(key)
+65:                    self.annos_new.append(key)
+68:                    self.annos_new.append(key)
+70:                path = os.path.join(d_cfg['audio'],f"{key['video_id']}.wav")
+72:                    self.annos_new.append(key)
+74:                path = os.path.join(d_cfg['audio'],f"{key['clip_id']}.wav")
+78:                        self.annos_new.append(key)
+82:                if clip_ok:                 # optional -> a missing .wav is zero-filled and masked out of
+83:                    self.annos_new.append(key)  # that clip's volume (per-clip arity). No modality filter.
+87:                wav_ok = os.path.exists(os.path.join(d_cfg['audio'],  f"{key['video_id']}.wav"))
+89:                    self.annos_new.append(key)
+94:        self.annos = self.annos_new
+101:        self.training = d_cfg.training
+125:        raw_captions = None
+146:            raw_captions = anno['desc']
+149:            raw_captions = anno['caption'] 
+152:            raw_captions = anno['vast_cap'] 
+153:        raw_captions= raw_captions[0] if isinstance(raw_captions, list) else raw_captions
+154:        num_samples = len(raw_captions) if isinstance(raw_captions, list) else 1
+165:                vision_cap = random.choice(anno['vision_cap'])
+173:                audio_cap = random.choice(anno['audio_cap'])
+179:            if self.training:
+182:                    answer = random.choice(anno['answer'])
+200:                if vision_pixels is None: ###wrong img/video, resample when training and raise error when testing
+201:                    if self.training: 
+202:                        resample_idx = random.choice(self.idx)
+203:                        LOGGER.info(f'current idx {id_} from {self.dataset_name} returns wrong image/video, use {resample_idx} instead.')
+204:                        return self.__getitem__(resample_idx)
+206:                        resample_idx = random.choice(self.idx)
+207:                        LOGGER.info(f'current idx {id_} from {self.dataset_name} returns wrong image/video,!!!!!!!!!!!!!!!!!!!!!!!! use {resample_idx} instead.')
+208:                        return self.__getitem__(resample_idx)
+209:                        # raise ValueError
+213:            if audio_spectrograms is None: ### wrong audio, resample when training and raise error when testing
+214:                if self.training:
+215:                    resample_idx = random.choice(self.idx)
+216:                    LOGGER.info(f'current idx {id_} from {self.dataset_name} returns wrong audio, use {resample_idx} instead.')
+217:                    return self.__getitem__(resample_idx)
+219:                    raise ValueError                
+220:        #print(raw_captions)
+221:        return id_, raw_captions, vision_pixels, id_txt, question, answer, question_id, \
+231:            'raw_captions', 
+
+== eval logs reporting a replaced test item ('returns wrong'), per log
+(end)

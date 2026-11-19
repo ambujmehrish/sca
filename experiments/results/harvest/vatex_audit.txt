@@ -15,4 +15,5 @@ $ python3 scripts/audit_vatex.py
   matches its 10 s id window (+-1.5 s): 381   longer than the window (untrimmed): 0
 [media] /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/VATEX/videos: not present
 [overlap] test YouTube ids 431, also in the VATEX train file: 0
-FATAL: /leonardo_work/AIFAC_S07_041/sca/scripts/../workdir_pretrain/t9_qweight_only/log/hps.json not found
+[overlap] pretraining id samples: ['G1DRYgjsZTw.63', 'dGKjwnqs3AA.0', '2HeT-FgC1rw.8']
+[overlap] test YouTube ids also in pretraining file /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/vast27m_150k/annotations150k.json: 0

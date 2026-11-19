@@ -307,3 +307,7 @@ collector: committed locally (local results (runner))
 2026-11-19T17:55:12 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
 2026-11-19T18:00:15 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
 2026-11-19T18:05:21 submitted=2 finished=0 collected=0 invalid=0 | cluster: PENDING=30
+2026-11-19T18:10:24 submitted=0 finished=1 collected=1 invalid=0 | cluster: PENDING=28 RUNNING=1
+2026-11-19T18:15:32 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28 RUNNING=1
+2026-11-19T18:20:34 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28 RUNNING=1
+2026-11-19T18:25:37 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28 RUNNING=1

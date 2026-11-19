@@ -39,14 +39,6 @@
     "state": "CANCELLED"
    },
    {
-    "elapsed": "00:00:45",
-    "end": "2026-11-18T18:24:53",
-    "exit": "1:0",
-    "jobid": "64774366",
-    "name": "audit_vatex",
-    "state": "FAILED"
-   },
-   {
     "elapsed": "00:00:49",
     "end": "2026-11-19T09:44:53",
     "exit": "0:0",
@@ -361,7 +353,7 @@
     "time_limit": "4:00:00"
    },
    {
-    "elapsed": "5:02",
+    "elapsed": "25:17",
     "jobid": "64868224",
     "name": "diag_t9",
     "nodes": "1",
@@ -537,5 +529,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-19T18:10:24"
+ "updated": "2026-11-19T18:30:40"
 }

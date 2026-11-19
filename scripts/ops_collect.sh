@@ -43,7 +43,7 @@ if [ -z "$COMMIT_ONLY" ]; then
             --exclude='*' "$SCA_OPS_BASE/results/" "$DST/" || { echo "rsync failed"; exit 1; }
     fi
     if [ -d "$LOGS" ]; then
-        find "$LOGS" -maxdepth 1 -type f -mtime -7 -print0 | while IFS= read -r -d '' f; do
+        find -H "$LOGS" -maxdepth 1 -type f -mtime -7 -print0 | while IFS= read -r -d '' f; do
             name=$(basename "$f"); copy_log "$f" "$DST/logs/${name%.*}.txt"
         done
     fi

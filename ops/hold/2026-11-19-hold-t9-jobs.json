@@ -1,0 +1,9 @@
+{
+ "id": "2026-11-19-hold-t9-jobs",
+ "what": "hold the GPU jobs whose SCALAR task needs T9's missing hps.json until it is found",
+ "action": "hold",
+ "requests": [
+  "2026-11-18-rrswap-dump",
+  "2026-11-18-fsparity"
+ ]
+}

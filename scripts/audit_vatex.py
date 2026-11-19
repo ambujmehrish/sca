@@ -10,7 +10,7 @@ Checks, each printed with its numbers (CPU only, run on the cluster where the da
      against MSR-VTT as the reference benchmark
   3. media: duration of every test video vs the 10 s window in its VATEX id (trimmed or not),
      for both VATEX video folders present on the cluster
-  4. overlap of test YouTube ids with the VATEX train file and the T9 run's pretraining annotation (from its hps.json)
+  4. overlap of test YouTube ids with the VATEX train file and the pretraining annotation of the paper config
   5. (--dump) gallery-size effect: MSR-VTT R@1 on random 431-clip galleries vs the full 1,000
 """
 import argparse
@@ -26,7 +26,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 TEST = 'datasets/annotations/vatex/descs_ret_test_431.json'
 TRAIN = 'datasets/annotations/vatex/descs_ret_train_aug.json'
 MSRVTT = 'datasets/annotations/msrvtt/descs_ret_test.json'
-PRETRAIN_HPS = 'workdir_pretrain/t9_qweight_only/log/hps.json'
+PRETRAIN_CFG = 'config/sca/pretrain_cfg/sca_paper.json'   # the reported runs' pretraining data
 YT = re.compile(r'^(?P<yt>[A-Za-z0-9_-]{11})_(?P<s>\d{6})_(?P<e>\d{6})$')
 TOK = re.compile(r"[a-z0-9']+")
 
@@ -122,15 +122,14 @@ def overlap_report(test):
     t = yt_ids(test)
     tr = yt_ids(load(TRAIN))
     print('[overlap] test YouTube ids %d, also in the VATEX train file: %d' % (len(t), len(t & tr)))
-    cfg = load(PRETRAIN_HPS)
+    cfg = load(PRETRAIN_CFG)
     for entry in cfg['data_cfg']['train']:
         p = os.path.expandvars(entry.get('txt', ''))
-        if not os.path.isfile(p if os.path.isabs(p) else os.path.join(ROOT, p)):
-            print('[overlap] pretraining annotation %s not found' % p)
-            continue
+        if '$' in p:
+            raise KeyError('unset variable in %s' % entry.get('txt'))
         pre = load(p)
-        ids = {str(e.get('video_id', ''))[:11] for e in pre}
-        print('[overlap] pretraining id samples: %s' % [e.get('video_id') for e in pre[:3]])
+        ids = {str(e.get('video_id', e.get('clip_id', '')))[:11] for e in pre}
+        print('[overlap] pretraining id samples: %s' % [e.get('video_id', e.get('clip_id')) for e in pre[:3]])
         print('[overlap] test YouTube ids also in pretraining file %s: %d' % (p, len(t & ids)))
 
 
@@ -176,16 +175,29 @@ def main():
     ap.add_argument('--size', type=int, default=431)
     ap.add_argument('--trials', type=int, default=200)
     args = ap.parse_args()
-    test = annotation_report(TEST, 'VATEX test')
-    annotation_report(MSRVTT, 'MSR-VTT test (reference)')
-    if args.data_root:
-        for sub in ('VATEX/videos_raw', 'VATEX/videos'):
-            media_report(test, os.path.join(args.data_root, sub))
-    else:
-        print('[media] skipped: set DATA_ROOT')
-    overlap_report(test)
+    failed = []
+
+    def section(name, fn, *a):
+        try:
+            return fn(*a)
+        except (Exception, SystemExit) as e:  # noqa: BLE001 - reported, and the exit code says so
+            print('[%s] SECTION FAILED: %s: %s' % (name, type(e).__name__, e))
+            failed.append(name)
+
+    test = section('annotations', annotation_report, TEST, 'VATEX test')
+    section('annotations', annotation_report, MSRVTT, 'MSR-VTT test (reference)')
+    if test is not None:
+        if args.data_root:
+            for sub in ('VATEX/videos_raw', 'VATEX/videos'):
+                section('media', media_report, test, os.path.join(args.data_root, sub))
+        else:
+            print('[media] skipped: set DATA_ROOT')
+        section('overlap', overlap_report, test)
     if args.dump:
-        gallery_report(args.dump, args.size, args.trials)
+        section('gallery', gallery_report, args.dump, args.size, args.trials)
+    if failed:
+        print('FAILED sections: %s' % ', '.join(failed))
+        return 1
     return 0
 
 

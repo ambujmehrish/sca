@@ -1,0 +1,6 @@
+{
+ "id": "2026-11-19-audit-vatex-rerun",
+ "what": "VATEX audit rerun with independent sections and the paper config's pretraining annotation",
+ "script": "audit_vatex.sh",
+ "collect": true
+}

@@ -1,0 +1,6 @@
+{
+ "id": "2026-11-19-diag-paths",
+ "what": "read-only diagnosis: T9 run files, loader caption choice and test-time resampling, replaced test items in eval logs",
+ "script": "diag_paths.sh",
+ "collect": true
+}

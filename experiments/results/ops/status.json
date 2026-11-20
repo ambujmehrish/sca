@@ -4,40 +4,7 @@
   "counts": {
    "PENDING": 28
   },
-  "ended_24h": [
-   {
-    "elapsed": "00:00:00",
-    "end": "2026-11-19T18:00:43",
-    "exit": "0:0",
-    "jobid": "64761463",
-    "name": "fact-wavedec",
-    "state": "CANCELLED"
-   },
-   {
-    "elapsed": "00:00:00",
-    "end": "2026-11-19T18:00:43",
-    "exit": "0:0",
-    "jobid": "64761472",
-    "name": "fact-wavedec",
-    "state": "CANCELLED"
-   },
-   {
-    "elapsed": "00:00:05",
-    "end": "2026-11-19T18:05:28",
-    "exit": "0:0",
-    "jobid": "64868223",
-    "name": "diag_jobs",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "00:42:49",
-    "end": "2026-11-19T18:48:12",
-    "exit": "0:0",
-    "jobid": "64868224",
-    "name": "diag_t9",
-    "state": "COMPLETED"
-   }
-  ],
+  "ended_24h": [],
   "squeue": [
    {
     "elapsed": "0:00",
@@ -486,5 +453,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-20T17:56:46"
+ "updated": "2026-11-20T18:57:36"
 }

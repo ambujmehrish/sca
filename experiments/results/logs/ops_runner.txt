@@ -431,3 +431,15 @@ collector: committed locally (local results (runner))
 2026-11-20T04:21:57 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
 2026-11-20T04:27:00 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
 2026-11-20T04:32:02 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T04:37:07 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T04:42:13 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T04:47:15 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T04:52:18 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T04:57:21 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T05:02:24 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T05:07:26 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T05:12:28 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T05:17:30 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T05:22:33 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T05:27:36 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28
+2026-11-20T05:32:40 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=28

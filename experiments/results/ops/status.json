@@ -258,7 +258,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "7:19:20",
+    "elapsed": "8:20:04",
     "jobid": "64867908",
     "name": "fact-wavedec",
     "nodes": "1",
@@ -268,7 +268,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "7:20:37",
+    "elapsed": "8:21:21",
     "jobid": "64867892",
     "name": "fact-wavedec",
     "nodes": "1",
@@ -454,5 +454,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-21T13:08:21"
+ "updated": "2026-11-21T14:09:05"
 }

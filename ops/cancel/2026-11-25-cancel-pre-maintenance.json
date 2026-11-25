@@ -1,0 +1,10 @@
+{
+ "id": "2026-11-25-cancel-pre-maintenance",
+ "what": "the four 2026-11-18 parity requests whose jobs maintenance terminated; replaced by the 2026-11-25 chain",
+ "requests": [
+  "2026-11-18-rrswap-dump",
+  "2026-11-18-rrswap-swap",
+  "2026-11-18-fsparity",
+  "2026-11-18-audit-vatex"
+ ]
+}

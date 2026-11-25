@@ -1,0 +1,9 @@
+{
+ "id": "2026-11-25-train-t9",
+ "what": "retrain T9 and seeds 51/52 (b_grid tasks 11, 17, 18), exact reported recipe, outputs on WORK",
+ "script": "b_grid_pretrain.sh",
+ "sbatch": {
+  "array": "11,17,18"
+ },
+ "collect": true
+}

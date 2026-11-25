@@ -1,0 +1,19 @@
+{
+ "id": "2026-11-25-eval-t9-seeds",
+ "what": "8-frame eval of the retrained T9 and seeds on all five benchmarks; compared against the committed numbers",
+ "script": "frameset_eval.sh",
+ "env": {
+  "SCA_FS_ARMS": "t9_qweight_only s1_t9_seed51 s2_t9_seed52"
+ },
+ "after": [
+  "2026-11-25-train-t9"
+ ],
+ "post": {
+  "script": "summarize_repro.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/repro_t9.txt"
+  ]
+ },
+ "collect": true
+}

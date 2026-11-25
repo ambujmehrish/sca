@@ -18,7 +18,7 @@ from extract_results import parse_log, r1_r10  # noqa: E402
 BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
 LABEL = {'msrvtt': 'MSR-VTT', 'didemo': 'DiDeMo', 'activitynet': 'ActivityNet',
          'vatex': 'VATEX', 'audiocaps': 'AudioCaps'}
-NAME = {'sca': 'SCALAR', 'gram': 'GRAM', 'vast': 'VAST init', 'barybind': 'BaryBind'}
+NAME = {'sca': 'SCALAR', 'gram': 'GRAM', 'vast': 'VAST init', 'barybind': 'BaryBind T-VA'}
 # metric family suffix -> direction prefix inside its dict
 METRICS = {'itm': ('ret_itm_area', 'volume_ITM_T2D'),
            'stage1': ('ret_area_forward', 'volume_T2D'),

@@ -1,0 +1,17 @@
+{
+ "id": "2026-11-25-barybind-tva",
+ "what": "BaryBind released T-VA checkpoint by its own code on our data, T-VA on all five benchmarks, 8 frames and BaryBind frames; fails on any missing key",
+ "script": "barybind_authors.sh",
+ "env": {
+  "BB_CKPT": "/leonardo_scratch/large/userexternal/amehrish/sca_runs/barybind_ckpt/barybindTVA.pt",
+  "BB_TASK": "ret%tva"
+ },
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

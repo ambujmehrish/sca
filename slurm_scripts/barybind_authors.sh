@@ -19,12 +19,14 @@
 #   index 1  fsbb  BaryBind's test frames: MSR-VTT 8, DiDeMo 32, ActivityNet 32, VATEX 16, AudioCaps 8
 #
 # Setup, once, on a login node:
-#   git clone --depth 1 https://github.com/xl-tang3/BaryBind "$WORK_ROOT/barybind"
-#   pip install gdown && gdown --folder \
-#     https://drive.google.com/drive/folders/1poY_-gGBng8XDNsUGXqntQbWaRC-PpWU \
-#     -O "$WORK_ROOT/barybind_ckpt"       # must contain log/hps.json and ckpt/model_step_*.pt
+#   git clone --depth 1 https://github.com/xl-tang3/BaryBind "$WORK/barybind"
+#   gdown --folder https://drive.google.com/drive/folders/1poY_-gGBng8XDNsUGXqntQbWaRC-PpWU -O <dir>
 #
-#   BB_CKPT_DIR=$WORK_ROOT/barybind_ckpt/barybind_pretrained_4modalities sbatch slurm_scripts/barybind_authors.sh
+# The released folder holds a bare T-VA checkpoint (barybindTVA.pt), no log/hps.json, so it is
+# loaded with their --checkpoint option and scored as T-VA on every benchmark (BB_TASK=ret%tva).
+# Their loader uses strict=False; a run whose log reports missing keys is marked FAILED.
+#
+#   BB_CKPT=<dir>/barybindTVA.pt BB_TASK=ret%tva sbatch slurm_scripts/barybind_authors.sh
 set -uo pipefail
 source "${SCA_ENV_RC:-/leonardo_work/AIFAC_S07_041/sca_env.rc}"
 cd "$CODE_DIR"
@@ -46,12 +48,11 @@ FS="${FRAMESETS[$IDX]:-}"
 BB_ROOT="${BARYBIND_ROOT:-$WORK_ROOT/barybind}"
 [ -f "$BB_ROOT/run.py" ] && [ -f "$BB_ROOT/config/barybind/default_model_cfg.json" ] || {
   echo "FATAL: $BB_ROOT is not a BaryBind checkout (see the setup lines at the top)" >&2; exit 2; }
-: "${BB_CKPT_DIR:?set BB_CKPT_DIR to the released model directory (holds log/ and ckpt/)}"
-[ -f "$BB_CKPT_DIR/log/hps.json" ] || { echo "FATAL: $BB_CKPT_DIR/log/hps.json missing" >&2; exit 2; }
-BB_CKPT=$(ls "$BB_CKPT_DIR"/ckpt/model_step_*.pt 2>/dev/null | sort -V | tail -1)
-[ -n "$BB_CKPT" ] || { echo "FATAL: no ckpt/model_step_*.pt under $BB_CKPT_DIR" >&2; exit 2; }
+: "${BB_CKPT:?set BB_CKPT to the released checkpoint file (barybindTVA.pt)}"
+[ -f "$BB_CKPT" ] || { echo "FATAL: $BB_CKPT not found" >&2; exit 2; }
+BB_TASK="${BB_TASK:-}"
 echo "BaryBind code : $BB_ROOT @ $(git -C "$BB_ROOT" rev-parse --short HEAD 2>/dev/null || echo '?')"
-echo "BaryBind ckpt : $BB_CKPT  (their loader takes the highest model_step in that folder)"
+echo "BaryBind ckpt : $BB_CKPT   task override: ${BB_TASK:-none (our per-benchmark tasks)}"
 
 # their repo omits the vendored caption-eval package and the encoder weights; link ours in
 link_dep() {
@@ -76,7 +77,7 @@ DIRTY=$(git -C "$BB_ROOT" status --porcelain -- ':!evaluation_tools' ':!pretrain
 [ -z "$DIRTY" ] || { echo "FATAL: $BB_ROOT has local modifications:" >&2; echo "$DIRTY" >&2; exit 2; }
 
 CFG_DIR="$CODE_DIR/workdir/barybind_cfg"
-python3 scripts/make_parity_configs.py barybind --out "$CFG_DIR" >/dev/null || exit 2
+python3 scripts/make_parity_configs.py barybind --out "$CFG_DIR" ${BB_TASK:+--task "$BB_TASK"} >/dev/null || exit 2
 
 NOISE="mmco: unref short failure|number of reference frames .+ exceeds max|co located POCs unavailable|UserWarning: The default value of the antialias parameter|^  warnings.warn\($"
 rc_all=0
@@ -88,12 +89,24 @@ for bench in msrvtt didemo activitynet vatex audiocaps; do
   echo "== [barybind/$FS/$bench] START $(date +%T)  cfg=$cfg"
   ( cd "$BB_ROOT" && srun python3 -m torch.distributed.launch --nnodes 1 --node_rank 0 \
       --nproc_per_node "${SLURM_GPUS_ON_NODE:-4}" --master_port $((9400 + IDX * 10 + ${SLURM_JOB_ID:-$$} % 10)) \
-      ./run.py --config "$cfg" --pretrain_dir "$BB_CKPT_DIR" --output_dir "$out" --mode testing ) 2>&1 \
+      ./run.py --config "$cfg" --checkpoint "$BB_CKPT" --output_dir "$out" --mode testing ) 2>&1 \
     | { grep -v --line-buffered -E "$NOISE" || true; } | tee "$out/run.log"
   rc=${PIPESTATUS[0]}
-  if [ $rc -eq 0 ] && grep -q "ret_itm_area" "$out/run.log"; then
+  # strict=False loading: any missing key means weights left at their random initialization
+  miss=$(python3 - "$out/run.log" "$out"/log/log*.txt <<'PY'
+import ast, os, sys
+m = [l for f in sys.argv[1:] if os.path.isfile(f) for l in open(f, errors='replace') if 'missing_keys' in l]
+if not m:
+    print('NO missing_keys LINE'); sys.exit()
+keys = ast.literal_eval(m[-1][m[-1].index('['):m[-1].rindex(']') + 1])
+keys = [k for k in keys if not k.endswith('position_ids')]
+print(len(keys), keys[:5])
+PY
+)
+  echo "== [barybind/$FS/$bench] missing keys: $miss"
+  if [ $rc -eq 0 ] && grep -q "ret_itm_area" "$out/run.log" && [ "${miss%% *}" = 0 ]; then
     cell_mark_done "$out" "$cfg"; echo "== [barybind/$FS/$bench] OK $(date +%T)"
-  else echo "== [barybind/$FS/$bench] FAILED rc=$rc (or no ret_itm_area block)" >&2; rc_all=1; fi
+  else echo "== [barybind/$FS/$bench] FAILED rc=$rc (no ret_itm_area block, or missing keys: $miss)" >&2; rc_all=1; fi
 done
 echo
 echo "  python3 scripts/summarize_parity.py"

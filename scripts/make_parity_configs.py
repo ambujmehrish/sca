@@ -78,10 +78,16 @@ def absolutize(entry):
     return e
 
 
-def barybind_config(bench, frameset):
-    """BaryBind's defaults + our data entry; only paths, frames and caption length are ours."""
+def barybind_config(bench, frameset, task=None):
+    """BaryBind's defaults + our data entry; only paths, frames and caption length are ours.
+
+    task overrides the retrieval task (e.g. 'ret%tva' for a T-VA checkpoint).
+    """
     src = load(SOURCES['sca'] % bench)
     val = [absolutize(with_frames(v, FRAMESETS[frameset][bench])) for v in src['data_cfg']['val']]
+    if task:
+        for v in val:
+            v['task'] = task
     train = []
     for v in val:
         t = copy.deepcopy(v)
@@ -109,6 +115,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('which', choices=('ours', 'barybind'))
     ap.add_argument('--out', default='')
+    ap.add_argument('--task', default='', help="barybind only: retrieval task for every benchmark, e.g. 'ret%%tva'")
     args = ap.parse_args()
     if args.which == 'ours':
         out = args.out or os.path.join(ROOT, 'benchmark_eval/configs_fsbb')
@@ -123,7 +130,7 @@ def main():
     for fs in FRAMESETS:
         for b in BENCHES:
             p = os.path.join(args.out, fs, '%s.json' % b)
-            write(p, barybind_config(b, fs))
+            write(p, barybind_config(b, fs, args.task or None))
             print('wrote', p)
     return 0
 

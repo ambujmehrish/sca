@@ -95,11 +95,25 @@ if [ -n "$DIRTY" ]; then
 fi
 echo "authors' code : $HG_ROOT @ $(git -C "$HG_ROOT" rev-parse --short HEAD 2>/dev/null || echo '?')"
 
-CFG_REL="configs/pretrain/hgeval_${BENCH}.json"
-python3 scripts/make_hypergram_eval_config.py --hypergram_root "$HG_ROOT" \
-  --checkpoint "$HG_CKPT" --bench "$BENCH" || exit 2
+# HG_EVAL_SET picks the protocol, the same one every other row of that table uses:
+#   e1 (default) 8 frames | fsbb BaryBind frames | tva_fs8 / tva_fsbb T-VA on MSR-VTT, VATEX
+HG_EVAL_SET="${HG_EVAL_SET:-e1}"
+case "$HG_EVAL_SET" in
+  e1)       TEMPLATE="benchmark_eval/configs_e1/gram_%s.json";          SUFFIX="" ;;
+  fsbb)     TEMPLATE="benchmark_eval/configs_fsbb/gram_%s.json";        SUFFIX="_fsbb" ;;
+  tva_fs8)  TEMPLATE="benchmark_eval/configs_tva/gram_%s_fs8.json";     SUFFIX="_tva_fs8" ;;
+  tva_fsbb) TEMPLATE="benchmark_eval/configs_tva/gram_%s_fsbb.json";    SUFFIX="_tva_fsbb" ;;
+  *) echo "FATAL: HG_EVAL_SET=$HG_EVAL_SET is not e1, fsbb, tva_fs8 or tva_fsbb" >&2; exit 2 ;;
+esac
+# shellcheck disable=SC2059
+[ -f "$(printf "$TEMPLATE" "$BENCH")" ] || {
+  echo "FATAL: no $HG_EVAL_SET config for $BENCH ($(printf "$TEMPLATE" "$BENCH"))" >&2; exit 2; }
 
-OUT="workdir/hgeval/$BENCH"
+CFG_REL="configs/pretrain/hgeval${SUFFIX}_${BENCH}.json"
+python3 scripts/make_hypergram_eval_config.py --hypergram_root "$HG_ROOT" \
+  --checkpoint "$HG_CKPT" --bench "$BENCH" --our_eval "$TEMPLATE" --out "$CFG_REL" || exit 2
+
+OUT="workdir/hgeval${SUFFIX}/$BENCH"
 mkdir -p "$OUT"
 claim_outdir "$OUT" || exit 2
 echo "bench  : $BENCH"

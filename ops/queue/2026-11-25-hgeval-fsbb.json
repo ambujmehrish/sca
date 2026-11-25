@@ -1,0 +1,19 @@
+{
+ "id": "2026-11-25-hgeval-fsbb",
+ "what": "HyperGRAM at BaryBind test frames (MSR-VTT 8, DiDeMo 32, ActivityNet 32, VATEX 16, AudioCaps 8)",
+ "script": "hypergram_eval.sh",
+ "env": {
+  "HG_EVAL_SET": "fsbb"
+ },
+ "after": [
+  "2026-11-25-train-hypergram"
+ ],
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

@@ -18,7 +18,9 @@ from extract_results import parse_log, r1_r10  # noqa: E402
 BENCHES = ('msrvtt', 'didemo', 'activitynet', 'vatex', 'audiocaps')
 LABEL = {'msrvtt': 'MSR-VTT', 'didemo': 'DiDeMo', 'activitynet': 'ActivityNet',
          'vatex': 'VATEX', 'audiocaps': 'AudioCaps'}
-NAME = {'sca': 'SCALAR', 'gram': 'GRAM', 'vast': 'VAST init', 'barybind': 'BaryBind T-VA'}
+NAME = {'sca': 'SCALAR', 'gram': 'GRAM', 'hypergram': 'HyperGRAM', 'vast': 'VAST init',
+        'barybind': 'BaryBind T-VA'}
+HG_REF = 'experiments/results/harvest/hypergram_authors.txt'    # committed 8-frame HyperGRAM row
 # metric family suffix -> direction prefix inside its dict
 METRICS = {'itm': ('ret_itm_area', 'volume_ITM_T2D'),
            'stage1': ('ret_area_forward', 'volume_T2D'),
@@ -60,10 +62,11 @@ def fmt(v):
 
 def table(title, header, rows, out):
     w = max(len(r[0]) for r in rows) + 2
+    cw = max([12] + [len(str(v)) + 2 for _, vals in rows for v in vals] + [len(h) + 2 for h in header])
     out.append(title)
-    out.append(' ' * w + ''.join('%12s' % h for h in header))
+    out.append(' ' * w + ''.join(h.rjust(cw) for h in header))
     for name, vals in rows:
-        out.append(name.ljust(w) + ''.join('%12s' % v for v in vals))
+        out.append(name.ljust(w) + ''.join(str(v).rjust(cw) for v in vals))
     out.append('')
 
 
@@ -74,19 +77,22 @@ def main():
     par, swp = os.path.join(ROOT, 'workdir/parity'), os.path.join(ROOT, 'workdir/rerank_swap')
     hdr = [LABEL[b] for b in BENCHES]
     lines = []
+    hg = os.path.join(ROOT, 'workdir')
 
     def get(path, key):
         return cell(path).get(key) if os.path.isdir(path) else None
 
     rows = []
     for fs, fsname in (('fs8', '8 frames'), ('fsbb', 'BaryBind frames')):
-        for m in ('sca', 'gram', 'vast', 'barybind'):
+        for m in ('sca', 'gram', 'hypergram', 'vast', 'barybind'):
             if m == 'vast' and fs == 'fsbb':
                 continue
             vals = []
             for b in BENCHES:
                 if m == 'barybind':
                     p = os.path.join(par, 'barybind_%s_%s' % (fs, b))
+                elif m == 'hypergram':
+                    p = os.path.join(hg, 'hgeval' if fs == 'fs8' else 'hgeval_fsbb', b)
                 elif fs == 'fs8':
                     p = os.path.join(swp, 'own_%s_%s' % (m, b))
                 else:
@@ -94,16 +100,36 @@ def main():
                 vals.append(fmt(get(p, 'itm')))
             rows.append(('%s [%s]' % (NAME[m], fsname), vals))
     table('FINAL two-stage T->V R@1 (one environment, final/released checkpoints;\n'
-          'SCALAR/GRAM/VAST: T-VAS on MSR-VTT and VATEX, T-VA elsewhere; BaryBind: T-VA everywhere)', hdr, rows, lines)
+          'SCALAR/GRAM/HyperGRAM/VAST: T-VAS on MSR-VTT and VATEX, T-VA elsewhere; BaryBind: T-VA everywhere;\n'
+          'HyperGRAM and BaryBind keep their own recipes\' checkpoint selection on MSR-VTT test)', hdr, rows, lines)
+
+    # HyperGRAM retrained with its authors' code: against the committed 8-frame row
+    ref = {}
+    if os.path.isfile(os.path.join(ROOT, HG_REF)):
+        import re
+        bench = None
+        for line in open(os.path.join(ROOT, HG_REF)):
+            if line.strip().upper() in [b.upper() for b in BENCHES]:
+                bench = line.strip().lower()
+            m = re.search(r'REPORTED\s+ret_itm\s+T->V R@1\s+([0-9.]+)', line)
+            if m and bench:
+                ref[bench] = float(m.group(1))
+    new = [get(os.path.join(hg, 'hgeval', b), 'itm') for b in BENCHES]
+    table('HyperGRAM reproduction at 8 frames: committed -> retrained',
+          hdr, [('HyperGRAM', ['%s -> %s' % (fmt(ref.get(b)), fmt(n)) for b, n in zip(BENCHES, new)])], lines)
 
     # matched T-VA on the two T-VAS benchmarks: the released BaryBind checkpoint is T-VA only
     cells = (('msrvtt', 'fs8', 'MSR-VTT 8f'), ('vatex', 'fs8', 'VATEX 8f'), ('vatex', 'fsbb', 'VATEX 16f'))
     rows = []
-    for m in ('sca', 'gram', 'barybind'):
+    for m in ('sca', 'gram', 'hypergram', 'barybind'):
         vals = []
         for b, fs, _ in cells:
-            p = (os.path.join(par, 'barybind_%s_%s' % (fs, b)) if m == 'barybind'
-                 else os.path.join(par, '%s_tva_%s_%s' % (m, fs, b)))
+            if m == 'barybind':
+                p = os.path.join(par, 'barybind_%s_%s' % (fs, b))
+            elif m == 'hypergram':
+                p = os.path.join(hg, 'hgeval_tva_%s' % fs, b)
+            else:
+                p = os.path.join(par, '%s_tva_%s_%s' % (m, fs, b))
             vals.append(fmt(get(p, 'itm')))
         rows.append(('%s T-VA' % NAME[m].replace(' T-VA', ''), vals))
     table('MATCHED T-VA on the T-VAS benchmarks (reported beside the T-VAS rows, never in place of them;\n'

@@ -1,0 +1,22 @@
+{
+ "id": "2026-11-25-hgeval-tva-fs8",
+ "what": "HyperGRAM scored T-VA on MSR-VTT and VATEX at 8 frames, matched to BaryBind T-VA",
+ "script": "hypergram_eval.sh",
+ "env": {
+  "HG_EVAL_SET": "tva_fs8"
+ },
+ "sbatch": {
+  "array": "0,3"
+ },
+ "after": [
+  "2026-11-25-train-hypergram"
+ ],
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

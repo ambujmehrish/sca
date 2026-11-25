@@ -52,6 +52,8 @@ def main():
     ap.add_argument('--bench', required=True, choices=BENCHES)
     ap.add_argument('--data_root', default=os.environ.get('DATA_ROOT', ''))
     ap.add_argument('--out', default=None)
+    ap.add_argument('--our_eval', default=OUR_EVAL,
+                    help='protocol template, e.g. benchmark_eval/configs_fsbb/gram_%%s.json')
     args = ap.parse_args()
 
     if not args.data_root:
@@ -81,7 +83,7 @@ def main():
     cfg = json.load(open(src), object_pairs_hook=collections.OrderedDict)
     before_model = dict(cfg['model_cfg'])
 
-    ours_path = os.path.join(code_dir, OUR_EVAL % args.bench)
+    ours_path = os.path.join(code_dir, args.our_eval % args.bench)
     if not os.path.exists(ours_path):
         sys.exit('FATAL: %s not found -- it defines the protocol every other row uses.'
                  % ours_path)
@@ -125,7 +127,7 @@ def main():
         'provenance': ('HyperGRAM trained from github.com/uta-smile/HyperGram unmodified, at '
                        'their published recipe, on our VAST-150k subset. Not a reimplementation.'),
         'evaluation_protocol': ('OUR %s -- same annotation file, frame count, task string and '
-                                'rerank depth as every other row.' % (OUR_EVAL % args.bench)),
+                                'rerank depth as every other row.' % (args.our_eval % args.bench)),
         'benchmark': args.bench,
     }
 

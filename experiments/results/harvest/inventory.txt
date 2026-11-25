@@ -1,0 +1,68 @@
+
+== code checkout
+INFO    branch / HEAD  claude/implementation-plan-review-csn6m0 612b7ec 2026-11-25 09:28:08 +0000 ops: resume after maintenance - inventory, T9 retraining chain, reproduction check
+OK      tracked files clean
+
+== python environment (sca env must be active)
+INFO    python3  /leonardo_scratch/fast/AIFAC_S07_041/conda_envs/sca/bin/python3
+OK      no virtualenv active
+OK      imports torch/decord/easydict/transformers  2.1.2+cu121 4.31.0
+OK      command sbatch  /usr/bin/sbatch
+OK      command squeue  /usr/bin/squeue
+OK      command git  /usr/bin/git
+OK      command tmux  /usr/bin/tmux
+
+== environment variables from sca_env.rc
+OK      WORK  /leonardo_work/AIFAC_S07_041
+OK      FAST  /leonardo_scratch/fast/AIFAC_S07_041
+OK      CODE_DIR  /leonardo_work/AIFAC_S07_041/sca
+OK      WORK_ROOT  /leonardo_work/AIFAC_S07_041
+OK      DATA_ROOT  /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset
+OK      SCA_CACHE_ROOT  /leonardo_work/AIFAC_S07_041/sca_caches
+OK      MODELS_DIR  /leonardo_scratch/fast/AIFAC_S07_041/models/sca_models
+
+== run folders (must be on WORK, not scratch)
+OK      workdir  -> /leonardo_work/AIFAC_S07_041/sca_runs/workdir
+OK      workdir_pretrain  -> /leonardo_work/AIFAC_S07_041/sca_runs/workdir_pretrain
+MISSING results  -> /leonardo_scratch/large/userexternal/amehrish/sca_runs/results  (scratch: purged after inactivity)
+OK      slurm_scripts/logs  -> /leonardo_scratch/large/userexternal/amehrish/sca_runs/slurm_logs  (scratch: purged after inactivity)
+OK      pretrained_weights  -> /leonardo_scratch/fast/AIFAC_S07_041/models/sca_pretrained_weights  (scratch: purged after inactivity)
+OK      datasets  -> /leonardo_work/AIFAC_S07_041/sca/datasets
+
+== trained SCALAR checkpoints
+MISSING t9_qweight_only  no model_step_*.pt, no log/hps.json
+MISSING s1_t9_seed51  no model_step_*.pt, no log/hps.json
+MISSING s2_t9_seed52  no model_step_*.pt, no log/hps.json
+
+== baseline checkpoints and caches
+OK      GRAM  /leonardo_work/AIFAC_S07_041/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt 5.59 GB
+OK      VAST init  /leonardo_work/AIFAC_S07_041/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/model_step_204994.pt 5.59 GB
+OK      S* cache  /leonardo_work/AIFAC_S07_041/sca_caches/s_star_150k.pt 0.10 GB
+OK      offline model env  /leonardo_scratch/fast/AIFAC_S07_041/models/sca_models/env.sh 0.00 GB
+OK      encoder clip  /leonardo_work/AIFAC_S07_041/sca/pretrained_weights/clip/EVA01_CLIP_g_14_psz14_s11B.pt 2.27 GB
+OK      encoder beats  /leonardo_work/AIFAC_S07_041/sca/pretrained_weights/beats/BEATs_iter3_plus_AS2M.pt 0.36 GB
+OK      encoder bert  /leonardo_work/AIFAC_S07_041/sca/pretrained_weights/bert/bert-base-uncased 
+OK      evaluation_tools  /leonardo_work/AIFAC_S07_041/sca/evaluation_tools 
+OK      data loader (cluster-local)  /leonardo_work/AIFAC_S07_041/sca/data/IndexAnno.py 0.00 GB
+
+== BaryBind (step 1)
+MISSING BaryBind code  /leonardo_work/AIFAC_S07_041/barybind/run.py 
+MISSING BaryBind checkpoint  $WORK/barybind_ckpt/<model>/log/hps.json
+
+== benchmark data (annotation entries with media on disk)
+OK      msrvtt data  1000 entries, video 1000/1000, audio 1000/1000
+OK      didemo data  1003 entries, video 1003/1003, audio 1003/1003
+OK      activitynet data  4917 entries, video 4917/4917, audio 4685/4917
+OK      vatex data  431 entries, video 431/431, audio 431/431
+OK      audiocaps data  704 entries, video 704/704, audio 704/704
+
+== pretraining data (150k)
+WARN    vast27m_150k data  150154 entries, video 136694/150154, audio 136674/150154
+WARN    DATA_ROOT location  /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset  (scratch: purged after inactivity)
+
+== storage
+INFO    WORK usage  10.128.82.1@o2ib:10.128.82.2@o2ib:/larchive/work  4.0T  3.8T  263G  94% /leonardo_work
+
+== Slurm
+INFO    my jobs  65222407 fact-facodec RUNNING lrdn1189 | 65222408 fact-facodec RUNNING lrdn1270 | 65222409 fact-facodec RUNNING lrdn1526 | 65222410 fact-facodec RUNNING lrdn1648 | 65222411 fact-facodec RUNNING lrdn1673 | 65222412 fact-facodec RUNNING lrdn1673 | 65222413 fact-facodec RUNNING lrdn1673 | 65222414 fact-facodec RUNNING lrdn1707 | 65222289 fact-vc RUNNING lrdn1224 | 65222290 fact-vc RUNNING lrdn2706 | 65222391 fact-eval-base RUNNING lrdn1674 | 65222392 fact-eval-base RUNNING lrdn1674 | 65222393 fact-eval-base RUNNING lrdn1795 | 65222394 fact-eval-base RUNNING lrdn1795 | 65222415 fact-eval-base RUNNING lrdn1494 | 65222416 fact-eval-base RUNNING lrdn1494 | 65222417 fact-eval-base RUNNING lrdn1527 | 65222423 fact-eval-base RUNNING lrdn1105 | 65222424 fact-eval-base RUNNING lrdn1105 | 65222402 fact-facodec RUNNING lrdn1674 | 65222403 fact-facodec RUNNING lrdn1189 | 65222404 fact-facodec RUNNING lrdn1378 | 65222405 fact-facodec RUNNING lrdn1660 | 65222406 fact-facodec RUNNING lrdn1791 | 65222399 fact-facodec RUNNING lrdn1222 | 65222400 fact-facodec RUNNING lrdn1439 | 65222401 fact-facodec RUNNING lrdn1689 | 65222287 fact-vc RUNNING lrdn1287 | 65222288 fact-vc RUNNING lrdn1520 | 65222286 fact-vc RUNNING lrdn1298
+INFO    runner processes  none

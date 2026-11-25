@@ -1,0 +1,35 @@
+FINAL two-stage T->V R@1 (one environment, final/released checkpoints)
+                                 MSR-VTT      DiDeMo ActivityNet       VATEX   AudioCaps
+SCALAR [8 frames]                MISSING     MISSING     MISSING     MISSING     MISSING
+GRAM [8 frames]                  MISSING     MISSING     MISSING     MISSING     MISSING
+VAST init [8 frames]             MISSING     MISSING     MISSING     MISSING     MISSING
+BaryBind [8 frames]              MISSING     MISSING     MISSING     MISSING     MISSING
+SCALAR [BaryBind frames]         MISSING     MISSING     MISSING     MISSING     MISSING
+GRAM [BaryBind frames]           MISSING     MISSING     MISSING     MISSING     MISSING
+BaryBind [BaryBind frames]       MISSING     MISSING     MISSING     MISSING     MISSING
+
+STAGE 1 at 8 frames: own aggregator R@1 and candidate recall@50
+                          MSR-VTT      DiDeMo ActivityNet       VATEX   AudioCaps
+SCALAR stage-1            MISSING     MISSING     MISSING     MISSING     MISSING
+GRAM stage-1              MISSING     MISSING     MISSING     MISSING     MISSING
+VAST init stage-1         MISSING     MISSING     MISSING     MISSING     MISSING
+BaryBind stage-1          MISSING     MISSING     MISSING     MISSING     MISSING
+SCALAR recall@50          MISSING     MISSING     MISSING     MISSING     MISSING
+GRAM recall@50            MISSING     MISSING     MISSING     MISSING     MISSING
+VAST init recall@50       MISSING     MISSING     MISSING     MISSING     MISSING
+
+RERANKER SWAP at 8 frames: final T->V R@1
+                                         MSR-VTT      DiDeMo ActivityNet       VATEX   AudioCaps
+SCALAR reranks SCALAR top-50             MISSING     MISSING     MISSING     MISSING     MISSING
+GRAM reranks GRAM top-50                 MISSING     MISSING     MISSING     MISSING     MISSING
+VAST init reranks VAST init top-50       MISSING     MISSING     MISSING     MISSING     MISSING
+GRAM reranks SCALAR top-50               MISSING     MISSING     MISSING     MISSING     MISSING
+SCALAR reranks GRAM top-50               MISSING     MISSING     MISSING     MISSING     MISSING
+VAST init reranks SCALAR top-50          MISSING     MISSING     MISSING     MISSING     MISSING
+
+SELF-CHECK: each swap run recomputes its own-candidate result
+                                      MSR-VTT      DiDeMo ActivityNet       VATEX   AudioCaps
+GRAM own result reproduced            MISSING     MISSING     MISSING     MISSING     MISSING
+SCALAR own result reproduced          MISSING     MISSING     MISSING     MISSING     MISSING
+VAST init own result reproduced       MISSING     MISSING     MISSING     MISSING     MISSING
+

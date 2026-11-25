@@ -147,3 +147,23 @@ def test_summary_reads_ours_and_barybind_log_dialects(tmp_path):
         "{'volume_ITM_T2D_r1': 55.9, 'volume_ITM_T2D_recall': '55.9/79.0/87.0'}\n")
     got = sp.cell(str(tmp_path / 'own'))
     assert got == {'itm': 54.8, 'stage1': 45.2, 'ext': 55.9}
+
+
+@pytest.mark.parametrize('model', ['sca', 'gram'])
+@pytest.mark.parametrize('bench, fs', [('msrvtt', 'fs8'), ('vatex', 'fs8'), ('vatex', 'fsbb')])
+def test_tva_configs_change_only_the_task(model, bench, fs):
+    mpc = _mpc()
+    cfg = mpc.tva_config(model, bench, fs)
+    base = mpc.ours_config(model, bench, 'fsbb') if fs == 'fsbb' else mpc.load(mpc.SOURCES[model] % bench)
+    for part in ('train', 'val'):
+        for e in cfg['data_cfg'][part]:
+            assert e['task'] == 'ret%tva'
+            e['task'] = 'ret%tvas'
+    assert cfg == base
+    committed = json.load(open(os.path.join(ROOT, 'benchmark_eval/configs_tva/%s_%s_%s.json' % (model, bench, fs))))
+    assert committed == mpc.tva_config(model, bench, fs)
+
+
+def test_tva_refuses_a_benchmark_that_is_not_tvas():
+    with pytest.raises(ValueError):
+        _mpc().tva_config('sca', 'didemo', 'fs8')

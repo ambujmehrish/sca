@@ -93,7 +93,22 @@ def main():
                     p = os.path.join(par, '%s_fsbb_%s' % (m, b))
                 vals.append(fmt(get(p, 'itm')))
             rows.append(('%s [%s]' % (NAME[m], fsname), vals))
-    table('FINAL two-stage T->V R@1 (one environment, final/released checkpoints)', hdr, rows, lines)
+    table('FINAL two-stage T->V R@1 (one environment, final/released checkpoints;\n'
+          'SCALAR/GRAM/VAST: T-VAS on MSR-VTT and VATEX, T-VA elsewhere; BaryBind: T-VA everywhere)', hdr, rows, lines)
+
+    # matched T-VA on the two T-VAS benchmarks: the released BaryBind checkpoint is T-VA only
+    cells = (('msrvtt', 'fs8', 'MSR-VTT 8f'), ('vatex', 'fs8', 'VATEX 8f'), ('vatex', 'fsbb', 'VATEX 16f'))
+    rows = []
+    for m in ('sca', 'gram', 'barybind'):
+        vals = []
+        for b, fs, _ in cells:
+            p = (os.path.join(par, 'barybind_%s_%s' % (fs, b)) if m == 'barybind'
+                 else os.path.join(par, '%s_tva_%s_%s' % (m, fs, b)))
+            vals.append(fmt(get(p, 'itm')))
+        rows.append(('%s T-VA' % NAME[m].replace(' T-VA', ''), vals))
+    table('MATCHED T-VA on the T-VAS benchmarks (reported beside the T-VAS rows, never in place of them;\n'
+          'BaryBind: released checkpoint, selected by its authors on the MSR-VTT test set)',
+          [c[2] for c in cells], rows, lines)
 
     rows = []
     for m in ('sca', 'gram', 'vast', 'barybind'):

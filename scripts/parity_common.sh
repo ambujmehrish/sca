@@ -14,11 +14,12 @@ ckpt_for() {
   esac
 }
 
-# cfg_for <sca|gram|vast> <bench> <fs8|fsbb>: VAST is scored through the GRAM class (same architecture)
+# cfg_for <sca|gram|vast> <bench> <fs8|fsbb|tva_fs8|tva_fsbb>: VAST is scored through the GRAM class
 cfg_for() {
   local model="$1" bench="$2" fs="$3" cls="$1"
   [ "$cls" = vast ] && cls=gram
-  if [ "$fs" = fsbb ]; then echo "benchmark_eval/configs_fsbb/${cls}_${bench}.json"
+  if [ "${fs#tva_}" != "$fs" ]; then echo "benchmark_eval/configs_tva/${cls}_${bench}_${fs#tva_}.json"
+  elif [ "$fs" = fsbb ]; then echo "benchmark_eval/configs_fsbb/${cls}_${bench}.json"
   elif [ "$cls" = sca ]; then echo "benchmark_eval/configs_qweight/sca_${bench}.json"
   else echo "benchmark_eval/configs_e1/gram_${bench}.json"; fi
 }

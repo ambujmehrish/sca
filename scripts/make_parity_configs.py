@@ -54,6 +54,21 @@ def ours_config(model, bench, frameset):
     return out
 
 
+TVA_BENCHES = ('msrvtt', 'vatex')        # the T-VAS benchmarks; elsewhere T-VA is already the task
+
+
+def tva_config(model, bench, frameset):
+    """The reported config (fs8) or its BaryBind-frame twin (fsbb), with the task set to T-VA."""
+    src = load(SOURCES[model] % bench)
+    cfg = ours_config(model, bench, frameset) if frameset == 'fsbb' else copy.deepcopy(src)
+    for part in ('train', 'val'):
+        for e in cfg['data_cfg'][part]:
+            if e['task'] != 'ret%tvas':
+                raise ValueError('%s %s: expected source task ret%%tvas, got %s' % (model, bench, e['task']))
+            e['task'] = 'ret%tva'
+    return cfg
+
+
 def check_only_frames_changed(src, new):
     """Everything but val frames/batch must be byte-identical to the source config."""
     a, b = copy.deepcopy(src), copy.deepcopy(new)
@@ -124,6 +139,15 @@ def main():
                 p = os.path.join(out, '%s_%s.json' % (model, b))
                 write(p, ours_config(model, b, 'fsbb'))
                 print('wrote', os.path.relpath(p, ROOT))
+        tva = os.path.join(ROOT, 'benchmark_eval/configs_tva')
+        for model in SOURCES:
+            for b in TVA_BENCHES:
+                for fs in FRAMESETS:
+                    if fs != 'fs8' and FRAMESETS[fs][b] == FRAMESETS['fs8'][b]:
+                        continue                 # same frames as fs8: one config, one eval
+                    p = os.path.join(tva, '%s_%s_%s.json' % (model, b, fs))
+                    write(p, tva_config(model, b, fs))
+                    print('wrote', os.path.relpath(p, ROOT))
         return 0
     if not args.out:
         sys.exit('FATAL: --out is required for barybind configs (they carry absolute paths)')

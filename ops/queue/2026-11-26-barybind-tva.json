@@ -1,0 +1,17 @@
+{
+ "id": "2026-11-26-barybind-tva",
+ "what": "BaryBind released T-VA checkpoint, rerun after linking our encoders inside their pretrained_weights folder; T-VA, 8 frames and BaryBind frames",
+ "script": "barybind_authors.sh",
+ "env": {
+  "BB_CKPT": "/leonardo_scratch/large/userexternal/amehrish/sca_runs/barybind_ckpt/barybindTVA.pt",
+  "BB_TASK": "ret%tva"
+ },
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

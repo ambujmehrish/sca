@@ -63,7 +63,18 @@ link_dep() {
   [ -e "$dst" ] || { echo "FATAL: $dst does not resolve" >&2; return 1; }
 }
 link_dep evaluation_tools || exit 2
-link_dep pretrained_weights || exit 2
+# their repo commits pretrained_weights/ holding only a .gitignore ('*'): link our encoder
+# folders inside it (ignored by that .gitignore, so their checkout stays clean)
+if [ -d "$BB_ROOT/pretrained_weights" ] && [ ! -L "$BB_ROOT/pretrained_weights" ]; then
+  for sub in clip beats bert; do
+    dst="$BB_ROOT/pretrained_weights/$sub"
+    [ -L "$dst" ] && [ ! -e "$dst" ] && rm -f "$dst"
+    [ -e "$dst" ] || ln -s "$CODE_DIR/pretrained_weights/$sub" "$dst" \
+      || { echo "FATAL: cannot link pretrained_weights/$sub into $BB_ROOT" >&2; exit 2; }
+  done
+else
+  link_dep pretrained_weights || exit 2
+fi
 for f in clip/EVA01_CLIP_g_14_psz14_s11B.pt beats/BEATs_iter3_plus_AS2M.pt bert/bert-base-uncased; do
   [ -e "$BB_ROOT/pretrained_weights/$f" ] || { echo "FATAL: encoder weight $f missing under pretrained_weights" >&2; exit 2; }
 done

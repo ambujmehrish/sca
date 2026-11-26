@@ -1,0 +1,9 @@
+evaluation_tools already present in /leonardo_work/AIFAC_S07_041/hypergram -> /leonardo_work/AIFAC_S07_041/sca/evaluation_tools
+pretrained_weights already present in /leonardo_work/AIFAC_S07_041/hypergram -> /leonardo_scratch/fast/AIFAC_S07_041/models/sca_pretrained_weights
+FATAL: /leonardo_work/AIFAC_S07_041/hypergram has local modifications outside the generated configs:
+?? configs/pretrain/hgeval_activitynet.json
+?? configs/pretrain/hgeval_audiocaps.json
+?? configs/pretrain/hgeval_didemo.json
+?? configs/pretrain/hgeval_msrvtt.json
+?? configs/pretrain/hgeval_vatex.json
+       These results would be OUR code under THEIR name. Reset the checkout.

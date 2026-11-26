@@ -17,54 +17,6 @@
   },
   "ended_24h": [
    {
-    "elapsed": "04:14:11",
-    "end": "2026-11-25T13:21:11",
-    "exit": "0:0",
-    "jobid": "65222283",
-    "name": "fact-vc",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "04:01:21",
-    "end": "2026-11-25T13:13:53",
-    "exit": "0:0",
-    "jobid": "65222399",
-    "name": "fact-facodec",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "04:00:46",
-    "end": "2026-11-25T13:13:52",
-    "exit": "0:0",
-    "jobid": "65222402",
-    "name": "fact-facodec",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "04:03:09",
-    "end": "2026-11-25T13:16:15",
-    "exit": "0:0",
-    "jobid": "65222403",
-    "name": "fact-facodec",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "03:55:04",
-    "end": "2026-11-25T13:08:10",
-    "exit": "0:0",
-    "jobid": "65222405",
-    "name": "fact-facodec",
-    "state": "COMPLETED"
-   },
-   {
-    "elapsed": "04:05:21",
-    "end": "2026-11-25T13:18:27",
-    "exit": "0:0",
-    "jobid": "65222406",
-    "name": "fact-facodec",
-    "state": "COMPLETED"
-   },
-   {
     "elapsed": "00:00:00",
     "end": "2026-11-25T14:30:08",
     "exit": "0:0",
@@ -160,7 +112,7 @@
    },
    {
     "elapsed": "0:00",
-    "jobid": "65240930",
+    "jobid": "65240937",
     "name": "fact-stage-a",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
@@ -170,7 +122,7 @@
    },
    {
     "elapsed": "0:00",
-    "jobid": "65240937",
+    "jobid": "65240930",
     "name": "fact-stage-a",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
@@ -1545,5 +1497,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-26T13:07:37"
+ "updated": "2026-11-26T14:08:18"
 }

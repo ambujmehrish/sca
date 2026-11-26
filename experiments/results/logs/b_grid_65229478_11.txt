@@ -1,0 +1,169 @@
+FRESH: workdir_pretrain/t9_qweight_only
+arm    : T9_qweight_only
+config : config/sca/ablations/T9_qweight_only.json
+outdir : workdir_pretrain/t9_qweight_only
+model  : sca
+batch  : 128  (epochs 5)
+lr     : 2e-05
+itm    : neg_topk=all num_neg=1 condition=va
+rank   : 8  (alpha 16)
+xenc   : freeze_mm=True r_text=8 xenc_lr=None top_layers=0
+sca_que: True
+sca_tau: 0.1
+sca_fra: False
+START=15:52:24
+/leonardo_scratch/fast/AIFAC_S07_041/conda_envs/sca/lib/python3.10/site-packages/torch/distributed/launch.py:181: FutureWarning: The module torch.distributed.launch is deprecated
+and will be removed in future. Use torchrun.
+Note that --use-env is set by default in torchrun.
+If your script expects `--local-rank` argument to be set, please
+change it to read from `os.environ['LOCAL_RANK']` instead. See 
+https://pytorch.org/docs/stable/distributed.html#launch-utility for 
+further instructions
+
+  warnings.warn(
+[2026-11-26 15:52:30,149] torch.distributed.run: [WARNING] 
+[2026-11-26 15:52:30,149] torch.distributed.run: [WARNING] *****************************************
+[2026-11-26 15:52:30,149] torch.distributed.run: [WARNING] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+[2026-11-26 15:52:30,149] torch.distributed.run: [WARNING] *****************************************
+1
+023
+
+
+DEVICE SET
+11/26/2026 15:52:36 - INFO - __main__ -   ==================model_configs==================
+
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_model_type : sca
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_itm_ratio : 0.1
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_frozen_vision : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_frozen_audio : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_checkpointing : True
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_max_caption_len : 40
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_max_omni_caption_len : 70
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_max_subtitle_len : 70
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_contra_dim : 512
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_inherit_keys : ['vision_encoder_type', 'audio_encoder_type', 'audio_melbins', 'audio_target_length']
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_frame_embedding_type : adaptive
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_vision_resolution : 224
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_vision_encoder_type : evaclip01_giant
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_audio_encoder_type : beats
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_audio_melbins : 64
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_audio_target_length : 1024
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_beam_size : 3
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_captioner_mode : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_generate_nums : 1
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_ret_bidirection_evaluation : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_itm_rerank_num : 50
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_evaluation_type : evaluation_mm
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_score_mode : centroid
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_alpha : 1.0
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_beta : 1.0
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_delta : 0.5
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_lambda : 0.1
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_tau : 0.07
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_tau_learnable : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_tau_star : 0.5
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_calibration : regression
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_cal_w : 1.0
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_warmup_steps : 500
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_mask_p_full_start : 1.0
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_mask_p_full_end : 0.5
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_mask_schedule_steps : 2000
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_mask_mode : uniform
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_mask_n_drop : 1
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_num_concepts : 0
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_eta : 0.99
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_eps_floor : 0.05
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_l_mask_term1 : True
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_l_mask_term2 : True
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_l_unif_weighted : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_l_unif_t : 2.0
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_use_lora : True
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_lora_r_vision : 8
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_lora_r_audio : 8
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_lora_r_text : 8
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_lora_alpha : 16
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_lora_dropout : 0.0
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_s_star_path : /leonardo_work/AIFAC_S07_041/sca_caches/s_star_150k.pt
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_cal_known_only : True
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_default : ./config/sca/default_model_cfg.json
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_frame_slots : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_query_weighting : True
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_sca_tau_w : 0.1
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_dump_frame_feats : False
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_max_vision_sample_num : 2
+11/26/2026 15:52:36 - INFO - __main__ -   model_cfg_max_audio_sample_num : 1
+11/26/2026 15:52:36 - INFO - __main__ -   ==================run_configs==================
+
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_checkpoint : /leonardo_work/AIFAC_S07_041/GRAM/code/pretrained_models/VAST_foundation/pretrain_vast/ckpt/model_step_204994.pt
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_output_dir : workdir_pretrain/t9_qweight_only
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_gradient_accumulation_steps : 1
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_clip_lr : 5e-07
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_optim : adamw
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_learning_rate : 2e-05
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_betas : [0.9, 0.98]
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_weight_decay : 0.01
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_grad_norm : 2.0
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_warmup_ratio : 0.1
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_resume : False
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_seed : 50
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_fp16 : True
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_bf16 : False
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_zero_shot : False
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_scheduler : warmup_linear
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_new_lr : 0
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_new_params_name : []
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_valid_freq : 3
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_save_steps : 150
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_dataset_mix_type : random
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_remove_before_ckpt : True
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_first_eval : False
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_pretrain_dir : 
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_num_train_steps : 0
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_save_best : True
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_pin_mem : True
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_vision_resolution : 224
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_use_ddp : False
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_mode : training
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_log_steps : 100
+11/26/2026 15:52:36 - INFO - __main__ -   run_cfg_default : ./config/sca/default_run_cfg.json
+11/26/2026 15:52:36 - INFO - __main__ -   ==================data_configs==================
+
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_type : annoindexed
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_training : True
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_name : finetune_area
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_txt : /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/vast27m_150k/annotations150k.json
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_vision : /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/vast27m_150k/clips
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_audio : /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/vast27m_150k/audios_wav
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_datatype : video_rawvideo
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_vision_format : video_rawvideo
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_vision_sample_num : 2
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_audio_sample_num : 1
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_task : ret%tv%ta
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_epoch : 5
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_n_workers : 8
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_finetune_area_train_batch_size : 128
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_type : annoindexed
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_training : False
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_name : msrvtt_ret
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_txt : datasets/annotations/msrvtt/descs_ret_test.json
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_vision_transforms : crop_flip
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_vision_format : video_rawvideo
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_vision : /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/MSRVTT_full/MSRVTT/videos/all
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_audio : /leonardo_scratch/large/userexternal/anag0000/Multimodal_HyperGraph_Dataset/MSRVTT_full/audios
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_vision_sample_num : 8
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_audio_sample_num : 1
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_task : ret%tvas
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_n_workers : 8
+11/26/2026 15:52:36 - INFO - __main__ -   data_cfg_msrvtt_ret_val_batch_size : 64
+DEVICE SET
+DEVICE SET
+DEVICE SET
+wandb: Tracking run with wandb version 0.28.2
+wandb: W&B syncing is set to `offline` in this directory. Run `wandb online` or set WANDB_MODE=online to enable cloud syncing.
+wandb: Run data is saved locally in /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20261126_155236-hzj9yc90
+wandb: View this run in the terminal with `wandb leet`
+wandb: Detected [huggingface_hub.inference] in use.
+wandb: Use W&B Weave for improved LLM call tracing. Install Weave with `pip install weave` then add `import weave` to the top of your script.
+wandb: For more information, check out the docs at: https://weave-docs.wandb.ai
+11/26/2026 15:52:37 - INFO - __main__ -   finetune_area Using clip mean and std.
+11/26/2026 15:52:37 - INFO - __main__ -   finetune_area transforms none

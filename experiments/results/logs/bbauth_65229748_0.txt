@@ -1,0 +1,3 @@
+BaryBind code : /leonardo_work/AIFAC_S07_041/barybind @ f2e0554
+BaryBind ckpt : /leonardo_scratch/large/userexternal/amehrish/sca_runs/barybind_ckpt/barybindTVA.pt   task override: ret%tva
+FATAL: encoder weight clip/EVA01_CLIP_g_14_psz14_s11B.pt missing under pretrained_weights

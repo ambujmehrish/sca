@@ -1668,3 +1668,4 @@ collector: committed locally (local results (runner))
 2026-11-26T15:49:34 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=107
 2026-11-26T15:54:37 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=106 RUNNING=3
 2026-11-26T15:59:40 submitted=0 finished=0 collected=0 invalid=0 | cluster: CONFIGURING=1 PENDING=105 RUNNING=3
+2026-11-26T16:04:44 submitted=0 finished=1 collected=1 invalid=0 | cluster: PENDING=105 RUNNING=3

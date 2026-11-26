@@ -1,0 +1,6 @@
+{
+ "id": "2026-11-26-diag-queue",
+ "what": "read-only: why no GPU job of the account has started since 25 Nov (budget, fair share, priority, partition load)",
+ "script": "diag_queue.sh",
+ "collect": true
+}

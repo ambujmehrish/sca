@@ -315,3 +315,30 @@
 11/26/2026 19:09:47 - INFO - __main__ -   evaluate on ret%tvas--msrvtt_ret task
 11/26/2026 19:09:47 - INFO - __main__ -   start running ret%tvas validation...
 11/26/2026 19:12:05 - INFO - __main__ -   [SCORE] task=tvas mode=centroid over T+VAS = 4-modal
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_gramian_value=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'value': 0.4945310950279236}
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_ret_area_forward=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'volume_T2D_r1': 44.6, 'volume_T2D_recall': '44.6/71.8/79.8', 'volume_T2D_ravg': 65.4}
+11/26/2026 19:14:54 - INFO - __main__ -   ======evaluation--ret%tvas--msrvtt_ret_ret_area_forward====history best step: 3553=======
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'volume_T2D_r1': 44.7, 'volume_T2D_recall': '44.7/71.5/79.5', 'volume_T2D_ravg': 65.2}
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_ret_area_backard=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'forward_r1': 31.3, 'forward_recall': '31.3/56.3/67.1', 'forward_ravg': 51.6}
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_ret_itm_area=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'volume_ITM_T2D_r1': 54.4, 'volume_ITM_T2D_recall': '54.4/76.9/85.0', 'volume_ITM_T2D_ravg': 72.1, 'volume_ITM_D2T_r1': 51.0, 'volume_ITM_D2T_recall': '51.0/72.8/79.0', 'volume_ITM_D2T_ravg': 67.6}
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_cosine_TV=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'forward_r1': 41.5, 'forward_recall': '41.5/70.4/80.4', 'forward_ravg': 64.1}
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_cosine_VT=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'forward_r1': 31.2, 'forward_recall': '31.2/57.5/68.7', 'forward_ravg': 52.5}
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_cosine_TA=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'forward_r1': 5.4, 'forward_recall': '5.4/13.8/19.8', 'forward_ravg': 13.0}
+11/26/2026 19:14:54 - INFO - __main__ -   ====-evaluation--ret%tvas--msrvtt_ret_cosine_AT=====step 5330--===========
+
+11/26/2026 19:14:54 - INFO - __main__ -   {'forward_r1': 4.3, 'forward_recall': '4.3/14.3/22.4', 'forward_ravg': 13.7}

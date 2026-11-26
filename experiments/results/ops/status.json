@@ -13,7 +13,7 @@
  },
  "cluster": {
   "counts": {
-   "PENDING": 105,
+   "PENDING": 106,
    "RUNNING": 3
   },
   "ended_24h": [
@@ -57,23 +57,13 @@
     "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "2026-11-26T23:02:42",
+    "start": "2026-11-27T09:47:55",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
    {
     "elapsed": "0:00",
     "jobid": "65239327",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "(Priority)",
-    "start": "2026-11-26T21:29:54",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
-    "jobid": "65239588",
     "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
@@ -87,7 +77,17 @@
     "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "2026-11-26T23:02:42",
+    "start": "2026-11-27T14:17:54",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65239588",
+    "name": "fact-wavedec",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "2026-11-27T14:05:35",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -97,7 +97,7 @@
     "name": "fact-stage-a",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "2026-11-27T05:28:02",
+    "start": "2026-11-27T14:17:54",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -107,7 +107,7 @@
     "name": "fact-stage-a",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "2026-11-27T03:15:50",
+    "start": "2026-11-27T14:17:54",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -117,7 +117,7 @@
     "name": "hgauth",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
+    "start": "2026-11-27T14:17:54",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -125,6 +125,16 @@
     "elapsed": "0:00",
     "jobid": "65246936",
     "name": "fact-stage-a",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65304851_[0-1]",
+    "name": "bbauth",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
     "start": "N/A",
@@ -1092,7 +1102,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "17:30",
+    "elapsed": "1:18:20",
     "jobid": "65229478_18",
     "name": "b_grid",
     "nodes": "1",
@@ -1102,7 +1112,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "17:33",
+    "elapsed": "1:18:23",
     "jobid": "65229478_11",
     "name": "b_grid",
     "nodes": "1",
@@ -1112,7 +1122,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "17:33",
+    "elapsed": "1:18:23",
     "jobid": "65229478_17",
     "name": "b_grid",
     "nodes": "1",
@@ -1168,6 +1178,7 @@
   "2026-11-25-train-hypergram",
   "2026-11-25-train-t9",
   "2026-11-25-tva-parity",
+  "2026-11-26-barybind-tva",
   "2026-11-26-diag-queue"
  ],
  "requests": {
@@ -1493,6 +1504,20 @@
    "submitted": "2026-11-25T16:21:21",
    "waiting_for": null
   },
+  "2026-11-26-barybind-tva": {
+   "collected": null,
+   "finished": null,
+   "invalid": null,
+   "jobid": "65304851",
+   "post_error": null,
+   "post_output_tail": "",
+   "states": [
+    "PENDING"
+   ],
+   "submit_error": null,
+   "submitted": "2026-11-26T16:45:24",
+   "waiting_for": null
+  },
   "2026-11-26-diag-queue": {
    "collected": "2026-11-26T08:07:17",
    "finished": "2026-11-26T08:07:17",
@@ -1508,5 +1533,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-26T16:09:52"
+ "updated": "2026-11-26T17:10:41"
 }

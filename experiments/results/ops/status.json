@@ -57,7 +57,7 @@
     "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
+    "start": "2026-11-27T03:15:50",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -67,17 +67,7 @@
     "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
-    "jobid": "65239594",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
+    "start": "2026-11-26T23:39:48",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -87,17 +77,17 @@
     "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
+    "start": "2026-11-27T11:05:57",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
    {
     "elapsed": "0:00",
-    "jobid": "65240937",
-    "name": "fact-stage-a",
+    "jobid": "65239594",
+    "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
+    "start": "2026-11-27T10:29:35",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -107,7 +97,17 @@
     "name": "fact-stage-a",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
+    "start": "2026-11-27T14:17:54",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65240937",
+    "name": "fact-stage-a",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "2026-11-27T14:17:54",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -117,7 +117,7 @@
     "name": "hgauth",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
+    "start": "2026-11-27T18:24:19",
     "state": "PENDING",
     "time_limit": "1-00:00:00"
    },
@@ -1102,7 +1102,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "2:19:05",
+    "elapsed": "3:19:51",
     "jobid": "65229478_18",
     "name": "b_grid",
     "nodes": "1",
@@ -1112,7 +1112,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "2:19:08",
+    "elapsed": "3:19:54",
     "jobid": "65229478_11",
     "name": "b_grid",
     "nodes": "1",
@@ -1122,7 +1122,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "2:19:08",
+    "elapsed": "3:19:54",
     "jobid": "65229478_17",
     "name": "b_grid",
     "nodes": "1",
@@ -1533,5 +1533,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-26T18:11:27"
+ "updated": "2026-11-26T19:12:13"
 }

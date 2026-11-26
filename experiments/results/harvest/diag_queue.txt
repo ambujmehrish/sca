@@ -1,0 +1,70 @@
+== budget (saldo -b)
+saldo not available
+
+== fair share (sshare)
+Account                    User  RawShares  NormShares    RawUsage   NormUsage  EffectvUsage  FairShare                    GrpTRESMins                    TRESRunMins 
+-------------------- ---------- ---------- ----------- ----------- ----------- ------------- ---------- ------------------------------ ------------------------------ 
+aifac_s07_041          amehrish     parent    0.003959    12875206    0.000165      0.000229   0.960645                                cpu=30,mem=30720,energy=0,nod+ 
+
+== priority of our pending GPU jobs (sprio)
+          JOBID PARTITION     USER  ACCOUNT   PRIORITY       SITE        AGE      ASSOC  FAIRSHARE    JOBSIZE  PARTITION    QOSNAME        QOS        NICE                 TRES
+       65229478 boost_usr amehrish aifac_s0     146543          0       2526          0      24016          1          0     normal     120000           0                     
+       65229748 boost_usr amehrish aifac_s0     146532          0       2515          0      24016          1          0     normal     120000           0                     
+       65239327 boost_usr amehrish aifac_s0     146160          0       2143          0      24016          1          0     normal     120000           0                     
+       65239335 boost_usr amehrish aifac_s0     146160          0       2143          0      24016          1          0     normal     120000           0                     
+       65239588 boost_usr amehrish aifac_s0     146150          0       2133          0      24016          1          0     normal     120000           0                     
+       65239594 boost_usr amehrish aifac_s0     146150          0       2133          0      24016          1          0     normal     120000           0                     
+       65240930 boost_usr amehrish aifac_s0     146097          0       2080          0      24016          1          0     normal     120000           0                     
+       65240937 boost_usr amehrish aifac_s0     146097          0       2080          0      24016          1          0     normal     120000           0                     
+       65246401 boost_usr amehrish aifac_s0     145866          0       1849          0      24016          1          0     normal     120000           0                     
+       65246935 boost_usr amehrish aifac_s0     145846          0       1828          0      24016          3          0     normal     120000           0                     
+
+== our pending jobs and reasons
+65229478_[11,17-18] b_grid 146543 Priority 2026-11-27T14:32:03
+65229748_[0-1] bbauth 146532 Priority 2026-11-27T14:32:03
+65239335 fact-wavedec 146160 Priority 2026-11-27T14:32:03
+65239327 fact-wavedec 146160 Priority 2026-11-27T14:32:03
+65239594 fact-wavedec 146150 Priority 2026-11-27T14:32:03
+65239588 fact-wavedec 146150 Priority 2026-11-27T14:32:03
+65240937 fact-stage-a 146097 Priority 2026-11-27T14:32:03
+65240930 fact-stage-a 146097 Priority 2026-11-27T14:32:03
+65246401_[0] hgauth 145866 Priority 2026-11-27T14:32:03
+65246935 fact-preprocess 145846 Priority 2026-11-26T08:45:00
+65229483 audit_vatex 144024 Dependency N/A
+65246968 fact-eval-base 144018 Dependency N/A
+65246967 fact-eval-base 144018 Dependency N/A
+65246965 fact-eval-base 144018 Dependency N/A
+65246964 fact-eval-base 144018 Dependency N/A
+65246963 fact-eval-base 144018 Dependency N/A
+65246962 fact-eval-base 144018 Dependency N/A
+65246961 fact-eval-base 144018 Dependency N/A
+65246960 fact-eval-base 144018 Dependency N/A
+65246959 fact-eval-base 144018 Dependency N/A
+65246958 fact-eval-base 144018 Dependency N/A
+65246957 fact-eval-base 144018 Dependency N/A
+65246956 fact-eval-base 144018 Dependency N/A
+65239611 fact-eval-base 144018 Dependency N/A
+65239610 fact-eval-base 144018 Dependency N/A
+
+== boost_usr_prod load (sinfo)
+PARTITION AVAIL NODES STATE
+boost_usr_prod up 114 mixed-
+boost_usr_prod up 1 planned
+boost_usr_prod up 2 maint
+boost_usr_prod up 30 mixed
+boost_usr_prod up 1415 allocated
+
+== partition queue depth
+6885
+1083
+
+== QOS limits
+       aifac_s07_041 boost_qos_bprod,boost_qos_dbg,boost_qos+                                                  
+    iscrc_casper-a_0 boost_qos_bprod,boost_qos_dbg,boost_qos+                                                  
+    iscrc_casper-a_1 dcgp_qos_bprod,dcgp_qos_dbg,dcgp_qos_lp+                                                  
+          iscrc_gmeg boost_qos_bprod,boost_qos_dbg,boost_qos+                                                  
+        iscrc_hymiss boost_qos_bprod,boost_qos_dbg,boost_qos+                                                  
+       iscrc_rhyme_0 boost_qos_bprod,boost_qos_dbg,boost_qos+                                                  
+       iscrc_rhyme_1 dcgp_qos_bprod,dcgp_qos_dbg,dcgp_qos_lp+                                                  
+       try25_mehrish boost_qos_bprod,boost_qos_dbg,boost_qos+                                                  
+(end)

@@ -50274,3 +50274,10 @@ mmco: unref short failure
 [1;34mwandb[0m: You can sync this run to the cloud by running:
 [1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20261126_155236-faj7gwqq[0m
 [1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20261126_155236-faj7gwqq/logs[0m
+[2026-11-27T09:41:34.860] error: *** STEP 65302621.0 ON lrdn1209 CANCELLED AT 2026-11-27T09:41:34 DUE to SIGNAL Terminated ***
+[2026-11-27T09:41:34.861] error: *** JOB 65302621 ON lrdn1209 CANCELLED AT 2026-11-27T09:41:34 DUE to SIGNAL Terminated ***
+[2026-11-27 09:41:34,860] torch.distributed.elastic.agent.server.api: [WARNING] Received Signals.SIGTERM death signal, shutting down workers
+[2026-11-27 09:41:34,861] torch.distributed.elastic.multiprocessing.api: [WARNING] Sending process 310051 closing signal SIGTERM
+[2026-11-27 09:41:34,861] torch.distributed.elastic.multiprocessing.api: [WARNING] Sending process 310052 closing signal SIGTERM
+[2026-11-27 09:41:34,861] torch.distributed.elastic.multiprocessing.api: [WARNING] Sending process 310053 closing signal SIGTERM
+[2026-11-27 09:41:34,861] torch.distributed.elastic.multiprocessing.api: [WARNING] Sending process 310054 closing signal SIGTERM

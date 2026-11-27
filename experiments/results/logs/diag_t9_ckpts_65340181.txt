@@ -1,0 +1,40 @@
+== t9_qweight_only
+workdir_pretrain/t9_qweight_only/ckpt:
+drwxr-xr-x. 2 amehrish interactive       4096 2026-11-26T19:15 .
+drwxr-xr-x. 4 amehrish interactive       4096 2026-11-26T15:52 ..
+-rw-r--r--. 1 amehrish interactive 5600811256 2026-11-26T18:25 best_ret%tvas--msrvtt_ret_ret_area_forward.pt
+-rw-r--r--. 1 amehrish interactive 5600766739 2026-11-26T19:15 model_step_5330.pt
+-rw-r--r--. 1 amehrish interactive   38182618 2026-11-26T19:15 optimizer_step_5330.pt
+
+workdir_pretrain/t9_qweight_only/log:
+drwxr-xr-x. 2 amehrish interactive  4096 2026-11-26T15:52 .
+drwxr-xr-x. 4 amehrish interactive  4096 2026-11-26T15:52 ..
+-rw-r--r--. 1 amehrish interactive  5005 2026-11-26T15:52 hps.json
+-rw-r--r--. 1 amehrish interactive 81975 2026-11-26T19:14 log.txt
+== s1_t9_seed51
+workdir_pretrain/s1_t9_seed51/ckpt:
+drwxr-xr-x. 2 amehrish interactive       4096 2026-11-26T19:15 .
+drwxr-xr-x. 4 amehrish interactive       4096 2026-11-26T15:52 ..
+-rw-r--r--. 1 amehrish interactive 5600811256 2026-11-26T19:15 best_ret%tvas--msrvtt_ret_ret_area_forward.pt
+-rw-r--r--. 1 amehrish interactive 5600766739 2026-11-26T19:15 model_step_5330.pt
+-rw-r--r--. 1 amehrish interactive   38182618 2026-11-26T19:15 optimizer_step_5330.pt
+
+workdir_pretrain/s1_t9_seed51/log:
+drwxr-xr-x. 2 amehrish interactive  4096 2026-11-26T15:52 .
+drwxr-xr-x. 4 amehrish interactive  4096 2026-11-26T15:52 ..
+-rw-r--r--. 1 amehrish interactive  5002 2026-11-26T15:52 hps.json
+-rw-r--r--. 1 amehrish interactive 81971 2026-11-26T19:14 log.txt
+== s2_t9_seed52
+workdir_pretrain/s2_t9_seed52/ckpt:
+drwxr-xr-x. 2 amehrish interactive       4096 2026-11-26T19:15 .
+drwxr-xr-x. 4 amehrish interactive       4096 2026-11-26T15:52 ..
+-rw-r--r--. 1 amehrish interactive 5600811256 2026-11-26T19:15 best_ret%tvas--msrvtt_ret_ret_area_forward.pt
+-rw-r--r--. 1 amehrish interactive 5600766739 2026-11-26T19:15 model_step_5330.pt
+-rw-r--r--. 1 amehrish interactive   38182618 2026-11-26T19:15 optimizer_step_5330.pt
+
+workdir_pretrain/s2_t9_seed52/log:
+drwxr-xr-x. 2 amehrish interactive  4096 2026-11-26T15:52 .
+drwxr-xr-x. 4 amehrish interactive  4096 2026-11-26T15:52 ..
+-rw-r--r--. 1 amehrish interactive  5002 2026-11-26T15:52 hps.json
+-rw-r--r--. 1 amehrish interactive 81990 2026-11-26T19:14 log.txt
+(end)

@@ -1,0 +1,6 @@
+final two-stage T->V R@1: committed -> retrained (delta); CHECK if |delta| > 1.5
+arm                               msrvtt                didemo           activitynet                 vatex             audiocaps
+t9_qweight_only          54.8 -> MISSING       51.5 -> MISSING       55.8 -> MISSING       90.5 -> MISSING       35.2 -> MISSING
+s1_t9_seed51             54.7 -> MISSING       51.0 -> MISSING       56.1 -> MISSING       90.5 -> MISSING       34.5 -> MISSING
+s2_t9_seed52             54.4 -> MISSING       51.2 -> MISSING       55.9 -> MISSING       90.7 -> MISSING       35.2 -> MISSING
+retrained mean                   MISSING               MISSING               MISSING               MISSING               MISSING

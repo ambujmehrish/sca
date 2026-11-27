@@ -50324,3 +50324,6 @@ mmco: unref short failure
 [1;34mwandb[0m: You can sync this run to the cloud by running:
 [1;34mwandb[0m: [1mwandb sync /leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20261126_155236-hzj9yc90[0m
 [1;34mwandb[0m: Find logs at: [1;35m../../../leonardo_scratch/large/userexternal/amehrish/sca_runs/wandb/wandb/offline-run-20261126_155236-hzj9yc90/logs[0m
+srun: Job step aborted: Waiting up to 182 seconds for job step to finish.
+[2026-11-27T09:41:34.860] error: *** JOB 65302620 ON lrdn0528 CANCELLED AT 2026-11-27T09:41:34 DUE to SIGNAL Terminated ***
+[2026-11-27T09:41:35.419] error: *** STEP 65302620.0 ON lrdn0528 CANCELLED AT 2026-11-27T09:41:35 DUE to SIGNAL Terminated ***

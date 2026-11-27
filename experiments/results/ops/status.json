@@ -1131,7 +1131,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "17:22:32",
+    "elapsed": "18:23:22",
     "jobid": "65239335",
     "name": "fact-wavedec",
     "nodes": "1",
@@ -1141,7 +1141,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "17:22:12",
+    "elapsed": "18:23:02",
     "jobid": "65239588",
     "name": "fact-wavedec",
     "nodes": "1",
@@ -1151,7 +1151,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "17:22:12",
+    "elapsed": "18:23:02",
     "jobid": "65239594",
     "name": "fact-wavedec",
     "nodes": "1",
@@ -1161,7 +1161,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "17:34:10",
+    "elapsed": "18:35:00",
     "jobid": "65239327",
     "name": "fact-wavedec",
     "nodes": "1",
@@ -1752,5 +1752,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-27T13:25:11"
+ "updated": "2026-11-27T14:26:01"
 }

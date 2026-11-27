@@ -1877,3 +1877,4 @@ collector: committed locally (local results (runner))
 2026-11-27T09:26:17 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=97 RUNNING=7
 2026-11-27T09:31:21 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=97 RUNNING=7
 2026-11-27T09:36:24 submitted=0 finished=0 collected=0 invalid=0 | cluster: PENDING=97 RUNNING=7
+2026-11-27T09:41:29 submitted=12 finished=7 collected=7 invalid=0 | cluster: COMPLETING=4 PENDING=102 RUNNING=4

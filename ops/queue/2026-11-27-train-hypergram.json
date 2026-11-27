@@ -1,0 +1,9 @@
+{
+ "id": "2026-11-27-train-hypergram",
+ "what": "retrain HyperGRAM from its authors' code at their published recipe (hybrid mode), their own checkpoint selection; rerun after the clean-checkout fix",
+ "script": "hypergram_authors.sh",
+ "sbatch": {
+  "array": "0"
+ },
+ "collect": true
+}

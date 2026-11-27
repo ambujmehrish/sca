@@ -144,7 +144,7 @@ export PYTHONPATH="$HG_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 # their name, which is the whole thing this job exists to avoid. The two exclusions are the
 # configs we generate and the dependency symlink above -- neither is a change to their method.
 DIRTY=$(git -C "$HG_ROOT" status --porcelain \
-          -- ':!configs/pretrain/repro_*' ':!evaluation_tools' ':!pretrained_weights' \
+          -- ':!configs/pretrain/repro_*' ':!configs/pretrain/hgeval_*' ':!evaluation_tools' ':!pretrained_weights' \
           2>/dev/null | head -5)
 if [ -n "$DIRTY" ]; then
   echo "FATAL: $HG_ROOT has local modifications outside the generated configs:" >&2

@@ -1,0 +1,19 @@
+{
+ "id": "2026-11-27-hgeval-fsbb",
+ "what": "HyperGRAM at BaryBind test frames",
+ "script": "hypergram_eval.sh",
+ "env": {
+  "HG_EVAL_SET": "fsbb"
+ },
+ "after": [
+  "2026-11-27-train-hypergram"
+ ],
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

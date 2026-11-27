@@ -1,0 +1,13 @@
+{
+ "id": "2026-11-27-cancel-hung-t9",
+ "what": "T9/seed training finished all 5,335 steps at ~18:25 UTC on 26 Nov but hung at shutdown; its afterok dependents can never start",
+ "requests": [
+  "2026-11-25-train-t9",
+  "2026-11-25-eval-t9-seeds",
+  "2026-11-25-rrswap-dump",
+  "2026-11-25-rrswap-swap",
+  "2026-11-25-fsparity",
+  "2026-11-25-tva-parity",
+  "2026-11-25-audit-vatex-gallery"
+ ]
+}

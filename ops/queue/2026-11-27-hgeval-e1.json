@@ -1,0 +1,19 @@
+{
+ "id": "2026-11-27-hgeval-e1",
+ "what": "HyperGRAM (their selected checkpoint) on our 8-frame protocol, all five benchmarks; checked against the committed row",
+ "script": "hypergram_eval.sh",
+ "env": {
+  "HG_EVAL_SET": "e1"
+ },
+ "after": [
+  "2026-11-27-train-hypergram"
+ ],
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

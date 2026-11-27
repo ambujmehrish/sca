@@ -1,0 +1,6 @@
+{
+ "id": "2026-11-27-diag-t9-ckpts",
+ "what": "read-only: list the checkpoints and logs the retrained T9 / seed runs saved",
+ "script": "diag_t9_ckpts.sh",
+ "collect": true
+}

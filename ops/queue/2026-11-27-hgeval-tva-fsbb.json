@@ -1,0 +1,22 @@
+{
+ "id": "2026-11-27-hgeval-tva-fsbb",
+ "what": "HyperGRAM scored T-VA on VATEX at 16 frames",
+ "script": "hypergram_eval.sh",
+ "env": {
+  "HG_EVAL_SET": "tva_fsbb"
+ },
+ "sbatch": {
+  "array": "3"
+ },
+ "after": [
+  "2026-11-27-train-hypergram"
+ ],
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

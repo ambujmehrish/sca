@@ -1,0 +1,20 @@
+{
+ "id": "2026-11-27-rrswap-swap",
+ "what": "reranker swap phase 2: GRAM reranks SCALAR top-50, SCALAR reranks GRAM top-50, VAST reranks SCALAR top-50",
+ "script": "rerank_swap.sh",
+ "env": {
+  "PHASE": "swap",
+  "GRAM_RELEASED_CKPT": "${WORK}/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt"
+ },
+ "after": [
+  "2026-11-27-rrswap-dump"
+ ],
+ "post": {
+  "script": "summarize_parity.py",
+  "args": [
+   "--out",
+   "experiments/results/harvest/parity.txt"
+  ]
+ },
+ "collect": true
+}

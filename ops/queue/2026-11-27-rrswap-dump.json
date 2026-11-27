@@ -1,0 +1,10 @@
+{
+ "id": "2026-11-27-rrswap-dump",
+ "what": "reranker swap phase 1: retrained SCALAR T9, GRAM, VAST rank their own top-50 at 8 frames and dump stage-1 scores",
+ "script": "rerank_swap.sh",
+ "env": {
+  "PHASE": "dump",
+  "GRAM_RELEASED_CKPT": "${WORK}/HyperAlign/pretrained_weights/GRAM_pretrained_TVAS/ckpt/model_step_459.pt"
+ },
+ "collect": true
+}

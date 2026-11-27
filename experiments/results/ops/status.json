@@ -26,8 +26,7 @@
  },
  "cluster": {
   "counts": {
-   "PENDING": 102,
-   "RUNNING": 3
+   "PENDING": 102
   },
   "ended_24h": [
    {
@@ -55,19 +54,35 @@
     "state": "CANCELLED"
    },
    {
+    "elapsed": "1-00:03:26",
+    "end": "2026-11-27T19:54:28",
+    "exit": "0:0",
+    "jobid": "65239327",
+    "name": "fact-wavedec",
+    "state": "TIMEOUT"
+   },
+   {
+    "elapsed": "1-00:03:24",
+    "end": "2026-11-27T20:06:04",
+    "exit": "0:0",
+    "jobid": "65239335",
+    "name": "fact-wavedec",
+    "state": "TIMEOUT"
+   },
+   {
+    "elapsed": "1-00:03:04",
+    "end": "2026-11-27T20:06:04",
+    "exit": "0:0",
+    "jobid": "65239588",
+    "name": "fact-wavedec",
+    "state": "TIMEOUT"
+   },
+   {
     "elapsed": "23:22:23",
     "end": "2026-11-27T19:25:23",
     "exit": "1:0",
     "jobid": "65239594",
     "name": "fact-wavedec",
-    "state": "FAILED"
-   },
-   {
-    "elapsed": "00:01:17",
-    "end": "2026-11-26T20:04:17",
-    "exit": "1:0",
-    "jobid": "65240930",
-    "name": "fact-stage-a",
     "state": "FAILED"
    },
    {
@@ -77,14 +92,6 @@
     "jobid": "65240931",
     "name": "fact-stage-a",
     "state": "CANCELLED"
-   },
-   {
-    "elapsed": "00:01:17",
-    "end": "2026-11-26T20:04:17",
-    "exit": "1:0",
-    "jobid": "65240937",
-    "name": "fact-stage-a",
-    "state": "FAILED"
    },
    {
     "elapsed": "00:00:00",
@@ -196,6 +203,46 @@
     "elapsed": "0:00",
     "jobid": "65340183",
     "name": "fs_eval",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65239595",
+    "name": "fact-wavedec",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65239328",
+    "name": "fact-wavedec",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65239589",
+    "name": "fact-wavedec",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65239336",
+    "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
     "start": "N/A",
@@ -561,16 +608,6 @@
     "start": "N/A",
     "state": "PENDING",
     "time_limit": "12:00:00"
-   },
-   {
-    "elapsed": "0:00",
-    "jobid": "65239595",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
    },
    {
     "elapsed": "0:00",
@@ -1014,16 +1051,6 @@
    },
    {
     "elapsed": "0:00",
-    "jobid": "65239589",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "(Dependency)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
     "jobid": "65239340",
     "name": "fact-wavedec",
     "nodes": "1",
@@ -1055,16 +1082,6 @@
    {
     "elapsed": "0:00",
     "jobid": "65239337",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "(Dependency)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
-    "jobid": "65239336",
     "name": "fact-wavedec",
     "nodes": "1",
     "reason_or_nodelist": "(Dependency)",
@@ -1110,46 +1127,6 @@
     "reason_or_nodelist": "(Dependency)",
     "start": "N/A",
     "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
-    "jobid": "65239328",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "(Dependency)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "23:27:48",
-    "jobid": "65239335",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "lrdn3228",
-    "start": "2026-11-26T20:02:40",
-    "state": "RUNNING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "23:27:28",
-    "jobid": "65239588",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "lrdn0443",
-    "start": "2026-11-26T20:03:00",
-    "state": "RUNNING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "23:39:26",
-    "jobid": "65239327",
-    "name": "fact-wavedec",
-    "nodes": "1",
-    "reason_or_nodelist": "lrdn3127",
-    "start": "2026-11-26T19:51:02",
-    "state": "RUNNING",
     "time_limit": "1-00:00:00"
    },
    {
@@ -1734,5 +1711,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-27T19:30:26"
+ "updated": "2026-11-27T20:31:09"
 }

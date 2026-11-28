@@ -76,16 +76,6 @@
    },
    {
     "elapsed": "0:00",
-    "jobid": "65336225",
-    "name": "fact-stage-a",
-    "nodes": "1",
-    "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
-   {
-    "elapsed": "0:00",
     "jobid": "65336250",
     "name": "fact-stage-a",
     "nodes": "1",
@@ -96,8 +86,8 @@
    },
    {
     "elapsed": "0:00",
-    "jobid": "65340183",
-    "name": "fs_eval",
+    "jobid": "65336225",
+    "name": "fact-stage-a",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
     "start": "N/A",
@@ -138,6 +128,16 @@
     "elapsed": "0:00",
     "jobid": "65340185_[0-1]",
     "name": "fsparity",
+    "nodes": "1",
+    "reason_or_nodelist": "(Priority)",
+    "start": "N/A",
+    "state": "PENDING",
+    "time_limit": "1-00:00:00"
+   },
+   {
+    "elapsed": "0:00",
+    "jobid": "65340183",
+    "name": "fs_eval",
     "nodes": "1",
     "reason_or_nodelist": "(Priority)",
     "start": "N/A",
@@ -1065,7 +1065,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "6:59:40",
+    "elapsed": "8:00:16",
     "jobid": "65246936",
     "name": "fact-stage-a",
     "nodes": "1",
@@ -1656,5 +1656,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-28T15:43:07"
+ "updated": "2026-11-28T16:43:43"
 }

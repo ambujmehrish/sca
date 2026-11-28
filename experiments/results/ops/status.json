@@ -1065,7 +1065,7 @@
     "time_limit": "1-00:00:00"
    },
    {
-    "elapsed": "8:00:16",
+    "elapsed": "9:00:49",
     "jobid": "65246936",
     "name": "fact-stage-a",
     "nodes": "1",
@@ -1656,5 +1656,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-28T16:43:43"
+ "updated": "2026-11-28T17:44:16"
 }

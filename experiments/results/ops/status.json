@@ -26,7 +26,8 @@
  },
  "cluster": {
   "counts": {
-   "PENDING": 102
+   "PENDING": 101,
+   "RUNNING": 1
   },
   "ended_24h": [
    {
@@ -95,16 +96,6 @@
    }
   ],
   "squeue": [
-   {
-    "elapsed": "0:00",
-    "jobid": "65246936",
-    "name": "fact-stage-a",
-    "nodes": "1",
-    "reason_or_nodelist": "(Priority)",
-    "start": "N/A",
-    "state": "PENDING",
-    "time_limit": "1-00:00:00"
-   },
    {
     "elapsed": "0:00",
     "jobid": "65304851_[0-1]",
@@ -1106,6 +1097,16 @@
     "time_limit": "1-00:00:00"
    },
    {
+    "elapsed": "55:23",
+    "jobid": "65246936",
+    "name": "fact-stage-a",
+    "nodes": "1",
+    "reason_or_nodelist": "lrdn1939",
+    "start": "2026-11-28T08:43:28",
+    "state": "RUNNING",
+    "time_limit": "1-00:00:00"
+   },
+   {
     "elapsed": "0:00",
     "jobid": "65340192",
     "name": "audit_vatex",
@@ -1687,5 +1688,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-28T08:38:24"
+ "updated": "2026-11-28T09:38:50"
 }

@@ -86,22 +86,6 @@
     "state": "FAILED"
    },
    {
-    "elapsed": "00:00:00",
-    "end": "2026-11-27T08:09:21",
-    "exit": "0:0",
-    "jobid": "65240931",
-    "name": "fact-stage-a",
-    "state": "CANCELLED"
-   },
-   {
-    "elapsed": "00:00:00",
-    "end": "2026-11-27T08:09:21",
-    "exit": "0:0",
-    "jobid": "65240938",
-    "name": "fact-stage-a",
-    "state": "CANCELLED"
-   },
-   {
     "elapsed": "00:00:04",
     "end": "2026-11-27T09:41:36",
     "exit": "0:0",
@@ -1703,5 +1687,5 @@
    "waiting_for": null
   }
  },
- "updated": "2026-11-28T07:37:52"
+ "updated": "2026-11-28T08:38:24"
 }
